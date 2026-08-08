@@ -1,5 +1,6 @@
 package com.queueless.backend.order;
 
+import com.queueless.backend.order.dto.OrderPageResponse;
 import com.queueless.backend.order.dto.OrderResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,9 +10,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,8 +24,12 @@ public class ShopOrderController {
 
     @GetMapping
     @PreAuthorize("hasRole('SHOP_OWNER')")
-    public ResponseEntity<List<OrderResponse>> getShopOrders(Authentication authentication) {
-        List<OrderResponse> response = orderService.getShopOrders(authentication.getName());
+    public ResponseEntity<OrderPageResponse> getShopOrders(
+            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication) {
+        OrderPageResponse response = orderService.getShopOrders(authentication.getName(), status, page, size);
         return ResponseEntity.ok(response);
     }
 
@@ -55,6 +60,15 @@ public class ShopOrderController {
         return ResponseEntity.ok(response);
     }
 
+    @PatchMapping("/{orderId}/preparing")
+    @PreAuthorize("hasRole('SHOP_OWNER')")
+    public ResponseEntity<OrderResponse> startPreparing(
+            @PathVariable UUID orderId,
+            Authentication authentication) {
+        OrderResponse response = orderService.startPreparing(orderId, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/{orderId}/ready")
     @PreAuthorize("hasRole('SHOP_OWNER')")
     public ResponseEntity<OrderResponse> markOrderReadyForPickup(
@@ -64,4 +78,3 @@ public class ShopOrderController {
         return ResponseEntity.ok(response);
     }
 }
-

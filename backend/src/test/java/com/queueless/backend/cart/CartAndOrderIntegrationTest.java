@@ -660,7 +660,7 @@ class CartAndOrderIntegrationTest {
         mockMvc.perform(get("/api/orders")
                         .header("Authorization", "Bearer " + customer1Token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$.content", hasSize(1)));
     }
 
     @Test
@@ -707,9 +707,10 @@ class CartAndOrderIntegrationTest {
         mockMvc.perform(get("/api/shop/orders")
                         .header("Authorization", "Bearer " + shopOwner1Token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].shopId", is(shop1.getId().toString())));
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].shopId", is(shop1.getId().toString())));
     }
+
 
     @Test
     @DisplayName("20. Shop owner cannot view another shop's orders")

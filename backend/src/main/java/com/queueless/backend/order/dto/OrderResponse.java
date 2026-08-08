@@ -2,6 +2,7 @@ package com.queueless.backend.order.dto;
 
 import com.queueless.backend.order.Order;
 import com.queueless.backend.order.OrderStatus;
+import com.queueless.backend.slot.dto.PickupSlotResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,10 +28,15 @@ public class OrderResponse {
     private BigDecimal totalAmount;
     private OrderStatus status;
     private List<OrderItemResponse> items;
+    private PickupSlotResponse pickupSlot;
     private Instant createdAt;
     private Instant updatedAt;
 
     public static OrderResponse fromEntity(Order order) {
+        return fromEntity(order, null);
+    }
+
+    public static OrderResponse fromEntity(Order order, PickupSlotResponse pickupSlot) {
         List<OrderItemResponse> itemResponses = order.getItems().stream()
                 .map(OrderItemResponse::fromEntity)
                 .collect(Collectors.toList());
@@ -44,6 +50,7 @@ public class OrderResponse {
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus())
                 .items(itemResponses)
+                .pickupSlot(pickupSlot)
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .build();
