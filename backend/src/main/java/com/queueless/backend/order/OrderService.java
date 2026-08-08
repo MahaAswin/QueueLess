@@ -211,6 +211,25 @@ public class OrderService {
         return OrderResponse.fromEntity(updatedOrder);
     }
 
+    @Transactional
+    public OrderResponse markOrderReadyForPickup(UUID orderId, String currentUserEmail) {
+        User owner = getShopOwnerUser(currentUserEmail);
+        Order order = getOrderEntityById(orderId);
+
+        if (!order.getShop().getOwner().getId().equals(owner.getId())) {
+            throw new AccessDeniedException("You are not authorized to manage orders for this shop");
+        }
+
+        if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.REJECTED || order.getStatus() == OrderStatus.COLLECTED) {
+            throw new IllegalStateException("Cannot set order to READY_FOR_PICKUP from status: " + order.getStatus());
+        }
+
+        order.setStatus(OrderStatus.READY_FOR_PICKUP);
+        Order updatedOrder = orderRepository.save(order);
+        return OrderResponse.fromEntity(updatedOrder);
+    }
+
+
     private void restoreStockForOrder(Order order) {
         for (OrderItem item : order.getItems()) {
             productRepository.findByIdWithLock(item.getProduct().getId()).ifPresent(product -> {

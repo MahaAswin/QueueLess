@@ -61,6 +61,12 @@ class ProductIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private com.queueless.backend.qr.PickupTokenRepository pickupTokenRepository;
+
+    @Autowired
+    private com.queueless.backend.slot.PickupSlotRepository pickupSlotRepository;
+
+    @Autowired
     private com.queueless.backend.order.OrderItemRepository orderItemRepository;
 
     @Autowired
@@ -95,12 +101,15 @@ class ProductIntegrationTest {
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
 
+        pickupTokenRepository.deleteAll();
+        pickupSlotRepository.deleteAll();
         orderItemRepository.deleteAll();
         orderRepository.deleteAll();
         cartItemRepository.deleteAll();
         cartRepository.deleteAll();
         productRepository.deleteAll();
         shopRepository.deleteAll();
+
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
 

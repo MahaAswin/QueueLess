@@ -59,6 +59,12 @@ class CartAndOrderIntegrationTest {
     private WebApplicationContext context;
 
     @Autowired
+    private com.queueless.backend.qr.PickupTokenRepository pickupTokenRepository;
+
+    @Autowired
+    private com.queueless.backend.slot.PickupSlotRepository pickupSlotRepository;
+
+    @Autowired
     private CartRepository cartRepository;
 
     @Autowired
@@ -108,11 +114,14 @@ class CartAndOrderIntegrationTest {
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
 
+        pickupTokenRepository.deleteAll();
+        pickupSlotRepository.deleteAll();
         orderItemRepository.deleteAll();
         orderRepository.deleteAll();
         cartItemRepository.deleteAll();
         cartRepository.deleteAll();
         productRepository.deleteAll();
+
         shopRepository.deleteAll();
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
