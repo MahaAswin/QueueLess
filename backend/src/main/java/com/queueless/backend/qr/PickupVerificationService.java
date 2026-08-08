@@ -27,6 +27,9 @@ import java.util.HexFormat;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.queueless.backend.notification.NotificationService;
+import com.queueless.backend.notification.NotificationType;
+
 @Service
 @RequiredArgsConstructor
 public class PickupVerificationService {
@@ -34,10 +37,12 @@ public class PickupVerificationService {
     private final PickupTokenRepository pickupTokenRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Value("${queueless.qr.expiration-minutes:30}")
     private int expirationMinutes;
+
 
     @Transactional
     public PickupQrResponse getPickupQR(UUID orderId, String currentUserEmail) {
@@ -140,7 +145,17 @@ public class PickupVerificationService {
         pickupTokenRepository.save(token);
         orderRepository.save(order);
 
+        notificationService.createNotification(
+                order.getCustomer(),
+                NotificationType.ORDER_COLLECTED,
+                "Order Collected",
+                "Your order has been collected.",
+                order.getId(),
+                order.getShop().getId()
+        );
+
         return PickupVerificationResponse.builder()
+
                 .success(true)
                 .message("Pickup verified successfully")
                 .orderId(order.getId())

@@ -25,6 +25,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.queueless.backend.notification.NotificationService;
+import com.queueless.backend.notification.NotificationType;
+
 @Service
 @RequiredArgsConstructor
 public class PickupSlotService {
@@ -32,6 +35,7 @@ public class PickupSlotService {
     private final PickupSlotRepository pickupSlotRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public PickupSlotResponse requestPickupSlot(UUID orderId, CreatePickupSlotRequest request, String currentUserEmail) {
@@ -63,6 +67,16 @@ public class PickupSlotService {
                 .build();
 
         PickupSlot savedSlot = pickupSlotRepository.save(slot);
+
+        notificationService.createNotification(
+                order.getShop().getOwner(),
+                NotificationType.PICKUP_SLOT_REQUESTED,
+                "Pickup Slot Requested",
+                "Customer requested a pickup slot.",
+                order.getId(),
+                order.getShop().getId()
+        );
+
         return PickupSlotResponse.fromEntity(savedSlot);
     }
 
@@ -79,6 +93,16 @@ public class PickupSlotService {
 
         slot.setStatus(PickupSlotStatus.ACCEPTED);
         PickupSlot savedSlot = pickupSlotRepository.save(slot);
+
+        notificationService.createNotification(
+                slot.getOrder().getCustomer(),
+                NotificationType.PICKUP_SLOT_ACCEPTED,
+                "Pickup Slot Accepted",
+                "Shop accepted your requested pickup slot.",
+                slot.getOrder().getId(),
+                slot.getOrder().getShop().getId()
+        );
+
         return PickupSlotResponse.fromEntity(savedSlot);
     }
 
@@ -95,6 +119,16 @@ public class PickupSlotService {
 
         slot.setStatus(PickupSlotStatus.SHOP_REJECTED);
         PickupSlot savedSlot = pickupSlotRepository.save(slot);
+
+        notificationService.createNotification(
+                slot.getOrder().getCustomer(),
+                NotificationType.PICKUP_SLOT_REJECTED,
+                "Pickup Slot Rejected",
+                "Shop rejected your requested pickup slot.",
+                slot.getOrder().getId(),
+                slot.getOrder().getShop().getId()
+        );
+
         return PickupSlotResponse.fromEntity(savedSlot);
     }
 
@@ -119,6 +153,16 @@ public class PickupSlotService {
         slot.setStatus(PickupSlotStatus.COUNTER_PROPOSED);
 
         PickupSlot savedSlot = pickupSlotRepository.save(slot);
+
+        notificationService.createNotification(
+                slot.getOrder().getCustomer(),
+                NotificationType.PICKUP_SLOT_COUNTER_PROPOSED,
+                "Pickup Slot Counter-Proposed",
+                "Shop proposed a different pickup slot.",
+                slot.getOrder().getId(),
+                shop.getId()
+        );
+
         return PickupSlotResponse.fromEntity(savedSlot);
     }
 
@@ -137,6 +181,16 @@ public class PickupSlotService {
 
         slot.setStatus(PickupSlotStatus.CUSTOMER_ACCEPTED);
         PickupSlot savedSlot = pickupSlotRepository.save(slot);
+
+        notificationService.createNotification(
+                slot.getOrder().getShop().getOwner(),
+                NotificationType.PICKUP_SLOT_CUSTOMER_ACCEPTED,
+                "Counter-Proposal Accepted",
+                "Customer accepted your counter-proposal.",
+                slot.getOrder().getId(),
+                slot.getOrder().getShop().getId()
+        );
+
         return PickupSlotResponse.fromEntity(savedSlot);
     }
 
@@ -155,8 +209,19 @@ public class PickupSlotService {
 
         slot.setStatus(PickupSlotStatus.CUSTOMER_REJECTED);
         PickupSlot savedSlot = pickupSlotRepository.save(slot);
+
+        notificationService.createNotification(
+                slot.getOrder().getShop().getOwner(),
+                NotificationType.PICKUP_SLOT_CUSTOMER_REJECTED,
+                "Counter-Proposal Rejected",
+                "Customer rejected your counter-proposal.",
+                slot.getOrder().getId(),
+                slot.getOrder().getShop().getId()
+        );
+
         return PickupSlotResponse.fromEntity(savedSlot);
     }
+
 
     @Transactional(readOnly = true)
     public PickupSlotResponse getSlotByOrder(UUID orderId, String currentUserEmail) {

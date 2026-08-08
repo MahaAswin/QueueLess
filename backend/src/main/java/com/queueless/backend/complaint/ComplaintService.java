@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.queueless.backend.notification.NotificationService;
+import com.queueless.backend.notification.NotificationType;
+
 @Service
 @RequiredArgsConstructor
 public class ComplaintService {
@@ -29,6 +32,7 @@ public class ComplaintService {
     private final ComplaintEvidenceRepository complaintEvidenceRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public ComplaintResponse createCustomerComplaint(UUID orderId, CreateComplaintRequest request, String currentUserEmail) {
@@ -53,6 +57,9 @@ public class ComplaintService {
                 .build();
 
         Complaint savedComplaint = complaintRepository.save(complaint);
+
+        notifyAdminsNewComplaint(savedComplaint);
+
         return ComplaintResponse.fromEntity(savedComplaint);
     }
 
@@ -79,8 +86,31 @@ public class ComplaintService {
                 .build();
 
         Complaint savedComplaint = complaintRepository.save(complaint);
+
+        notifyAdminsNewComplaint(savedComplaint);
+
         return ComplaintResponse.fromEntity(savedComplaint);
     }
+
+    private void notifyAdminsNewComplaint(Complaint complaint) {
+        List<User> admins = userRepository.findAll().stream()
+                .filter(u -> u.getRole() == Role.ADMIN)
+                .collect(Collectors.toList());
+
+        UUID shopId = complaint.getReportedShop() != null ? complaint.getReportedShop().getId() : null;
+
+        for (User admin : admins) {
+            notificationService.createNotification(
+                    admin,
+                    NotificationType.COMPLAINT_SUBMITTED,
+                    "New Complaint Submitted",
+                    "A new complaint has been submitted.",
+                    complaint.getOrder().getId(),
+                    shopId
+            );
+        }
+    }
+
 
     @Transactional
     public EvidenceResponse addEvidence(UUID complaintId, AddEvidenceRequest request, String currentUserEmail) {

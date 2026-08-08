@@ -23,16 +23,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.queueless.backend.notification.NotificationService;
+
+import com.queueless.backend.notification.NotificationType;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
+
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public OrderResponse checkout(String currentUserEmail) {
@@ -68,7 +73,6 @@ public class OrderService {
             }
 
             if (product.getStockQuantity() < cartItem.getQuantity()) {
-
                 throw new IllegalArgumentException("Insufficient stock for product: " + product.getName());
             }
 
@@ -78,15 +82,14 @@ public class OrderService {
                 throw new IllegalArgumentException("Cart can contain products from only one shop.");
             }
 
-            BigDecimal unitPrice = product.getPrice();
-            BigDecimal itemSubtotal = unitPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+            BigDecimal itemSubtotal = product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
             totalAmount = totalAmount.add(itemSubtotal);
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .product(product)
                     .productNameSnapshot(product.getName())
-                    .unitPriceSnapshot(unitPrice)
+                    .unitPriceSnapshot(product.getPrice())
                     .quantity(cartItem.getQuantity())
                     .subtotal(itemSubtotal)
                     .build();
@@ -111,6 +114,15 @@ public class OrderService {
         // Clear cart
         cart.getItems().clear();
         cartRepository.save(cart);
+
+        notificationService.createNotification(
+                targetShop.getOwner(),
+                NotificationType.ORDER_PLACED,
+                "New Order",
+                "You have received a new order.",
+                savedOrder.getId(),
+                targetShop.getId()
+        );
 
         return OrderResponse.fromEntity(savedOrder);
     }
@@ -152,6 +164,16 @@ public class OrderService {
         restoreStockForOrder(order);
 
         Order updatedOrder = orderRepository.save(order);
+
+        notificationService.createNotification(
+                updatedOrder.getShop().getOwner(),
+                NotificationType.ORDER_CANCELLED,
+                "Order Cancelled",
+                "An order was cancelled by customer.",
+                updatedOrder.getId(),
+                updatedOrder.getShop().getId()
+        );
+
         return OrderResponse.fromEntity(updatedOrder);
     }
 
@@ -193,6 +215,16 @@ public class OrderService {
 
         order.setStatus(OrderStatus.CONFIRMED);
         Order updatedOrder = orderRepository.save(order);
+
+        notificationService.createNotification(
+                updatedOrder.getCustomer(),
+                NotificationType.ORDER_CONFIRMED,
+                "Order Confirmed",
+                "Your order has been confirmed.",
+                updatedOrder.getId(),
+                updatedOrder.getShop().getId()
+        );
+
         return OrderResponse.fromEntity(updatedOrder);
     }
 
@@ -213,6 +245,16 @@ public class OrderService {
         restoreStockForOrder(order);
 
         Order updatedOrder = orderRepository.save(order);
+
+        notificationService.createNotification(
+                updatedOrder.getCustomer(),
+                NotificationType.ORDER_REJECTED,
+                "Order Rejected",
+                "Your order was rejected.",
+                updatedOrder.getId(),
+                updatedOrder.getShop().getId()
+        );
+
         return OrderResponse.fromEntity(updatedOrder);
     }
 
@@ -231,6 +273,16 @@ public class OrderService {
 
         order.setStatus(OrderStatus.READY_FOR_PICKUP);
         Order updatedOrder = orderRepository.save(order);
+
+        notificationService.createNotification(
+                updatedOrder.getCustomer(),
+                NotificationType.ORDER_READY_FOR_PICKUP,
+                "Order Ready for Pickup",
+                "Your order is ready for pickup.",
+                updatedOrder.getId(),
+                updatedOrder.getShop().getId()
+        );
+
         return OrderResponse.fromEntity(updatedOrder);
     }
 

@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.queueless.backend.notification.NotificationService;
+import com.queueless.backend.notification.NotificationType;
+
 @Service
 @RequiredArgsConstructor
 public class ComplaintReviewService {
@@ -26,6 +29,7 @@ public class ComplaintReviewService {
     private final ComplaintEvidenceRepository complaintEvidenceRepository;
     private final UserRepository userRepository;
     private final TrustService trustService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<ComplaintResponse> getAllComplaints(String adminEmail) {
@@ -76,12 +80,23 @@ public class ComplaintReviewService {
             trustService.processValidComplaint(savedComplaint);
         }
 
+        UUID shopId = savedComplaint.getReportedShop() != null ? savedComplaint.getReportedShop().getId() : null;
+        notificationService.createNotification(
+                savedComplaint.getComplainant(),
+                NotificationType.COMPLAINT_REVIEWED,
+                "Complaint Reviewed",
+                "Your complaint has been reviewed.",
+                savedComplaint.getOrder().getId(),
+                shopId
+        );
+
         List<EvidenceResponse> evidences = complaintEvidenceRepository.findByComplaintOrderByCreatedAtAsc(savedComplaint).stream()
                 .map(EvidenceResponse::fromEntity)
                 .collect(Collectors.toList());
 
         return ComplaintResponse.fromEntity(savedComplaint, evidences);
     }
+
 
     private User verifyAdminUser(String email) {
         User user = userRepository.findByEmail(email)

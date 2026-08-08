@@ -65,10 +65,14 @@ class ComplaintAndTrustIntegrationTest {
     private WebApplicationContext context;
 
     @Autowired
+    private com.queueless.backend.notification.NotificationRepository notificationRepository;
+
+    @Autowired
     private ComplaintEvidenceRepository complaintEvidenceRepository;
 
     @Autowired
     private ComplaintRepository complaintRepository;
+
 
     @Autowired
     private PickupTokenRepository pickupTokenRepository;
@@ -132,8 +136,10 @@ class ComplaintAndTrustIntegrationTest {
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
 
+        notificationRepository.deleteAll();
         complaintEvidenceRepository.deleteAll();
         complaintRepository.deleteAll();
+
         pickupTokenRepository.deleteAll();
         pickupSlotRepository.deleteAll();
         orderItemRepository.deleteAll();

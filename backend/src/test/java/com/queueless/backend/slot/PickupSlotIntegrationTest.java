@@ -57,10 +57,14 @@ class PickupSlotIntegrationTest {
     private WebApplicationContext context;
 
     @Autowired
+    private com.queueless.backend.notification.NotificationRepository notificationRepository;
+
+    @Autowired
     private com.queueless.backend.complaint.ComplaintEvidenceRepository complaintEvidenceRepository;
 
     @Autowired
     private com.queueless.backend.complaint.ComplaintRepository complaintRepository;
+
 
     @Autowired
     private com.queueless.backend.qr.PickupTokenRepository pickupTokenRepository;
@@ -118,8 +122,10 @@ class PickupSlotIntegrationTest {
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
 
+        notificationRepository.deleteAll();
         complaintEvidenceRepository.deleteAll();
         complaintRepository.deleteAll();
+
         pickupTokenRepository.deleteAll();
         pickupSlotRepository.deleteAll();
         orderItemRepository.deleteAll();
