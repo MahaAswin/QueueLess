@@ -61,6 +61,12 @@ class PickupVerificationIntegrationTest {
     private WebApplicationContext context;
 
     @Autowired
+    private com.queueless.backend.complaint.ComplaintEvidenceRepository complaintEvidenceRepository;
+
+    @Autowired
+    private com.queueless.backend.complaint.ComplaintRepository complaintRepository;
+
+    @Autowired
     private PickupTokenRepository pickupTokenRepository;
 
     @Autowired
@@ -68,6 +74,7 @@ class PickupVerificationIntegrationTest {
 
     @Autowired
     private OrderItemRepository orderItemRepository;
+
 
     @Autowired
     private OrderRepository orderRepository;
@@ -118,8 +125,11 @@ class PickupVerificationIntegrationTest {
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
 
+        complaintEvidenceRepository.deleteAll();
+        complaintRepository.deleteAll();
         pickupTokenRepository.deleteAll();
         pickupSlotRepository.deleteAll();
+
         orderItemRepository.deleteAll();
         orderRepository.deleteAll();
         cartItemRepository.deleteAll();

@@ -86,8 +86,13 @@ public class Shop {
     @Column(nullable = false)
     private ShopStatus status;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private int validComplaintCount = 0;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
 
     @Column(nullable = false)
     private Instant updatedAt;

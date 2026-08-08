@@ -43,7 +43,12 @@ public class CartService {
             throw new IllegalArgumentException("Product is unavailable for purchase");
         }
 
+        if (product.getShop().getStatus() == com.queueless.backend.shop.ShopStatus.SUSPENDED) {
+            throw new IllegalStateException("Suspended shop cannot accept new orders");
+        }
+
         // Single-Shop Rule: A cart can contain products from only one shop.
+
         if (!cart.getItems().isEmpty()) {
             Shop existingShop = cart.getItems().get(0).getProduct().getShop();
             if (!existingShop.getId().equals(product.getShop().getId())) {

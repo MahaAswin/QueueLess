@@ -54,8 +54,13 @@ public class User {
     @Column(nullable = false)
     private AccountStatus accountStatus;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private int validComplaintCount = 0;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
+
 
     @Column(nullable = false)
     private Instant updatedAt;

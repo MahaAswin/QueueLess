@@ -63,7 +63,12 @@ public class OrderService {
                 throw new IllegalArgumentException("Product is unavailable: " + product.getName());
             }
 
+            if (product.getShop().getStatus() == com.queueless.backend.shop.ShopStatus.SUSPENDED) {
+                throw new IllegalStateException("Suspended shop cannot receive new orders");
+            }
+
             if (product.getStockQuantity() < cartItem.getQuantity()) {
+
                 throw new IllegalArgumentException("Insufficient stock for product: " + product.getName());
             }
 
