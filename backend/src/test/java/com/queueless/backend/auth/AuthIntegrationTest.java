@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.queueless.backend.auth.dto.LoginRequest;
 import com.queueless.backend.auth.dto.RefreshTokenRequest;
 import com.queueless.backend.auth.dto.RegisterRequest;
+import com.queueless.backend.notification.NotificationRepository;
 import com.queueless.backend.user.AccountStatus;
+
 import com.queueless.backend.user.Role;
 import com.queueless.backend.user.User;
 import com.queueless.backend.user.UserRepository;
@@ -44,6 +46,39 @@ class AuthIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private com.queueless.backend.notification.NotificationRepository notificationRepository;
+
+    @Autowired
+    private com.queueless.backend.complaint.ComplaintEvidenceRepository complaintEvidenceRepository;
+
+    @Autowired
+    private com.queueless.backend.complaint.ComplaintRepository complaintRepository;
+
+    @Autowired
+    private com.queueless.backend.qr.PickupTokenRepository pickupTokenRepository;
+
+    @Autowired
+    private com.queueless.backend.slot.PickupSlotRepository pickupSlotRepository;
+
+    @Autowired
+    private com.queueless.backend.order.OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private com.queueless.backend.order.OrderRepository orderRepository;
+
+    @Autowired
+    private com.queueless.backend.cart.CartItemRepository cartItemRepository;
+
+    @Autowired
+    private com.queueless.backend.cart.CartRepository cartRepository;
+
+    @Autowired
+    private com.queueless.backend.product.ProductRepository productRepository;
+
+    @Autowired
+    private com.queueless.backend.shop.ShopRepository shopRepository;
+
+    @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
@@ -60,9 +95,22 @@ class AuthIntegrationTest {
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
 
+        notificationRepository.deleteAll();
+        complaintEvidenceRepository.deleteAll();
+        complaintRepository.deleteAll();
+        pickupTokenRepository.deleteAll();
+        pickupSlotRepository.deleteAll();
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        cartItemRepository.deleteAll();
+        cartRepository.deleteAll();
+        productRepository.deleteAll();
+        shopRepository.deleteAll();
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
+
+
 
     @Test
     @DisplayName("1. Customer registration succeeds")
