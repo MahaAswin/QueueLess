@@ -51,10 +51,23 @@ class ShopIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private com.queueless.backend.order.OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private com.queueless.backend.order.OrderRepository orderRepository;
+
+    @Autowired
+    private com.queueless.backend.cart.CartItemRepository cartItemRepository;
+
+    @Autowired
+    private com.queueless.backend.cart.CartRepository cartRepository;
+
+    @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
 
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
     private MockMvc mockMvc;
@@ -70,9 +83,14 @@ class ShopIntegrationTest {
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
 
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        cartItemRepository.deleteAll();
+        cartRepository.deleteAll();
         shopRepository.deleteAll();
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
+
 
         // Register & authenticate SHOP_OWNER 1
         RegisterRequest ownerReq = RegisterRequest.builder()

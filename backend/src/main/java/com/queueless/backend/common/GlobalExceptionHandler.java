@@ -39,9 +39,9 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
     public ResponseEntity<ErrorResponse> handleIllegalArgument(
-            IllegalArgumentException ex, HttpServletRequest request) {
+            Exception ex, HttpServletRequest request) {
         ErrorResponse response = ErrorResponse.builder()
                 .timestamp(Instant.now())
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -52,6 +52,7 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleUserAlreadyExists(
@@ -150,6 +151,35 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(CartNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCartNotFound(
+            CartNotFoundException ex, HttpServletRequest request) {
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleOrderNotFound(
+            OrderNotFoundException ex, HttpServletRequest request) {
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.NOT_FOUND.value())
+                .error(HttpStatus.NOT_FOUND.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
 
 
     @ExceptionHandler(Exception.class)

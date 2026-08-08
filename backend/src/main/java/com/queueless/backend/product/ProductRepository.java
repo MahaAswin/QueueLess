@@ -26,4 +26,10 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     List<Product> findByShopStatusAndAvailableTrueAndStockQuantityGreaterThanAndCategory(ShopStatus shopStatus, int stockQuantity, ProductCategory category);
 
     List<Product> findByShopIdAndCategory(UUID shopId, ProductCategory category);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("SELECT p FROM Product p WHERE p.id = :id")
+    java.util.Optional<Product> findByIdWithLock(@org.springframework.data.repository.query.Param("id") UUID id);
 }
+
+

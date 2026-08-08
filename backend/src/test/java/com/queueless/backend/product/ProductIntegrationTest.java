@@ -61,9 +61,22 @@ class ProductIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private com.queueless.backend.order.OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private com.queueless.backend.order.OrderRepository orderRepository;
+
+    @Autowired
+    private com.queueless.backend.cart.CartItemRepository cartItemRepository;
+
+    @Autowired
+    private com.queueless.backend.cart.CartRepository cartRepository;
+
+    @Autowired
     private RefreshTokenRepository refreshTokenRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+
     private MockMvc mockMvc;
 
     private String shopOwnerToken;
@@ -82,10 +95,15 @@ class ProductIntegrationTest {
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
 
+        orderItemRepository.deleteAll();
+        orderRepository.deleteAll();
+        cartItemRepository.deleteAll();
+        cartRepository.deleteAll();
         productRepository.deleteAll();
         shopRepository.deleteAll();
         refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
+
 
         // Register SHOP_OWNER 1
         RegisterRequest owner1Req = RegisterRequest.builder()
