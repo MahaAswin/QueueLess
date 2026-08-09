@@ -1,5 +1,5 @@
 import { api } from './api';
-import { CreatePickupSlotRequest, PickupSlotResponse } from '../types';
+import { CreatePickupSlotRequest, PickupSlotResponse, PickupQrResponse } from '../types';
 
 export const PickupService = {
   /**
@@ -54,6 +54,17 @@ export const PickupService = {
   async customerRejectSlot(slotId: string): Promise<PickupSlotResponse> {
     const response = await api.patch<PickupSlotResponse>(
       `/api/pickup-slots/${slotId}/customer-reject`
+    );
+    return response.data;
+  },
+
+  /**
+   * Retrieve / generate a customer pickup QR code for a READY_FOR_PICKUP order.
+   * Endpoint: GET /api/orders/{orderId}/pickup-qr
+   */
+  async getPickupQR(orderId: string): Promise<PickupQrResponse> {
+    const response = await api.get<PickupQrResponse>(
+      `/api/orders/${orderId}/pickup-qr`
     );
     return response.data;
   },

@@ -38,3 +38,9 @@ export interface TimeSlotOption {
   displayLabel: string; // e.g. "9:00 AM – 9:30 AM"
   isAvailable: boolean;
 }
+
+export interface PickupQrResponse {
+  orderId: string;
+  pickupToken: string;
+  expiresAt: string; // ISO LocalDateTime string e.g. "2026-08-09T19:42:00"
+}

@@ -314,17 +314,23 @@ export default function OrderDetailScreen() {
           )}
         </View>
 
-        {/* Express QR Ticket Action Placeholder */}
+        {/* Express QR Ticket Action */}
         {(order.status === 'READY_FOR_PICKUP' || order.status === 'CONFIRMED' || order.status === 'PREPARING') && (
           <TouchableOpacity
             style={[styles.qrTicketCard, Theme.shadows.soft]}
-            onPress={() => router.push('/(customer)/qr')}
+            onPress={() => router.push(`/(customer)/order/${order.id}/pickup-qr` as any)}
             activeOpacity={0.85}
           >
             <Ionicons name="qr-code-outline" size={28} color={Colors.white} />
             <View style={styles.qrTextWrapper}>
-              <Text style={styles.qrCardTitle}>Pickup QR Ticket</Text>
-              <Text style={styles.qrCardSub}>Show this pass at counter for express pickup</Text>
+              <Text style={styles.qrCardTitle}>
+                {order.status === 'READY_FOR_PICKUP' ? 'Show Pickup QR Ticket' : 'View Express QR Pass'}
+              </Text>
+              <Text style={styles.qrCardSub}>
+                {order.status === 'READY_FOR_PICKUP'
+                  ? 'Tap to open your secure scannable QR pass'
+                  : 'Pass will activate when order is ready'}
+              </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={Colors.white} />
           </TouchableOpacity>

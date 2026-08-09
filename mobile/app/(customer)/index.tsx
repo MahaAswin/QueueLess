@@ -156,10 +156,25 @@ export default function CustomerHomeScreen() {
                   : parseFloat(activeOrder.totalAmount || '0')
                 ).toFixed(2)}
               </Text>
-              <View style={styles.trackBtnRow}>
-                <Text style={styles.trackBtnText}>Track Order</Text>
-                <Ionicons name="arrow-forward" size={14} color={Colors.primaryDeep} />
-              </View>
+              <TouchableOpacity
+                style={styles.trackBtnRow}
+                onPress={() =>
+                  router.push(
+                    (activeOrder.status === 'READY_FOR_PICKUP'
+                      ? `/(customer)/order/${activeOrder.id}/pickup-qr`
+                      : `/(customer)/order/${activeOrder.id}`) as any
+                  )
+                }
+              >
+                <Text style={styles.trackBtnText}>
+                  {activeOrder.status === 'READY_FOR_PICKUP' ? 'Show Pickup QR' : 'Track Order'}
+                </Text>
+                <Ionicons
+                  name={activeOrder.status === 'READY_FOR_PICKUP' ? 'qr-code-outline' : 'arrow-forward'}
+                  size={14}
+                  color={Colors.primaryDeep}
+                />
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         )}
