@@ -48,7 +48,7 @@ export default function LoginScreen() {
 
       setLoading(false);
       if (user.role === 'SHOP_OWNER') {
-        router.replace('/(shop)/dashboard' as any);
+        router.replace('/(shop-owner)/dashboard' as any);
       } else {
         router.replace('/(customer)' as any);
       }

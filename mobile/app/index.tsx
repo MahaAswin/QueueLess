@@ -85,7 +85,7 @@ export default function LandingHomeScreen() {
   };
 
   const handleShopOwnerDemo = () => {
-    router.push('/(shop)/dashboard');
+    router.push('/(shop-owner)/dashboard');
   };
 
   return (

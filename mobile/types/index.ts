@@ -4,6 +4,7 @@ export * from './order';
 export * from './pickup';
 export * from './notification';
 export * from './complaint';
+export * from './shopOwner';
 
 export type UserRole = 'CUSTOMER' | 'SHOP_OWNER' | 'ADMIN';
 
