@@ -2,6 +2,7 @@ import { OrderStatus } from './order';
 
 export * from './order';
 export * from './pickup';
+export * from './notification';
 
 export type UserRole = 'CUSTOMER' | 'SHOP_OWNER' | 'ADMIN';
 

@@ -13,6 +13,7 @@ interface LocationHeaderProps {
   onNotificationPress?: () => void;
   onProfilePress?: () => void;
   hasUnreadNotifications?: boolean;
+  unreadCount?: number;
 }
 
 export const LocationHeader: React.FC<LocationHeaderProps> = ({
@@ -21,8 +22,11 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({
   onLocationPress,
   onNotificationPress,
   onProfilePress,
-  hasUnreadNotifications = true,
+  hasUnreadNotifications,
+  unreadCount = 0,
 }) => {
+  const showUnread = unreadCount > 0 || hasUnreadNotifications;
+
   return (
     <View style={styles.container}>
       {/* Location Selector */}
@@ -57,7 +61,13 @@ export const LocationHeader: React.FC<LocationHeaderProps> = ({
           accessibilityRole="button"
         >
           <Ionicons name="notifications-outline" size={22} color={Colors.text} />
-          {hasUnreadNotifications && <View style={styles.unreadDot} />}
+          {showUnread && (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadBadgeText}>
+                {unreadCount > 99 ? '99+' : unreadCount > 0 ? unreadCount : ''}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -137,16 +147,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
   },
-  unreadDot: {
+  unreadBadge: {
     position: 'absolute',
-    top: 9,
-    right: 9,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.primary,
+    top: 4,
+    right: 4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: Colors.primaryDeep,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
     borderWidth: 1.5,
     borderColor: Colors.white,
+  },
+  unreadBadgeText: {
+    color: Colors.white,
+    fontSize: 9,
+    fontFamily: Typography.fontFamily.bold,
+    fontWeight: Typography.fontWeight.bold,
   },
   profileButton: {
     padding: 2,

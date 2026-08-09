@@ -16,6 +16,7 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { EmptyState } from '../../components/EmptyState';
 import { ShopService } from '../../services/shop.service';
 import { OrderService } from '../../services/order.service';
+import { NotificationService } from '../../services/notification.service';
 import { ShopResponse, OrderResponse } from '../../types';
 import { useAuthStore } from '../../store/authStore';
 import { Colors } from '../../constants/colors';
@@ -36,6 +37,7 @@ export default function CustomerHomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [apiShops, setApiShops] = useState<ShopResponse[]>([]);
   const [activeOrder, setActiveOrder] = useState<OrderResponse | null>(null);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number>(0);
 
   useEffect(() => {
     async function loadLiveData() {
@@ -63,6 +65,13 @@ export default function CustomerHomeScreen() {
         }
       } catch (orderErr) {
         console.log('[CustomerHomeScreen] No active order loaded:', orderErr);
+      }
+
+      try {
+        const countData = await NotificationService.getUnreadCount();
+        setUnreadNotificationsCount(countData.unreadCount || 0);
+      } catch (notifErr) {
+        console.log('[CustomerHomeScreen] Unread notifications count unavailable:', notifErr);
       }
     }
 
@@ -123,6 +132,7 @@ export default function CustomerHomeScreen() {
         <LocationHeader
           locationName={MOCK_LOCATION}
           userName={userName}
+          unreadCount={unreadNotificationsCount}
           onLocationPress={() => {}}
           onNotificationPress={() => router.push('/(customer)/notifications')}
           onProfilePress={() => router.push('/(customer)/profile')}
