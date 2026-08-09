@@ -13,17 +13,22 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const getStatusConfig = () => {
     switch (status) {
       case 'PENDING':
-        return { label: 'Pending', bg: '#FFF4E5', text: Colors.warning };
+        return { label: 'Pending', bg: '#FFF4E5', text: '#D97706' };
+      case 'CONFIRMED':
+        return { label: 'Confirmed', bg: '#E0F2FE', text: '#0284C7' };
       case 'ACCEPTED':
         return { label: 'Accepted', bg: Colors.lightSage, text: Colors.primaryDeep };
       case 'PREPARING':
-        return { label: 'Preparing', bg: '#E3F2FD', text: '#1976D2' };
+        return { label: 'Preparing', bg: '#FEF3C7', text: '#B45309' };
       case 'READY_FOR_PICKUP':
-        return { label: 'Ready for Pickup', bg: Colors.sage, text: Colors.primaryDeep };
+        return { label: 'Ready for Pickup', bg: Colors.lightSage, text: Colors.primaryDeep };
+      case 'COLLECTED':
       case 'COMPLETED':
-        return { label: 'Completed', bg: Colors.lightSage, text: Colors.success };
+        return { label: 'Collected', bg: '#DCFCE7', text: '#15803D' };
+      case 'REJECTED':
+        return { label: 'Rejected', bg: '#FEE2E2', text: '#DC2626' };
       case 'CANCELLED':
-        return { label: 'Cancelled', bg: '#FFEBEE', text: Colors.error };
+        return { label: 'Cancelled', bg: '#FEE2E2', text: '#DC2626' };
       default:
         return { label: status, bg: Colors.lightSage, text: Colors.text };
     }

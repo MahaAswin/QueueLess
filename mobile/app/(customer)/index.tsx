@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+
 import { LocationHeader } from '../../components/LocationHeader';
 import { GreetingHeader } from '../../components/GreetingHeader';
 import { SearchBar } from '../../components/SearchBar';
@@ -10,11 +12,14 @@ import { SectionHeader } from '../../components/SectionHeader';
 import { CategoryCard } from '../../components/CategoryCard';
 import { ShopCard } from '../../components/ShopCard';
 import { PickupValueCard } from '../../components/PickupValueCard';
+import { StatusBadge } from '../../components/StatusBadge';
 import { EmptyState } from '../../components/EmptyState';
 import { ShopService } from '../../services/shop.service';
-import { ShopResponse } from '../../types';
+import { OrderService } from '../../services/order.service';
+import { ShopResponse, OrderResponse } from '../../types';
 import { useAuthStore } from '../../store/authStore';
 import { Colors } from '../../constants/colors';
+import { Typography } from '../../constants/typography';
 import { Theme } from '../../constants/theme';
 import {
   MOCK_LOCATION,
@@ -30,9 +35,10 @@ export default function CustomerHomeScreen() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [apiShops, setApiShops] = useState<ShopResponse[]>([]);
+  const [activeOrder, setActiveOrder] = useState<OrderResponse | null>(null);
 
   useEffect(() => {
-    async function loadLiveShops() {
+    async function loadLiveData() {
       try {
         const liveShops = await ShopService.getActiveShops();
         if (liveShops && liveShops.length > 0) {
@@ -41,8 +47,26 @@ export default function CustomerHomeScreen() {
       } catch (err) {
         console.log('[CustomerHomeScreen] Live shops unavailable, using default view:', err);
       }
+
+      try {
+        const orderHistory = await OrderService.getCustomerOrders(0, 10);
+        if (orderHistory?.content) {
+          const active = orderHistory.content.find(
+            (o) =>
+              o.status === 'PENDING' ||
+              o.status === 'CONFIRMED' ||
+              o.status === 'ACCEPTED' ||
+              o.status === 'PREPARING' ||
+              o.status === 'READY_FOR_PICKUP'
+          );
+          setActiveOrder(active || null);
+        }
+      } catch (orderErr) {
+        console.log('[CustomerHomeScreen] No active order loaded:', orderErr);
+      }
     }
-    loadLiveShops();
+
+    loadLiveData();
   }, []);
 
   const displayShops = apiShops.length > 0 ? apiShops : MOCK_NEARBY_SHOPS;
@@ -95,33 +119,62 @@ export default function CustomerHomeScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* 1 & 2. Location Header & Actions */}
+        {/* Location Header */}
         <LocationHeader
           locationName={MOCK_LOCATION}
           userName={userName}
-          onLocationPress={() => {
-            /* Location selection modal/action UI placeholder */
-          }}
+          onLocationPress={() => {}}
           onNotificationPress={() => router.push('/(customer)/notifications')}
           onProfilePress={() => router.push('/(customer)/profile')}
         />
 
-        {/* 3. Greeting Header */}
+        {/* Greeting Header */}
         <GreetingHeader userName={userName} greetingTime="Good morning" />
 
-        {/* 4. Search Bar */}
+        {/* Active Order Tracker Widget */}
+        {activeOrder && (
+          <TouchableOpacity
+            style={[styles.activeOrderCard, Theme.shadows.soft]}
+            onPress={() => router.push(`/(customer)/order/${activeOrder.id}` as any)}
+            activeOpacity={0.85}
+          >
+            <View style={styles.activeOrderHeader}>
+              <View style={styles.activeOrderBadgeRow}>
+                <Ionicons name="flash" size={16} color={Colors.primaryDeep} />
+                <Text style={styles.activeOrderBadgeText}>ACTIVE EXPRESS ORDER</Text>
+              </View>
+              <StatusBadge status={activeOrder.status} />
+            </View>
+
+            <Text style={styles.activeOrderShopName}>{activeOrder.shopName || 'Partner Shop'}</Text>
+
+            <View style={styles.activeOrderFooter}>
+              <Text style={styles.activeOrderItems}>
+                {activeOrder.items?.length || 0} item{activeOrder.items?.length !== 1 ? 's' : ''} • ₹
+                {(typeof activeOrder.totalAmount === 'number'
+                  ? activeOrder.totalAmount
+                  : parseFloat(activeOrder.totalAmount || '0')
+                ).toFixed(2)}
+              </Text>
+              <View style={styles.trackBtnRow}>
+                <Text style={styles.trackBtnText}>Track Order</Text>
+                <Ionicons name="arrow-forward" size={14} color={Colors.primaryDeep} />
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
+
+        {/* Search Bar */}
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Search shops or products"
         />
 
-        {/* 5. QueueLess Hero Card */}
-        <QueueHeroCard
-          onStartOrdering={() => router.push('/(customer)/shops')}
-        />
+        {/* QueueLess Hero Card */}
+        <QueueHeroCard onStartOrdering={() => router.push('/(customer)/shops')} />
 
-        {/* 6. Shop by Category */}
+        {/* Shop by Category */}
         <View style={styles.section}>
           <SectionHeader
             title="Shop by Category"
@@ -145,34 +198,41 @@ export default function CustomerHomeScreen() {
           </ScrollView>
         </View>
 
-        {/* 7. Nearby Shops */}
+        {/* Nearby Shops */}
         <View style={styles.section}>
           <SectionHeader
-            title="Nearby Shops"
+            title="Express Pickup Shops"
+            subtitle="Order ahead & collect with zero queue"
             actionText="See all"
             onActionPress={() => router.push('/(customer)/shops')}
           />
 
-          {filteredShops.length > 0 ? (
+          {filteredShops.length === 0 ? (
+            <EmptyState
+              icon="storefront-outline"
+              title="No Shops Found"
+              message="No partner shops match your search criteria. Try clearing search filters."
+              actionTitle="Clear Search"
+              onActionPress={() => {
+                setSearchQuery('');
+                setSelectedCategoryId(null);
+              }}
+            />
+          ) : (
             filteredShops.map((shop) => (
               <ShopCard
                 key={shop.id}
                 shop={shop}
                 onPress={() => router.push(`/(customer)/shop/${shop.id}` as any)}
-                onOrderPress={() => router.push(`/(customer)/shop/${shop.id}` as any)}
               />
             ))
-          ) : (
-            <EmptyState
-              title="No shops found"
-              message={`No shops matching "${searchQuery}". Try a different search.`}
-              iconName="search-outline"
-            />
           )}
         </View>
 
-        {/* 8. Pickup Value Reinforcement */}
-        <PickupValueCard />
+        {/* QueueLess Express Promise Card */}
+        <View style={styles.section}>
+          <PickupValueCard />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -189,15 +249,67 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: Theme.spacing.md,
-    paddingTop: Theme.spacing.xs,
-    paddingBottom: Theme.spacing.xl,
+    paddingBottom: Theme.spacing.xxl,
   },
   section: {
-    marginTop: Theme.spacing.sm,
-    marginBottom: Theme.spacing.xs,
+    marginTop: Theme.spacing.lg,
   },
   categoryList: {
     paddingVertical: Theme.spacing.xs,
-    paddingRight: Theme.spacing.md,
+    gap: Theme.spacing.sm,
+  },
+  activeOrderCard: {
+    backgroundColor: Colors.white,
+    borderRadius: Theme.borderRadius.lg,
+    padding: Theme.spacing.md,
+    marginVertical: Theme.spacing.sm,
+    borderWidth: 1.5,
+    borderColor: Colors.sage,
+  },
+  activeOrderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Theme.spacing.xs,
+  },
+  activeOrderBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activeOrderBadgeText: {
+    fontSize: 11,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.primaryDeep,
+    marginLeft: 4,
+    letterSpacing: 0.5,
+  },
+  activeOrderShopName: {
+    fontSize: Typography.fontSize.md,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.text,
+    marginVertical: 2,
+  },
+  activeOrderFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Theme.spacing.xs,
+    paddingTop: Theme.spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  activeOrderItems: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.secondaryText,
+  },
+  trackBtnRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  trackBtnText: {
+    fontSize: Typography.fontSize.xs,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.primaryDeep,
+    marginRight: 4,
   },
 });
