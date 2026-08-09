@@ -1,4 +1,10 @@
+import { OrderStatus } from './order';
+
+export * from './order';
+
 export type UserRole = 'CUSTOMER' | 'SHOP_OWNER' | 'ADMIN';
+
+
 
 export interface User {
   id: string;
@@ -158,13 +164,8 @@ export interface CartItem {
 }
 
 
-export type OrderStatus =
-  | 'PENDING'
-  | 'ACCEPTED'
-  | 'PREPARING'
-  | 'READY_FOR_PICKUP'
-  | 'COMPLETED'
-  | 'CANCELLED';
+export * from './order';
+
 
 export interface OrderItem {
   id: string;
