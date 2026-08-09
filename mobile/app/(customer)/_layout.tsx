@@ -102,6 +102,12 @@ export default function CustomerTabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="product/[productId]"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="qr"
         options={{
           href: null,
@@ -110,3 +116,4 @@ export default function CustomerTabsLayout() {
     </Tabs>
   );
 }
+
