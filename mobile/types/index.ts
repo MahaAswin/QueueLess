@@ -12,12 +12,80 @@ export interface User {
   createdAt?: string;
 }
 
-export type ShopCategory = 'Bakery' | 'Coffee & Tea' | 'Grocery' | 'Pharmacy' | 'Restaurant' | 'Fast Food' | 'Fruits & Vegetables' | 'Daily Needs' | 'Electronics' | 'Other';
+export type BackendShopCategory =
+  | 'GROCERY'
+  | 'PHARMACY'
+  | 'RESTAURANT'
+  | 'BAKERY'
+  | 'STATIONERY'
+  | 'MEAT_SHOP'
+  | 'OTHER';
+
+export type ShopStatus = 'PENDING' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+
+export interface ShopOwnerSummary {
+  id: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  role: UserRole;
+}
+
+export interface ShopResponse {
+  id: string;
+  owner?: ShopOwnerSummary;
+  shopName: string;
+  description?: string;
+  category: BackendShopCategory;
+  phone?: string;
+  address: string;
+  city?: string;
+  latitude?: number;
+  longitude?: number;
+  openingTime?: string; // HH:mm
+  closingTime?: string; // HH:mm
+  status: ShopStatus;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type BackendProductCategory =
+  | 'GROCERY'
+  | 'FRUITS_VEGETABLES'
+  | 'DAIRY'
+  | 'BEVERAGES'
+  | 'SNACKS'
+  | 'MEDICINE'
+  | 'PERSONAL_CARE'
+  | 'BAKERY'
+  | 'RESTAURANT'
+  | 'STATIONERY'
+  | 'MEAT'
+  | 'OTHER';
+
+export interface ProductResponse {
+  id: string;
+  shopId: string;
+  shopName?: string;
+  name: string;
+  description?: string;
+  price: number;
+  stockQuantity?: number;
+  category: BackendProductCategory;
+  imageUrl?: string;
+  available: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// UI Compatibility Types
+export type ShopCategory = BackendShopCategory | string;
 
 export interface Category {
   id: string;
   name: string;
   icon: string;
+  backendCategory?: BackendShopCategory;
 }
 
 export interface ShopPreview {
@@ -51,8 +119,6 @@ export interface Shop {
   longitude?: number;
   ownerId?: string;
 }
-
-
 
 export interface Product {
   id: string;

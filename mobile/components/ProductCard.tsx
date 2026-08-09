@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Product } from '../types';
+import { Product, ProductResponse } from '../types';
 import { Colors } from '../constants/colors';
 import { Typography } from '../constants/typography';
 import { Theme } from '../constants/theme';
 
 interface ProductCardProps {
-  product: Product;
+  product: Product | ProductResponse;
   quantity?: number;
-  onAddPress: () => void;
+  onAddPress?: () => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -17,52 +17,45 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   quantity = 0,
   onAddPress,
 }) => {
+  const name = product.name;
+  const description = product.description || 'No description available';
+  const price = typeof product.price === 'number' ? product.price : parseFloat(product.price || '0');
+  const imageUrl = product.imageUrl;
+  const isAvailable = 'available' in product ? product.available : product.isAvailable;
+  const category = product.category;
+
   return (
     <View style={[styles.card, Theme.shadows.soft]}>
       <View style={styles.content}>
-        <Text style={styles.name} numberOfLines={1}>
-          {product.name}
-        </Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.name} numberOfLines={1}>
+            {name}
+          </Text>
+          <View style={[styles.categoryBadge]}>
+            <Text style={styles.categoryText}>{category}</Text>
+          </View>
+        </View>
+
         <Text style={styles.description} numberOfLines={2}>
-          {product.description}
+          {description}
         </Text>
 
         <View style={styles.bottomRow}>
-          <Text style={styles.price}>${product.price.toFixed(2)}</Text>
-          <View style={styles.prepChip}>
-            <Ionicons name="time-outline" size={12} color={Colors.secondaryText} />
-            <Text style={styles.prepText}>{product.preparationTimeMinutes}m prep</Text>
+          <Text style={styles.price}>₹{price.toFixed(2)}</Text>
+          <View style={[styles.stockBadge, isAvailable ? styles.availableBadge : styles.unavailableBadge]}>
+            <Text style={styles.stockText}>{isAvailable ? 'Available' : 'Out of Stock'}</Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.imageActionSection}>
-        {product.imageUrl ? (
-          <Image source={{ uri: product.imageUrl }} style={styles.image} resizeMode="cover" />
+      <View style={styles.imageSection}>
+        {imageUrl ? (
+          <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
         ) : (
           <View style={styles.placeholderImage}>
-            <Ionicons name="fast-food-outline" size={24} color={Colors.primaryDeep} />
+            <Ionicons name="cube-outline" size={28} color={Colors.primaryDeep} />
           </View>
         )}
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={onAddPress}
-          disabled={!product.isAvailable}
-          style={[
-            styles.addButton,
-            quantity > 0 && styles.activeAddButton,
-            !product.isAvailable && styles.disabledAddButton,
-          ]}
-        >
-          {quantity > 0 ? (
-            <Text style={styles.activeAddButtonText}>Added ({quantity})</Text>
-          ) : (
-            <Text style={styles.addButtonText}>
-              {product.isAvailable ? '+ Add' : 'Sold Out'}
-            </Text>
-          )}
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -83,17 +76,37 @@ const styles = StyleSheet.create({
     marginRight: Theme.spacing.md,
     justifyContent: 'space-between',
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   name: {
     fontSize: Typography.fontSize.md,
     fontFamily: Typography.fontFamily.bold,
     fontWeight: Typography.fontWeight.bold,
     color: Colors.text,
-    marginBottom: Theme.spacing.xs,
+    flex: 1,
+    marginRight: Theme.spacing.xs,
+  },
+  categoryBadge: {
+    backgroundColor: Colors.lightSage,
+    paddingHorizontal: Theme.spacing.xs + 2,
+    paddingVertical: 2,
+    borderRadius: Theme.borderRadius.sm,
+  },
+  categoryText: {
+    fontSize: 10,
+    fontFamily: Typography.fontFamily.bold,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.primaryDeep,
   },
   description: {
     fontSize: Typography.fontSize.xs,
     color: Colors.secondaryText,
     marginBottom: Theme.spacing.sm,
+    lineHeight: 16,
   },
   bottomRow: {
     flexDirection: 'row',
@@ -106,62 +119,38 @@ const styles = StyleSheet.create({
     fontWeight: Typography.fontWeight.bold,
     color: Colors.primaryDeep,
   },
-  prepChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.inputBackground,
+  stockBadge: {
     paddingHorizontal: Theme.spacing.xs + 2,
     paddingVertical: 2,
     borderRadius: Theme.borderRadius.sm,
   },
-  prepText: {
-    fontSize: Typography.fontSize.xs,
-    color: Colors.secondaryText,
-    marginLeft: 2,
+  availableBadge: {
+    backgroundColor: '#DEF7EC',
   },
-  imageActionSection: {
-    width: 90,
+  unavailableBadge: {
+    backgroundColor: '#FDE8E8',
+  },
+  stockText: {
+    fontSize: 10,
+    fontFamily: Typography.fontFamily.medium,
+    color: Colors.text,
+  },
+  imageSection: {
+    width: 80,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   image: {
-    width: 80,
-    height: 70,
+    width: 76,
+    height: 76,
     borderRadius: Theme.borderRadius.sm,
-    marginBottom: Theme.spacing.xs,
   },
   placeholderImage: {
-    width: 80,
-    height: 70,
+    width: 76,
+    height: 76,
     borderRadius: Theme.borderRadius.sm,
     backgroundColor: Colors.lightSage,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Theme.spacing.xs,
-  },
-  addButton: {
-    backgroundColor: Colors.lightSage,
-    paddingVertical: Theme.spacing.xs,
-    paddingHorizontal: Theme.spacing.sm,
-    borderRadius: Theme.borderRadius.sm,
-    width: '100%',
-    alignItems: 'center',
-  },
-  activeAddButton: {
-    backgroundColor: Colors.primaryDeep,
-  },
-  disabledAddButton: {
-    backgroundColor: Colors.border,
-  },
-  addButtonText: {
-    color: Colors.primaryDeep,
-    fontSize: Typography.fontSize.xs,
-    fontFamily: Typography.fontFamily.semibold,
-    fontWeight: Typography.fontWeight.semibold,
-  },
-  activeAddButtonText: {
-    color: Colors.white,
-    fontSize: Typography.fontSize.xs,
-    fontFamily: Typography.fontFamily.semibold,
-    fontWeight: Typography.fontWeight.semibold,
   },
 });

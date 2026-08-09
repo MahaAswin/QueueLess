@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +11,8 @@ import { CategoryCard } from '../../components/CategoryCard';
 import { ShopCard } from '../../components/ShopCard';
 import { PickupValueCard } from '../../components/PickupValueCard';
 import { EmptyState } from '../../components/EmptyState';
+import { ShopService } from '../../services/shop.service';
+import { ShopResponse } from '../../types';
 import { useAuthStore } from '../../store/authStore';
 import { Colors } from '../../constants/colors';
 import { Theme } from '../../constants/theme';
@@ -27,23 +29,61 @@ export default function CustomerHomeScreen() {
   const userName = user?.name || MOCK_USER_NAME;
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [apiShops, setApiShops] = useState<ShopResponse[]>([]);
 
+  useEffect(() => {
+    async function loadLiveShops() {
+      try {
+        const liveShops = await ShopService.getActiveShops();
+        if (liveShops && liveShops.length > 0) {
+          setApiShops(liveShops);
+        }
+      } catch (err) {
+        console.log('[CustomerHomeScreen] Live shops unavailable, using default view:', err);
+      }
+    }
+    loadLiveShops();
+  }, []);
+
+  const displayShops = apiShops.length > 0 ? apiShops : MOCK_NEARBY_SHOPS;
 
   const handleCategoryPress = (id: string) => {
-    setSelectedCategoryId((prev) => (prev === id ? null : id));
+    const isSelected = selectedCategoryId === id;
+    setSelectedCategoryId(isSelected ? null : id);
+    if (!isSelected) {
+      const categoryMap: Record<string, string> = {
+        grocery: 'GROCERY',
+        food: 'RESTAURANT',
+        pharmacy: 'PHARMACY',
+        bakery: 'BAKERY',
+        fruits_veg: 'GROCERY',
+        daily_needs: 'GROCERY',
+        electronics: 'OTHER',
+        more: 'ALL',
+      };
+      const backendCat = categoryMap[id] || 'ALL';
+      router.push({
+        pathname: '/(customer)/shops',
+        params: { category: backendCat },
+      } as any);
+    }
   };
 
-  const filteredShops = MOCK_NEARBY_SHOPS.filter((shop) => {
+  const filteredShops = displayShops.filter((shop) => {
+    const name = 'shopName' in shop ? shop.shopName : shop.name;
+    const category = shop.category;
+    const description = shop.description || '';
+
     const matchesSearch =
       searchQuery.trim() === '' ||
-      shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      shop.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (shop.description && shop.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      description.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCategory =
       !selectedCategoryId ||
       selectedCategoryId === 'more' ||
-      shop.category.toLowerCase().includes(selectedCategoryId.toLowerCase());
+      category.toLowerCase().includes(selectedCategoryId.toLowerCase());
 
     return matchesSearch && matchesCategory;
   });
