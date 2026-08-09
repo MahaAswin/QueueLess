@@ -7,7 +7,8 @@ import { Typography } from '../constants/typography';
 import { Theme } from '../constants/theme';
 
 interface EmptyStateProps {
-  iconName?: keyof typeof Ionicons.glyphMap;
+  iconName?: keyof typeof Ionicons.glyphMap | string;
+  icon?: keyof typeof Ionicons.glyphMap | string;
   title: string;
   message: string;
   actionTitle?: string;
@@ -15,16 +16,19 @@ interface EmptyStateProps {
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  iconName = 'basket-outline',
+  iconName,
+  icon = 'basket-outline',
   title,
   message,
   actionTitle,
   onActionPress,
 }) => {
+  const selectedIcon = (iconName || icon) as keyof typeof Ionicons.glyphMap;
+
   return (
     <View style={styles.container}>
       <View style={styles.iconCircle}>
-        <Ionicons name={iconName} size={48} color={Colors.primaryDeep} />
+        <Ionicons name={selectedIcon} size={48} color={Colors.primaryDeep} />
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>

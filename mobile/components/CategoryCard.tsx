@@ -7,7 +7,7 @@ import { Theme } from '../constants/theme';
 
 interface CategoryCardProps {
   name: string;
-  iconName: keyof typeof Ionicons.glyphMap;
+  iconName: keyof typeof Ionicons.glyphMap | string;
   isSelected?: boolean;
   onPress: () => void;
 }
@@ -26,11 +26,13 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
         styles.card,
         isSelected ? styles.selectedCard : styles.unselectedCard,
       ]}
+      accessibilityLabel={`Category ${name}`}
+      accessibilityRole="button"
     >
       <View style={[styles.iconContainer, isSelected && styles.selectedIconContainer]}>
         <Ionicons
-          name={iconName}
-          size={22}
+          name={iconName as keyof typeof Ionicons.glyphMap}
+          size={20}
           color={isSelected ? Colors.white : Colors.primaryDeep}
         />
       </View>
@@ -43,7 +45,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    paddingVertical: Theme.spacing.sm + 2,
+    paddingVertical: Theme.spacing.xs + 4,
     paddingHorizontal: Theme.spacing.md,
     borderRadius: Theme.borderRadius.lg,
     flexDirection: 'row',
@@ -60,8 +62,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.primaryDeep,
   },
   iconContainer: {
-    width: 32,
-    height: 32,
+    width: 30,
+    height: 30,
     borderRadius: Theme.borderRadius.full,
     backgroundColor: Colors.lightSage,
     justifyContent: 'center',
@@ -72,7 +74,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   name: {
-    fontSize: Typography.fontSize.sm,
+    fontSize: Typography.fontSize.xs + 1,
     fontFamily: Typography.fontFamily.medium,
     fontWeight: Typography.fontWeight.medium,
     color: Colors.text,

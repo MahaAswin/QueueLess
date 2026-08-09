@@ -12,7 +12,27 @@ export interface User {
   createdAt?: string;
 }
 
-export type ShopCategory = 'Bakery' | 'Coffee & Tea' | 'Grocery' | 'Pharmacy' | 'Restaurant' | 'Fast Food' | 'Other';
+export type ShopCategory = 'Bakery' | 'Coffee & Tea' | 'Grocery' | 'Pharmacy' | 'Restaurant' | 'Fast Food' | 'Fruits & Vegetables' | 'Daily Needs' | 'Electronics' | 'Other';
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+}
+
+export interface ShopPreview {
+  id: string;
+  name: string;
+  description?: string;
+  address: string;
+  category: ShopCategory;
+  imageUrl?: string;
+  rating: number;
+  reviewCount?: number;
+  distanceKm: number;
+  estimatedPrepTimeMinutes: number;
+  isOpen: boolean;
+}
 
 export interface Shop {
   id: string;
@@ -31,6 +51,8 @@ export interface Shop {
   longitude?: number;
   ownerId?: string;
 }
+
+
 
 export interface Product {
   id: string;
