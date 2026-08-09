@@ -17,6 +17,7 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'outline' | 'danger';
   size?: 'small' | 'medium' | 'large';
   isLoading?: boolean;
+  loading?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
   style?: ViewStyle;
@@ -28,12 +29,14 @@ export const Button: React.FC<ButtonProps> = ({
   onPress,
   variant = 'primary',
   size = 'medium',
-  isLoading = false,
+  isLoading,
+  loading,
   disabled = false,
   icon,
   style,
   textStyle,
 }) => {
+  const isSpinnerLoading = isLoading ?? loading ?? false;
   const isOutline = variant === 'outline';
   const isSecondary = variant === 'secondary';
   const isDanger = variant === 'danger';
@@ -81,7 +84,7 @@ export const Button: React.FC<ButtonProps> = ({
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={onPress}
-      disabled={disabled || isLoading}
+      disabled={disabled || isSpinnerLoading}
       style={[
         styles.button,
         getPadding(),
@@ -94,7 +97,7 @@ export const Button: React.FC<ButtonProps> = ({
         style,
       ]}
     >
-      {isLoading ? (
+      {isSpinnerLoading ? (
         <ActivityIndicator color={getTextColor()} size="small" />
       ) : (
         <>

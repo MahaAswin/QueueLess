@@ -11,6 +11,7 @@ import { CategoryCard } from '../../components/CategoryCard';
 import { ShopCard } from '../../components/ShopCard';
 import { PickupValueCard } from '../../components/PickupValueCard';
 import { EmptyState } from '../../components/EmptyState';
+import { useAuthStore } from '../../store/authStore';
 import { Colors } from '../../constants/colors';
 import { Theme } from '../../constants/theme';
 import {
@@ -22,8 +23,11 @@ import {
 
 export default function CustomerHomeScreen() {
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
+  const userName = user?.name || MOCK_USER_NAME;
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
 
   const handleCategoryPress = (id: string) => {
     setSelectedCategoryId((prev) => (prev === id ? null : id));
@@ -54,7 +58,7 @@ export default function CustomerHomeScreen() {
         {/* 1 & 2. Location Header & Actions */}
         <LocationHeader
           locationName={MOCK_LOCATION}
-          userName={MOCK_USER_NAME}
+          userName={userName}
           onLocationPress={() => {
             /* Location selection modal/action UI placeholder */
           }}
@@ -63,7 +67,7 @@ export default function CustomerHomeScreen() {
         />
 
         {/* 3. Greeting Header */}
-        <GreetingHeader userName={MOCK_USER_NAME} greetingTime="Good morning" />
+        <GreetingHeader userName={userName} greetingTime="Good morning" />
 
         {/* 4. Search Bar */}
         <SearchBar
