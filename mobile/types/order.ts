@@ -1,3 +1,5 @@
+import { PickupSlotResponse } from './pickup';
+
 export type OrderStatus =
   | 'PENDING'
   | 'CONFIRMED'
@@ -27,15 +29,7 @@ export interface OrderResponse {
   totalAmount: number;
   status: OrderStatus;
   items: OrderItemResponse[];
-  pickupSlot?: {
-    id: string;
-    shopId: string;
-    startTime: string;
-    endTime: string;
-    maxOrders: number;
-    currentOrders: number;
-    isAvailable: boolean;
-  } | null;
+  pickupSlot?: PickupSlotResponse | null;
   createdAt: string;
   updatedAt: string;
 }

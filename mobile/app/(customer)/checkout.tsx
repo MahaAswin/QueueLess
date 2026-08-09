@@ -139,7 +139,7 @@ export default function CheckoutScreen() {
             <View style={styles.successActions}>
               <Button
                 title="Choose Pickup Time →"
-                onPress={() => router.push(`/(customer)/pickup-slot?orderId=${createdOrder.id}` as any)}
+                onPress={() => router.push(`/(customer)/order/${createdOrder.id}/pickup` as any)}
                 style={styles.primaryCta}
               />
               <Button

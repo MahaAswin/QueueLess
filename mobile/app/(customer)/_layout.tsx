@@ -120,6 +120,12 @@ export default function CustomerTabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="order/[orderId]/pickup"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="product/[productId]"
         options={{
           href: null,
