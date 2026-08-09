@@ -55,8 +55,9 @@ public class User {
     private AccountStatus accountStatus;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "integer default 0")
     private int validComplaintCount = 0;
+
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
