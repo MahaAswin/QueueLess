@@ -143,6 +143,24 @@ export default function CustomerTabsLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="complaint/create"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="complaint/[complaintId]"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="complaints"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

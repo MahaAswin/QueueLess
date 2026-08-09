@@ -365,8 +365,8 @@ export default function OrderDetailScreen() {
         </View>
 
         {/* Order Actions */}
-        {isPendingCancelable && (
-          <View style={styles.actionsContainer}>
+        <View style={styles.actionsContainer}>
+          {isPendingCancelable && (
             <Button
               title="Cancel Order"
               variant="outline"
@@ -374,8 +374,17 @@ export default function OrderDetailScreen() {
               loading={cancelling}
               style={styles.cancelButton}
             />
-          </View>
-        )}
+          )}
+
+          <TouchableOpacity
+            style={styles.helpButton}
+            onPress={() => router.push(`/(customer)/complaint/create?orderId=${order.id}` as any)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="help-buoy-outline" size={18} color={Colors.primaryDeep} />
+            <Text style={styles.helpButtonText}>Need Help? Report an Issue</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -557,5 +566,22 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     borderColor: Colors.error,
+    marginBottom: Theme.spacing.sm,
+  },
+  helpButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Theme.spacing.sm,
+    backgroundColor: Colors.lightSage,
+    borderRadius: Theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.sage,
+  },
+  helpButtonText: {
+    fontSize: Typography.fontSize.sm,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.primaryDeep,
+    marginLeft: Theme.spacing.xs,
   },
 });
