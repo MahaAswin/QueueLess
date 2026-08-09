@@ -132,11 +132,31 @@ export interface Product {
   preparationTimeMinutes: number;
 }
 
+export interface CartItemResponse {
+  itemId: string;
+  productId: string;
+  productName: string;
+  price: number;
+  quantity: number;
+  subtotal: number;
+  imageUrl?: string;
+}
+
+export interface CartResponse {
+  cartId: string;
+  shopId?: string;
+  shopName?: string;
+  items: CartItemResponse[];
+  subtotal: number;
+  totalItemCount: number;
+}
+
 export interface CartItem {
   product: Product;
   quantity: number;
   specialInstructions?: string;
 }
+
 
 export type OrderStatus =
   | 'PENDING'

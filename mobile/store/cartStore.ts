@@ -1,81 +1,169 @@
 import { create } from 'zustand';
-import { CartItem, Product, PickupSlot } from '../types';
+import { CartResponse } from '../types';
+import { CartService } from '../services/cart.service';
+
+interface AddItemResult {
+  success: boolean;
+  isMultiShopError?: boolean;
+  existingShopName?: string;
+  error?: string;
+}
 
 interface CartState {
-  shopId: string | null;
-  shopName: string | null;
-  items: CartItem[];
-  selectedSlot: PickupSlot | null;
+  cart: CartResponse | null;
+  loading: boolean;
+  itemLoading: Record<string, boolean>;
+  error: string | null;
 
-  addItem: (product: Product, quantity?: number, specialInstructions?: string) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
-  setShop: (shopId: string, shopName: string) => void;
-  setPickupSlot: (slot: PickupSlot | null) => void;
-  clearCart: () => void;
-  getTotalItems: () => number;
-  getTotalAmount: () => number;
+  fetchCart: () => Promise<CartResponse | null>;
+  addItem: (productId: string, quantity?: number) => Promise<AddItemResult>;
+  replaceCartAndAdd: (productId: string, quantity?: number) => Promise<boolean>;
+  updateQuantity: (itemId: string, quantity: number) => Promise<boolean>;
+  removeItem: (itemId: string) => Promise<boolean>;
+  clearCart: () => Promise<boolean>;
+  getItemCount: () => number;
+  getSubtotal: () => number;
+  resetError: () => void;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
-  shopId: null,
-  shopName: null,
-  items: [],
-  selectedSlot: null,
+  cart: null,
+  loading: false,
+  itemLoading: {},
+  error: null,
 
-  addItem: (product, quantity = 1, specialInstructions) => {
-    const { items, shopId } = get();
-
-    // If adding item from a different shop, prompt reset or auto-reset cart
-    if (shopId && shopId !== product.shopId) {
-      set({
-        shopId: product.shopId,
-        shopName: null,
-        items: [{ product, quantity, specialInstructions }],
-      });
-      return;
-    }
-
-    const existingIndex = items.findIndex((i) => i.product.id === product.id);
-    if (existingIndex > -1) {
-      const updated = [...items];
-      updated[existingIndex].quantity += quantity;
-      set({ items: updated, shopId: product.shopId });
-    } else {
-      set({
-        items: [...items, { product, quantity, specialInstructions }],
-        shopId: product.shopId,
-      });
+  fetchCart: async () => {
+    try {
+      set({ loading: true, error: null });
+      const cartData = await CartService.getCart();
+      set({ cart: cartData, loading: false });
+      return cartData;
+    } catch (err: any) {
+      console.warn('[useCartStore] Error fetching cart:', err);
+      // If unauthorized or error, soft handle
+      set({ loading: false, error: 'Unable to fetch cart details' });
+      return null;
     }
   },
 
-  removeItem: (productId) => {
-    const updated = get().items.filter((i) => i.product.id !== productId);
-    set({
-      items: updated,
-      shopId: updated.length === 0 ? null : get().shopId,
-    });
+  addItem: async (productId: string, quantity: number = 1) => {
+    try {
+      set({ error: null });
+      const updatedCart = await CartService.addToCart(productId, quantity);
+      set({ cart: updatedCart });
+      return { success: true };
+    } catch (err: any) {
+      console.warn('[useCartStore] Error adding item to cart:', err);
+      const message = err.response?.data?.message || err.message || '';
+      
+      // Check for multi-shop restriction
+      const isMultiShop =
+        message.toLowerCase().includes('one shop') ||
+        message.toLowerCase().includes('different shop') ||
+        err.response?.status === 400 && message.includes('shop');
+
+      if (isMultiShop) {
+        const currentCart = get().cart;
+        return {
+          success: false,
+          isMultiShopError: true,
+          existingShopName: currentCart?.shopName || 'another shop',
+          error: 'Your cart contains items from another shop.',
+        };
+      }
+
+      const friendlyError =
+        message.includes('stock') ? message : 'Unable to add item to cart.';
+      set({ error: friendlyError });
+      return { success: false, error: friendlyError };
+    }
   },
 
-  updateQuantity: (productId, quantity) => {
+  replaceCartAndAdd: async (productId: string, quantity: number = 1) => {
+    try {
+      set({ loading: true, error: null });
+      await CartService.clearCart();
+      const newCart = await CartService.addToCart(productId, quantity);
+      set({ cart: newCart, loading: false });
+      return true;
+    } catch (err: any) {
+      console.warn('[useCartStore] Error replacing cart:', err);
+      set({ loading: false, error: 'Failed to replace cart.' });
+      return false;
+    }
+  },
+
+  updateQuantity: async (itemId: string, quantity: number) => {
     if (quantity <= 0) {
-      get().removeItem(productId);
-      return;
+      return get().removeItem(itemId);
     }
 
-    const updated = get().items.map((item) =>
-      item.product.id === productId ? { ...item, quantity } : item
-    );
-    set({ items: updated });
+    try {
+      set((state) => ({
+        itemLoading: { ...state.itemLoading, [itemId]: true },
+        error: null,
+      }));
+
+      const updatedCart = await CartService.updateCartItemQuantity(itemId, quantity);
+      set((state) => ({
+        cart: updatedCart,
+        itemLoading: { ...state.itemLoading, [itemId]: false },
+      }));
+      return true;
+    } catch (err: any) {
+      console.warn('[useCartStore] Error updating item quantity:', err);
+      const message = err.response?.data?.message || 'Unable to update item quantity.';
+      set((state) => ({
+        itemLoading: { ...state.itemLoading, [itemId]: false },
+        error: message,
+      }));
+      return false;
+    }
   },
 
-  setShop: (shopId, shopName) => set({ shopId, shopName }),
+  removeItem: async (itemId: string) => {
+    try {
+      set((state) => ({
+        itemLoading: { ...state.itemLoading, [itemId]: true },
+        error: null,
+      }));
 
-  setPickupSlot: (selectedSlot) => set({ selectedSlot }),
+      const updatedCart = await CartService.removeCartItem(itemId);
+      set((state) => ({
+        cart: updatedCart,
+        itemLoading: { ...state.itemLoading, [itemId]: false },
+      }));
+      return true;
+    } catch (err: any) {
+      console.warn('[useCartStore] Error removing item:', err);
+      set((state) => ({
+        itemLoading: { ...state.itemLoading, [itemId]: false },
+        error: 'Unable to remove item from cart.',
+      }));
+      return false;
+    }
+  },
 
-  clearCart: () => set({ items: [], shopId: null, shopName: null, selectedSlot: null }),
+  clearCart: async () => {
+    try {
+      set({ loading: true, error: null });
+      const clearedCart = await CartService.clearCart();
+      set({ cart: clearedCart, loading: false });
+      return true;
+    } catch (err: any) {
+      console.warn('[useCartStore] Error clearing cart:', err);
+      set({ loading: false, error: 'Unable to clear cart.' });
+      return false;
+    }
+  },
 
-  getTotalItems: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
+  getItemCount: () => {
+    return get().cart?.totalItemCount || 0;
+  },
 
-  getTotalAmount: () => get().items.reduce((sum, item) => sum + item.product.price * item.quantity, 0),
+  getSubtotal: () => {
+    return get().cart?.subtotal || 0;
+  },
+
+  resetError: () => set({ error: null }),
 }));

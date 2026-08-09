@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
+import { useCartStore } from '../../store/cartStore';
 
 export default function CustomerTabsLayout() {
+  const fetchCart = useCartStore((state) => state.fetchCart);
+  const cartItemCount = useCartStore((state) => state.getItemCount());
+
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
+
   return (
     <Tabs
       screenOptions={{
@@ -45,6 +53,22 @@ export default function CustomerTabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="cart"
+        options={{
+          title: 'Cart',
+          tabBarBadge: cartItemCount > 0 ? cartItemCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: Colors.primaryDeep,
+            color: Colors.white,
+            fontSize: 10,
+            fontFamily: Typography.fontFamily.bold,
+          },
+          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+            <Ionicons name={focused ? 'cart' : 'cart-outline'} size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="orders"
         options={{
           title: 'Orders',
@@ -73,12 +97,6 @@ export default function CustomerTabsLayout() {
       />
       <Tabs.Screen
         name="shop/[id]"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="cart"
         options={{
           href: null,
         }}
@@ -116,4 +134,5 @@ export default function CustomerTabsLayout() {
     </Tabs>
   );
 }
+
 
