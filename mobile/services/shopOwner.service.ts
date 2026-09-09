@@ -1,11 +1,13 @@
 import { api } from './api';
 import {
   CreateProductRequest,
+  UpdateProductRequest,
   OrderPageResponse,
   OrderResponse,
   OrderStatus,
   PickupVerificationResponse,
   ProductResponse,
+  PickupSlotResponse,
   ShopResponse,
   UpdateShopRequest,
 } from '../types';
@@ -144,6 +146,29 @@ export const ShopOwnerService = {
   },
 
   /**
+   * Update an existing product.
+   * Endpoint: PUT /api/products/{productId}
+   */
+  async updateProduct(
+    productId: string,
+    request: UpdateProductRequest
+  ): Promise<ProductResponse> {
+    const response = await api.put<ProductResponse>(
+      `/api/products/${productId}`,
+      request
+    );
+    return response.data;
+  },
+
+  /**
+   * Delete a product by ID.
+   * Endpoint: DELETE /api/products/{productId}
+   */
+  async deleteProduct(productId: string): Promise<void> {
+    await api.delete(`/api/products/${productId}`);
+  },
+
+  /**
    * Toggle product availability.
    * Endpoint: PATCH /api/products/{productId}/availability
    */
@@ -169,6 +194,17 @@ export const ShopOwnerService = {
     const response = await api.patch<ProductResponse>(
       `/api/products/${productId}/stock`,
       { stockQuantity }
+    );
+    return response.data;
+  },
+
+  /**
+   * Fetch shop owner pickup slots.
+   * Endpoint: GET /api/shop/pickup-slots
+   */
+  async getShopPickupSlots(): Promise<PickupSlotResponse[]> {
+    const response = await api.get<PickupSlotResponse[]>(
+      '/api/shop/pickup-slots'
     );
     return response.data;
   },

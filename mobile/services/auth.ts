@@ -13,6 +13,9 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080';
 const memoryStorage: Record<string, string> = {};
 const isSecureStoreAvailable = Platform.OS !== 'web';
 
+// Shared single-flight promise to prevent concurrent refresh race conditions
+let activeRefreshPromise: Promise<string | null> | null = null;
+
 export interface RegisterPayload {
   fullName: string;
   email: string;
@@ -86,7 +89,30 @@ export const authStorage = {
   },
 };
 
+type SessionExpiredListener = () => void;
+const sessionExpiredListeners: SessionExpiredListener[] = [];
+
 export const AuthService = {
+  onSessionExpired(listener: SessionExpiredListener) {
+    sessionExpiredListeners.push(listener);
+    return () => {
+      const index = sessionExpiredListeners.indexOf(listener);
+      if (index !== -1) {
+        sessionExpiredListeners.splice(index, 1);
+      }
+    };
+  },
+
+  notifySessionExpired() {
+    sessionExpiredListeners.forEach((listener) => {
+      try {
+        listener();
+      } catch (err) {
+        console.warn('[AuthService] Error notifying session expired listener:', err);
+      }
+    });
+  },
+
   async getAccessToken(): Promise<string | null> {
     return await authStorage.getItem(ACCESS_TOKEN_KEY);
   },
@@ -120,6 +146,7 @@ export const AuthService = {
     await authStorage.removeItem(ACCESS_TOKEN_KEY);
     await authStorage.removeItem(REFRESH_TOKEN_KEY);
     await authStorage.removeItem(USER_KEY);
+    this.notifySessionExpired();
   },
 
   async register(payload: RegisterPayload): Promise<AuthResponseData> {
@@ -164,9 +191,61 @@ export const AuthService = {
     return data;
   },
 
+  async refreshAccessToken(): Promise<string | null> {
+    if (activeRefreshPromise) {
+      return activeRefreshPromise;
+    }
+
+    activeRefreshPromise = (async () => {
+      const refreshToken = await this.getRefreshToken();
+      if (!refreshToken) {
+        return null;
+      }
+
+      try {
+        const response = await axios.post<AuthResponseData>(
+          `${BASE_URL}/api/auth/refresh`,
+          { refreshToken },
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+
+        const data = response.data;
+        if (data && data.accessToken) {
+          await this.setTokens(data.accessToken, data.refreshToken || refreshToken);
+          if (data.user) {
+            const user: User = {
+              id: data.user.id,
+              name: data.user.fullName,
+              email: data.user.email,
+              phone: data.user.phone,
+              role: data.user.role,
+            };
+            await this.saveUser(user);
+          }
+          return data.accessToken;
+        }
+        return null;
+      } catch (err: any) {
+        if (err.response?.status === 401 || err.response?.status === 400 || err.response?.status === 403) {
+          await this.clearSession();
+        }
+        return null;
+      } finally {
+        activeRefreshPromise = null;
+      }
+    })();
+
+    return activeRefreshPromise;
+  },
+
   async getCurrentUser(): Promise<User | null> {
-    const token = await this.getAccessToken();
-    if (!token) return null;
+    let token = await this.getAccessToken();
+    if (!token) {
+      const refreshToken = await this.getRefreshToken();
+      if (!refreshToken) return null;
+      token = await this.refreshAccessToken();
+      if (!token) return null;
+    }
 
     try {
       const response = await axios.get<BackendUserResponse>(
@@ -183,8 +262,32 @@ export const AuthService = {
       };
       await this.saveUser(user);
       return user;
-    } catch {
-      return await this.getUser();
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        // If token expired, attempt single-flight refresh
+        const refreshedToken = await this.refreshAccessToken();
+        if (refreshedToken) {
+          try {
+            const retryResponse = await axios.get<BackendUserResponse>(
+              `${BASE_URL}/api/auth/me`,
+              { headers: { Authorization: `Bearer ${refreshedToken}` } }
+            );
+            const backendUser = retryResponse.data;
+            const user: User = {
+              id: backendUser.id,
+              name: backendUser.fullName,
+              email: backendUser.email,
+              phone: backendUser.phone,
+              role: backendUser.role,
+            };
+            await this.saveUser(user);
+            return user;
+          } catch {
+            return null;
+          }
+        }
+      }
+      return null;
     }
   },
 

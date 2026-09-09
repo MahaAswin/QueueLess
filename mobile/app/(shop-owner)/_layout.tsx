@@ -76,6 +76,12 @@ export default function ShopOwnerLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="pickup-slots"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

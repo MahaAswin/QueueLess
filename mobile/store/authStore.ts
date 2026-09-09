@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { User } from '../types';
 import { AuthService, LoginPayload, RegisterPayload } from '../services/auth';
+import { useCartStore } from './cartStore';
 
 interface AuthState {
   user: User | null;
@@ -81,6 +82,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     set({ isLoading: true });
     await AuthService.logout();
+    useCartStore.setState({ cart: null, error: null });
     set({
       user: null,
       isAuthenticated: false,
@@ -93,7 +95,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     try {
       const token = await AuthService.getAccessToken();
-      if (!token) {
+      const refreshToken = await AuthService.getRefreshToken();
+      if (!token && !refreshToken) {
         set({ user: null, isAuthenticated: false, isLoading: false });
         return false;
       }
@@ -107,12 +110,20 @@ export const useAuthStore = create<AuthState>((set) => ({
         });
         return true;
       } else {
+        await AuthService.clearSession();
         set({ user: null, isAuthenticated: false, isLoading: false });
         return false;
       }
     } catch {
+      await AuthService.clearSession();
       set({ user: null, isAuthenticated: false, isLoading: false });
       return false;
     }
   },
 }));
+
+// Automatically reset auth and cart store whenever session is cleared / expired
+AuthService.onSessionExpired(() => {
+  useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: false });
+  useCartStore.setState({ cart: null, error: null });
+});

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { CartResponse } from '../types';
 import { CartService } from '../services/cart.service';
+import { AuthService } from '../services/auth';
 
 interface AddItemResult {
   success: boolean;
@@ -34,11 +35,22 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   fetchCart: async () => {
     try {
+      const token = await AuthService.getAccessToken();
+      if (!token) {
+        set({ cart: null, loading: false, error: null });
+        return null;
+      }
+
       set({ loading: true, error: null });
       const cartData = await CartService.getCart();
       set({ cart: cartData, loading: false });
       return cartData;
     } catch (err: any) {
+      if (err.response?.status === 401) {
+        // User session expired or unauthenticated
+        set({ cart: null, loading: false, error: null });
+        return null;
+      }
       console.warn('[useCartStore] Error fetching cart:', err);
       // If unauthorized or error, soft handle
       set({ loading: false, error: 'Unable to fetch cart details' });

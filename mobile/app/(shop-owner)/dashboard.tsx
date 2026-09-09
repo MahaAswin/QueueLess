@@ -253,6 +253,42 @@ export default function ShopOwnerDashboard() {
             );
           })
         )}
+
+        {/* Quick Management Shortcuts */}
+        <View style={styles.shortcutsSection}>
+          <Text style={styles.sectionTitle}>Shop Configuration</Text>
+          <View style={styles.shortcutsGrid}>
+            <TouchableOpacity
+              style={[styles.shortcutCard, Theme.shadows.soft]}
+              onPress={() => router.push('/(shop-owner)/pickup-slots' as any)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.shortcutIconBox, { backgroundColor: Colors.lightSage }]}>
+                <Ionicons name="time-outline" size={22} color={Colors.primaryDeep} />
+              </View>
+              <View style={styles.shortcutTextCol}>
+                <Text style={styles.shortcutTitle}>Pickup Slots</Text>
+                <Text style={styles.shortcutSub}>Manage 15-min limits & capacity</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Colors.secondaryText} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.shortcutCard, Theme.shadows.soft]}
+              onPress={() => router.push('/(shop-owner)/products' as any)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.shortcutIconBox, { backgroundColor: '#FEF3C7' }]}>
+                <Ionicons name="cube-outline" size={22} color="#D97706" />
+              </View>
+              <View style={styles.shortcutTextCol}>
+                <Text style={styles.shortcutTitle}>Products & Stock</Text>
+                <Text style={styles.shortcutSub}>Add, edit & toggle availability</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Colors.secondaryText} />
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -441,5 +477,42 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     width: '100%',
+  },
+  shortcutsSection: {
+    marginTop: Theme.spacing.lg,
+  },
+  shortcutsGrid: {
+    gap: Theme.spacing.sm,
+    marginTop: Theme.spacing.xs,
+  },
+  shortcutCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    padding: Theme.spacing.md,
+    borderRadius: Theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  shortcutIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: Theme.borderRadius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Theme.spacing.sm,
+  },
+  shortcutTextCol: {
+    flex: 1,
+  },
+  shortcutTitle: {
+    fontSize: Typography.fontSize.sm + 1,
+    fontFamily: Typography.fontFamily.bold,
+    color: Colors.text,
+  },
+  shortcutSub: {
+    fontSize: Typography.fontSize.xs,
+    color: Colors.secondaryText,
+    marginTop: 2,
   },
 });

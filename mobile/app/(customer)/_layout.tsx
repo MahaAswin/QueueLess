@@ -4,14 +4,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/colors';
 import { Typography } from '../../constants/typography';
 import { useCartStore } from '../../store/cartStore';
+import { useAuthStore } from '../../store/authStore';
 
 export default function CustomerTabsLayout() {
   const fetchCart = useCartStore((state) => state.fetchCart);
   const cartItemCount = useCartStore((state) => state.getItemCount());
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthLoading = useAuthStore((state) => state.isLoading);
 
   useEffect(() => {
-    fetchCart();
-  }, [fetchCart]);
+    if (!isAuthLoading && isAuthenticated) {
+      fetchCart();
+    }
+  }, [isAuthenticated, isAuthLoading, fetchCart]);
 
   return (
     <Tabs
@@ -34,6 +39,7 @@ export default function CustomerTabsLayout() {
         },
       }}
     >
+      {/* 1. Home */}
       <Tabs.Screen
         name="index"
         options={{
@@ -43,6 +49,8 @@ export default function CustomerTabsLayout() {
           ),
         }}
       />
+
+      {/* 2. Shops */}
       <Tabs.Screen
         name="shops"
         options={{
@@ -52,6 +60,8 @@ export default function CustomerTabsLayout() {
           ),
         }}
       />
+
+      {/* 3. Cart */}
       <Tabs.Screen
         name="cart"
         options={{
@@ -68,6 +78,8 @@ export default function CustomerTabsLayout() {
           ),
         }}
       />
+
+      {/* 4. Orders */}
       <Tabs.Screen
         name="orders"
         options={{
@@ -77,15 +89,8 @@ export default function CustomerTabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="notifications"
-        options={{
-          title: 'Notifications',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'notifications' : 'notifications-outline'} size={22} color={color as string} />
-          ),
-        }}
-      />
+
+      {/* 5. Profile */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -95,72 +100,21 @@ export default function CustomerTabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="shop/[id]"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="checkout"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="pickup-slot"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="order/[id]"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="order/[orderId]/pickup"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="order/[orderId]/pickup-qr"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="product/[productId]"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="qr"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="complaint/create"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="complaint/[complaintId]"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="complaints"
-        options={{
-          href: null,
-        }}
-      />
+
+      {/* Non-tab Secondary & Detail Routes (Hidden from Tab Bar) */}
+      <Tabs.Screen name="shop/[id]" options={{ href: null }} />
+      <Tabs.Screen name="shop/[id]/products" options={{ href: null }} />
+      <Tabs.Screen name="order/[id]" options={{ href: null }} />
+      <Tabs.Screen name="order/[orderId]/pickup" options={{ href: null }} />
+      <Tabs.Screen name="order/[orderId]/pickup-qr" options={{ href: null }} />
+      <Tabs.Screen name="product/[productId]" options={{ href: null }} />
+      <Tabs.Screen name="complaint/create" options={{ href: null }} />
+      <Tabs.Screen name="complaint/[complaintId]" options={{ href: null }} />
+      <Tabs.Screen name="complaints" options={{ href: null }} />
+      <Tabs.Screen name="checkout" options={{ href: null }} />
+      <Tabs.Screen name="notifications" options={{ href: null }} />
+      <Tabs.Screen name="pickup-slot" options={{ href: null }} />
+      <Tabs.Screen name="qr" options={{ href: null }} />
     </Tabs>
   );
 }
