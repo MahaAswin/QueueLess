@@ -29,8 +29,8 @@ export default function ShopOwnerLayout() {
         name="dashboard"
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-            <Ionicons name={focused ? 'grid' : 'grid-outline'} size={22} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'grid' : 'grid-outline'} size={22} color={color as string} />
           ),
         }}
       />
@@ -38,8 +38,8 @@ export default function ShopOwnerLayout() {
         name="orders"
         options={{
           title: 'Orders',
-          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-            <Ionicons name={focused ? 'receipt' : 'receipt-outline'} size={22} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'receipt' : 'receipt-outline'} size={22} color={color as string} />
           ),
         }}
       />
@@ -47,8 +47,8 @@ export default function ShopOwnerLayout() {
         name="scanner"
         options={{
           title: 'Scan QR',
-          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-            <Ionicons name={focused ? 'qr-code' : 'qr-code-outline'} size={24} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'qr-code' : 'qr-code-outline'} size={24} color={color as string} />
           ),
         }}
       />
@@ -56,8 +56,8 @@ export default function ShopOwnerLayout() {
         name="products"
         options={{
           title: 'Products',
-          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-            <Ionicons name={focused ? 'cube' : 'cube-outline'} size={22} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'cube' : 'cube-outline'} size={22} color={color as string} />
           ),
         }}
       />
@@ -65,8 +65,8 @@ export default function ShopOwnerLayout() {
         name="profile"
         options={{
           title: 'Shop',
-          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-            <Ionicons name={focused ? 'storefront' : 'storefront-outline'} size={22} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'storefront' : 'storefront-outline'} size={22} color={color as string} />
           ),
         }}
       />
