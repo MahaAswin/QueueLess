@@ -41,7 +41,16 @@ export const LoginPage: React.FC = () => {
         navigate('/customer', { replace: true });
       }
     } catch (err: any) {
-      const message = err.response?.data?.message || err.message || 'Invalid email or password.';
+      let message = err.response?.data?.message;
+      if (!message) {
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          message = 'Invalid email or password. Please check your credentials or create an account.';
+        } else if (err.message) {
+          message = err.message;
+        } else {
+          message = 'Unable to sign in. Please try again.';
+        }
+      }
       setErrorMsg(message);
     } finally {
       setIsSubmitting(false);

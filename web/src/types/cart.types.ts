@@ -1,5 +1,6 @@
 export interface CartItem {
-  id: string;
+  id?: string;
+  itemId?: string;
   productId: string;
   productName: string;
   price: number;
@@ -9,7 +10,8 @@ export interface CartItem {
 }
 
 export interface Cart {
-  id: string;
+  id?: string;
+  cartId?: string;
   shopId?: string;
   shopName?: string;
   items: CartItem[];

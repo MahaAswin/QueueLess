@@ -13,8 +13,15 @@ import { AdminLayout } from '../layouts/AdminLayout';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RegisterPage } from '../pages/auth/RegisterPage';
 
+// Customer Pages
+import { CustomerHomePage } from '../pages/customer/CustomerHomePage';
+import { CustomerShopsPage } from '../pages/customer/CustomerShopsPage';
+import { ShopDetailsPage } from '../pages/customer/ShopDetailsPage';
+import { CustomerCartPage } from '../pages/customer/CustomerCartPage';
+import { CustomerOrdersPage } from '../pages/customer/CustomerOrdersPage';
+import { CustomerProfilePage } from '../pages/customer/CustomerProfilePage';
+
 // Dashboards
-import { CustomerDashboard } from '../pages/customer/CustomerDashboard';
 import { ShopDashboard } from '../pages/shop/ShopDashboard';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 
@@ -60,11 +67,12 @@ export const AppRoutes: React.FC = () => {
       {/* Protected Customer Routes */}
       <Route element={<ProtectedRoute allowedRoles={['CUSTOMER']} />}>
         <Route path="/customer" element={<CustomerLayout />}>
-          <Route index element={<CustomerDashboard />} />
-          <Route path="shops" element={<CustomerDashboard />} />
-          <Route path="cart" element={<CustomerDashboard />} />
-          <Route path="orders" element={<CustomerDashboard />} />
-          <Route path="profile" element={<CustomerDashboard />} />
+          <Route index element={<CustomerHomePage />} />
+          <Route path="shops" element={<CustomerShopsPage />} />
+          <Route path="shops/:shopId" element={<ShopDetailsPage />} />
+          <Route path="cart" element={<CustomerCartPage />} />
+          <Route path="orders" element={<CustomerOrdersPage />} />
+          <Route path="profile" element={<CustomerProfilePage />} />
         </Route>
       </Route>
 

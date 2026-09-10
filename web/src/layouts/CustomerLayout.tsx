@@ -255,7 +255,7 @@ export const CustomerLayout: React.FC = () => {
             </NavLink>
 
             <NavLink
-              to="/customer/profile"
+              to="/customer/profile?tab=notifications"
               style={{
                 position: 'relative',
                 padding: 8,
@@ -266,6 +266,7 @@ export const CustomerLayout: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
+              title="Notifications"
             >
               <Bell size={20} />
             </NavLink>
