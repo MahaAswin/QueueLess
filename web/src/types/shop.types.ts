@@ -12,6 +12,7 @@ export type ShopStatus = 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'INACTIVE';
 export interface Shop {
   id: string;
   name: string;
+  shopName?: string;
   description?: string;
   category: ShopCategory;
   address: string;
@@ -19,11 +20,16 @@ export interface Shop {
   phone: string;
   email?: string;
   status: ShopStatus;
+  openingTime?: string;
+  closingTime?: string;
+  latitude?: number;
+  longitude?: number;
   rating?: number;
   totalOrdersCount?: number;
   imageUrl?: string;
   ownerId?: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateShopPayload {

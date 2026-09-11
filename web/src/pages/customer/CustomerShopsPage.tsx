@@ -1,373 +1,475 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import {
   Store,
-  Search,
-  MapPin,
-  Phone,
-  ArrowRight,
-  Filter,
   Sparkles,
   ShoppingBag,
+  Zap,
+  ShieldCheck,
+  RotateCcw,
 } from 'lucide-react';
 import { shopService } from '../../services/shopService';
 import type { Shop, ShopCategory } from '../../types/shop.types';
 import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
-import { LoadingState } from '../../components/feedback/LoadingState';
 import { ErrorState } from '../../components/feedback/ErrorState';
 import { EmptyState } from '../../components/feedback/EmptyState';
-
-const CATEGORIES: { label: string; value: ShopCategory | 'ALL' }[] = [
-  { label: 'All Categories', value: 'ALL' },
-  { label: 'Grocery', value: 'GROCERY' },
-  { label: 'Restaurant', value: 'RESTAURANT' },
-  { label: 'Pharmacy', value: 'PHARMACY' },
-  { label: 'Bakery', value: 'BAKERY' },
-  { label: 'Stationery', value: 'STATIONERY' },
-  { label: 'Meat & Seafood', value: 'MEAT_SHOP' },
-  { label: 'Other', value: 'OTHER' },
-];
+import { ShopGrid } from '../../components/shop/ShopGrid';
+import { ShopSearch } from '../../components/shop/ShopSearch';
+import { ShopFilters, type SortOption } from '../../components/shop/ShopFilters';
+import { ShopSkeleton } from '../../components/shop/ShopSkeleton';
 
 export const CustomerShopsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
+  const urlCategory = (searchParams.get('category') as ShopCategory | 'ALL') || 'ALL';
 
-  const [shops, setShops] = useState<Shop[]>([]);
-  const [loading, setLoading] = useState(true);
+  // State
+  const [allShops, setAllShops] = useState<Shop[]>([]);
+  const [displayedShops, setDisplayedShops] = useState<Shop[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState(urlSearch);
-  const [selectedCategory, setSelectedCategory] = useState<ShopCategory | 'ALL'>('ALL');
 
-  const fetchShops = async () => {
+  const [searchQuery, setSearchQuery] = useState<string>(urlSearch);
+  const [selectedCategory, setSelectedCategory] = useState<ShopCategory | 'ALL'>(urlCategory);
+  const [selectedSort, setSelectedSort] = useState<SortOption>('RECOMMENDED');
+
+  // Load baseline shops from backend API
+  const loadShops = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      let data: Shop[] = [];
-      if (searchQuery.trim()) {
-        data = await shopService.searchShops(searchQuery.trim());
-      } else if (selectedCategory !== 'ALL') {
-        data = await shopService.getShopsByCategory(selectedCategory);
-      } else {
-        data = await shopService.getActiveShops();
-      }
-      setShops(data || []);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to load partner shops. Please try again.');
+      const data = await shopService.getActiveShops();
+      setAllShops(data || []);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Unable to load partner shops. Please check your connection.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    setSearchQuery(urlSearch);
+    loadShops();
+  }, [loadShops]);
+
+  // Keep search input synced if URL search param changes externally
+  useEffect(() => {
+    if (urlSearch !== searchQuery) {
+      setSearchQuery(urlSearch);
+    }
   }, [urlSearch]);
 
+  // Filter & Search logic using backend search when available or fallback to in-memory filter
+  const executeQuery = useCallback(
+    async (query: string, category: ShopCategory | 'ALL') => {
+      setError(null);
+
+      // If there's an active text query, we can query backend search API
+      if (query.trim()) {
+        setSearchLoading(true);
+        try {
+          const results = await shopService.searchShops(query.trim());
+          let filtered = results || [];
+          if (category !== 'ALL') {
+            filtered = filtered.filter((s) => s.category === category);
+          }
+          setDisplayedShops(filtered);
+        } catch {
+          // Fallback to filtering already loaded shops in case network was interrupted
+          const lower = query.toLowerCase().trim();
+          let filtered = allShops.filter((s) => {
+            const name = (s.shopName || s.name || '').toLowerCase();
+            const desc = (s.description || '').toLowerCase();
+            const addr = (s.address || '').toLowerCase();
+            const city = (s.city || '').toLowerCase();
+            return (
+              name.includes(lower) ||
+              desc.includes(lower) ||
+              addr.includes(lower) ||
+              city.includes(lower)
+            );
+          });
+          if (category !== 'ALL') {
+            filtered = filtered.filter((s) => s.category === category);
+          }
+          setDisplayedShops(filtered);
+        } finally {
+          setSearchLoading(false);
+        }
+      } else if (category !== 'ALL') {
+        // Query backend category filter API
+        setSearchLoading(true);
+        try {
+          const results = await shopService.getShopsByCategory(category);
+          setDisplayedShops(results || []);
+        } catch {
+          // Fallback to in-memory
+          setDisplayedShops(allShops.filter((s) => s.category === category));
+        } finally {
+          setSearchLoading(false);
+        }
+      } else {
+        // Display all active shops
+        setDisplayedShops(allShops);
+      }
+    },
+    [allShops]
+  );
+
+  // Re-run whenever category or search param or baseline allShops changes
   useEffect(() => {
-    fetchShops();
-  }, [selectedCategory, urlSearch]);
+    if (!loading) {
+      executeQuery(searchQuery, selectedCategory);
+    }
+  }, [loading, searchQuery, selectedCategory, executeQuery]);
+
+  // Update URL search parameters
+  const updateUrlParams = (query: string, category: ShopCategory | 'ALL') => {
+    const params: Record<string, string> = {};
+    if (query.trim()) {
+      params.search = query.trim();
+    }
+    if (category !== 'ALL') {
+      params.category = category;
+    }
+    setSearchParams(params, { replace: true });
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      setSearchParams({ search: searchQuery.trim() });
-    } else {
-      setSearchParams({});
-    }
+    updateUrlParams(searchQuery, selectedCategory);
+    executeQuery(searchQuery, selectedCategory);
   };
 
-  const handleClearFilters = () => {
+  const handleCategorySelect = (category: ShopCategory | 'ALL') => {
+    setSelectedCategory(category);
+    updateUrlParams(searchQuery, category);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    updateUrlParams('', selectedCategory);
+    executeQuery('', selectedCategory);
+  };
+
+  const handleResetAll = () => {
     setSearchQuery('');
     setSelectedCategory('ALL');
-    setSearchParams({});
+    setSelectedSort('RECOMMENDED');
+    setSearchParams({}, { replace: true });
+    setDisplayedShops(allShops);
   };
 
+  // Category counts based on active directory
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      ALL: allShops.length,
+    };
+    allShops.forEach((shop) => {
+      if (shop.category) {
+        counts[shop.category] = (counts[shop.category] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [allShops]);
+
+  // Sort displayed shops
+  const sortedShops = useMemo(() => {
+    const copy = [...displayedShops];
+    switch (selectedSort) {
+      case 'NAME_ASC':
+        return copy.sort((a, b) => {
+          const nameA = (a.shopName || a.name || '').toLowerCase();
+          const nameB = (b.shopName || b.name || '').toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+      case 'NAME_DESC':
+        return copy.sort((a, b) => {
+          const nameA = (a.shopName || a.name || '').toLowerCase();
+          const nameB = (b.shopName || b.name || '').toLowerCase();
+          return nameB.localeCompare(nameA);
+        });
+      case 'NEWEST':
+        return copy.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA;
+        });
+      case 'RECOMMENDED':
+      default:
+        return copy;
+    }
+  }, [displayedShops, selectedSort]);
+
+  const hasActiveFilters = Boolean(searchQuery.trim() || selectedCategory !== 'ALL' || selectedSort !== 'RECOMMENDED');
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-      {/* Page Header */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          flexWrap: 'wrap',
-          gap: 16,
-        }}
-      >
-        <div>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '4px 12px',
-              backgroundColor: 'var(--color-primary-subtle)',
-              borderRadius: 'var(--radius-full)',
-              color: 'var(--color-primary-deep)',
-              fontSize: 12,
-              fontWeight: 700,
-              marginBottom: 8,
-            }}
-          >
-            <Sparkles size={13} />
-            <span>EXPRESS OUTLET DIRECTORY</span>
-          </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-main)' }}>
-            Explore Partner Shops
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14.5 }}>
-            Discover verified merchant outlets near you offering express zero-wait pickup.
-          </p>
-        </div>
-
-        <Link to="/customer/cart">
-          <Button variant="secondary" size="md" icon={<ShoppingBag size={18} />}>
-            View Cart
-          </Button>
-        </Link>
-      </div>
-
-      {/* Search and Category Filter Bar */}
+    <div
+      id="customer-shops-page"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 32,
+        maxWidth: 'var(--content-max-width)',
+        margin: '0 auto',
+        width: '100%',
+      }}
+    >
+      {/* 1. Page Header & Hero Banner */}
       <div
         className="card"
         style={{
-          padding: 20,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
+          background: 'linear-gradient(135deg, #FFFFFF 0%, var(--color-light-sage) 60%, var(--color-sage) 100%)',
+          borderRadius: 'var(--radius-2xl)',
+          padding: '36px 40px',
+          border: '1px solid rgba(221, 238, 228, 0.8)',
+          boxShadow: 'var(--shadow-sm)',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        {/* Search Input */}
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 10 }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <Search
-              size={18}
-              style={{
-                position: 'absolute',
-                left: 14,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'var(--color-text-light)',
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Search by shop name, address, or keywords..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="form-input"
-              style={{ paddingLeft: 42 }}
-            />
-          </div>
-          <Button type="submit" variant="primary" size="md">
-            Search
-          </Button>
-          {(searchQuery || selectedCategory !== 'ALL') && (
-            <Button type="button" variant="outline" size="md" onClick={handleClearFilters}>
-              Reset
-            </Button>
-          )}
-        </form>
+        {/* Background decorative zero-wait watermark icon */}
+        <div
+          style={{
+            position: 'absolute',
+            right: -20,
+            bottom: -30,
+            opacity: 0.05,
+            pointerEvents: 'none',
+            color: 'var(--color-primary-deep)',
+          }}
+        >
+          <Zap size={220} />
+        </div>
 
-        {/* Category Pills */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span
-            style={{
-              fontSize: 12.5,
-              fontWeight: 600,
-              color: 'var(--color-text-light)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              marginRight: 4,
-            }}
-          >
-            <Filter size={14} />
-            Categories:
-          </span>
-          {CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat.value;
-            return (
-              <button
-                key={cat.value}
-                onClick={() => setSelectedCategory(cat.value)}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 'var(--radius-full)',
-                  fontSize: 12.5,
-                  fontWeight: isSelected ? 700 : 500,
-                  backgroundColor: isSelected
-                    ? 'var(--color-primary-deep)'
-                    : 'var(--color-surface-subtle)',
-                  color: isSelected ? '#FFFFFF' : 'var(--color-text-muted)',
-                  border: isSelected
-                    ? '1px solid var(--color-primary-deep)'
-                    : '1px solid var(--color-border)',
-                  transition: 'all var(--transition-fast)',
-                }}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            gap: 24,
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
+          <div style={{ maxWidth: 680 }}>
+            {/* Express Badge */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 7,
+                padding: '4px 14px',
+                backgroundColor: 'var(--color-primary-subtle)',
+                borderRadius: 'var(--radius-full)',
+                color: 'var(--color-primary-deep)',
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: '0.6px',
+                textTransform: 'uppercase',
+                marginBottom: 12,
+                border: '1px solid rgba(18, 124, 78, 0.15)',
+              }}
+            >
+              <Sparkles size={13} />
+              <span>QueueLess Express Outlets</span>
+            </div>
+
+            {/* Page Heading & Subtitle */}
+            <h1
+              id="explore-shops-title"
+              style={{
+                fontSize: 34,
+                fontWeight: 800,
+                color: 'var(--color-text-main)',
+                lineHeight: 1.2,
+                fontFamily: 'var(--font-heading)',
+                marginBottom: 10,
+                letterSpacing: '-0.5px',
+              }}
+            >
+              Explore Shops
+            </h1>
+            <p
+              id="explore-shops-subtitle"
+              style={{
+                color: 'var(--color-text-muted)',
+                fontSize: 16,
+                lineHeight: 1.6,
+                marginBottom: 20,
+              }}
+            >
+              Find a shop, choose what you want, and skip the queue.
+            </p>
+
+            {/* Feature Badges */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-primary-deep)' }}>
+                <Zap size={15} fill="var(--color-primary)" color="var(--color-primary)" />
+                <span>Zero-Wait Counter Pickup</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--color-text-muted)' }}>
+                <ShieldCheck size={15} color="var(--color-primary)" />
+                <span>Verified Merchant Partners</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Cart Shortcut */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, alignSelf: 'flex-start' }}>
+            <Link to="/customer/cart" style={{ textDecoration: 'none' }}>
+              <Button
+                id="header-view-cart-btn"
+                variant="secondary"
+                size="md"
+                icon={<ShoppingBag size={18} />}
               >
-                {cat.label}
-              </button>
-            );
-          })}
+                View Cart
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Main Content / Shop Grid */}
-      {loading ? (
-        <LoadingState message="Searching verified partner shops..." />
-      ) : error ? (
-        <ErrorState title="Unable to load shops" message={error} onRetry={fetchShops} />
-      ) : shops.length === 0 ? (
-        <EmptyState
-          icon={<Store size={28} />}
-          title="No shops match your criteria"
-          message={
-            searchQuery || selectedCategory !== 'ALL'
-              ? 'Try modifying your search keywords or switching category filters.'
-              : 'There are currently no active partner shops listed.'
-          }
-          actionText={searchQuery || selectedCategory !== 'ALL' ? 'Clear All Filters' : undefined}
-          onAction={handleClearFilters}
+      {/* 2. Prominent Search Bar */}
+      <div
+        className="card"
+        style={{
+          padding: '24px 28px',
+          borderRadius: 'var(--radius-xl)',
+          backgroundColor: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          boxShadow: 'var(--shadow-xs)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+        }}
+      >
+        <ShopSearch
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onSubmit={handleSearchSubmit}
+          onClear={handleClearSearch}
+          placeholder="Search shops or products..."
+          isSearching={searchLoading}
         />
-      ) : (
-        <div>
-          <div
-            style={{
-              fontSize: 13.5,
-              fontWeight: 600,
-              color: 'var(--color-text-muted)',
-              marginBottom: 16,
-            }}
-          >
-            Showing {shops.length} verified partner {shops.length === 1 ? 'outlet' : 'outlets'}
+
+        {/* Categories and Sort Bar */}
+        <ShopFilters
+          selectedCategory={selectedCategory}
+          onSelectCategory={handleCategorySelect}
+          selectedSort={selectedSort}
+          onSelectSort={setSelectedSort}
+          onReset={handleResetAll}
+          hasActiveFilters={hasActiveFilters}
+          categoryCounts={categoryCounts}
+        />
+      </div>
+
+      {/* 3. Main Shop Directory Content Area */}
+      <div>
+        {loading ? (
+          /* Initial Loading State */
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 20,
+              }}
+            >
+              <div className="skeleton" style={{ width: 220, height: 20 }} />
+              <div className="skeleton" style={{ width: 140, height: 20 }} />
+            </div>
+            <ShopSkeleton count={6} />
           </div>
+        ) : error ? (
+          /* Error State with Retry Button */
+          <div className="card" style={{ padding: 40 }}>
+            <ErrorState
+              title="Unable to load shops"
+              message="Please try again."
+              onRetry={loadShops}
+            />
+          </div>
+        ) : allShops.length === 0 ? (
+          /* Empty System State: No Shops Available */
+          <EmptyState
+            icon={<Store size={32} />}
+            title="No shops available"
+            message="Try changing your search or check back later."
+            actionText="Refresh Directory"
+            onAction={loadShops}
+          />
+        ) : sortedShops.length === 0 ? (
+          /* Empty Search / Filter State: No Shops Found */
+          <EmptyState
+            icon={<Store size={32} />}
+            title="No shops found"
+            message="Try a different search."
+            actionText="Clear Search & Filters"
+            onAction={handleResetAll}
+          />
+        ) : (
+          /* Shops Grid List */
+          <div>
+            {/* Results Header Bar */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 20,
+                flexWrap: 'wrap',
+                gap: 12,
+              }}
+            >
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--color-text-main)' }}>
+                Showing {sortedShops.length}{' '}
+                {sortedShops.length === 1 ? 'verified partner outlet' : 'verified partner outlets'}
+                {selectedCategory !== 'ALL' && (
+                  <span style={{ fontWeight: 500, color: 'var(--color-text-muted)', marginLeft: 6 }}>
+                    in {selectedCategory}
+                  </span>
+                )}
+                {searchQuery && (
+                  <span style={{ fontWeight: 500, color: 'var(--color-primary-deep)', marginLeft: 6 }}>
+                    matching &ldquo;{searchQuery}&rdquo;
+                  </span>
+                )}
+              </div>
 
-          <div className="grid-3">
-            {shops.map((shop) => (
-              <div
-                key={shop.id}
-                className="card"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                  transition: 'transform var(--transition-fast), box-shadow var(--transition-fast)',
-                }}
-              >
-                <div>
-                  {/* Shop Card Header */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      marginBottom: 14,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 'var(--radius-md)',
-                        backgroundColor: 'var(--color-sage)',
-                        color: 'var(--color-primary-deep)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Store size={26} />
-                    </div>
-                    <Badge variant="neutral">{shop.category || 'RETAIL'}</Badge>
-                  </div>
-
-                  {/* Shop Info */}
-                  <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6 }}>{shop.name}</h3>
-                  <p
-                    style={{
-                      color: 'var(--color-text-muted)',
-                      fontSize: 13.5,
-                      marginBottom: 16,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {shop.description || 'Verified local shop offering advance pickup slots.'}
-                  </p>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        fontSize: 13,
-                        color: 'var(--color-text-muted)',
-                      }}
-                    >
-                      <MapPin size={15} style={{ color: 'var(--color-text-light)', flexShrink: 0 }} />
-                      <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                        {shop.address}, {shop.city}
-                      </span>
-                    </div>
-
-                    {shop.phone && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          fontSize: 13,
-                          color: 'var(--color-text-muted)',
-                        }}
-                      >
-                        <Phone size={15} style={{ color: 'var(--color-text-light)', flexShrink: 0 }} />
-                        <span>{shop.phone}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Shop Card Footer */}
-                <div
+              {hasActiveFilters && (
+                <button
+                  onClick={handleResetAll}
                   style={{
-                    paddingTop: 14,
-                    borderTop: '1px solid var(--color-border-subtle)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-primary)',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
                     alignItems: 'center',
+                    gap: 5,
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        backgroundColor: shop.status === 'ACTIVE' ? 'var(--color-success)' : 'var(--color-text-light)',
-                      }}
-                    />
-                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                      {shop.status === 'ACTIVE' ? 'Open for Pickup' : shop.status}
-                    </span>
-                  </div>
+                  <RotateCcw size={13} />
+                  <span>Show All Shops ({allShops.length})</span>
+                </button>
+              )}
+            </div>
 
-                  <Link to={`/customer/shops/${shop.id}`}>
-                    <Button variant="primary" size="sm" icon={<ArrowRight size={14} />}>
-                      Browse Items
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
+            {/* Responsive Shop Cards Grid */}
+            <ShopGrid shops={sortedShops} />
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
