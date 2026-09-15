@@ -70,6 +70,7 @@ export const AppRoutes: React.FC = () => {
           <Route index element={<CustomerHomePage />} />
           <Route path="shops" element={<CustomerShopsPage />} />
           <Route path="shops/:shopId" element={<ShopDetailsPage />} />
+          <Route path="shop/:id" element={<ShopDetailsPage />} />
           <Route path="cart" element={<CustomerCartPage />} />
           <Route path="orders" element={<CustomerOrdersPage />} />
           <Route path="profile" element={<CustomerProfilePage />} />
