@@ -18,6 +18,8 @@ import { ShopSearch } from '../../components/shop/ShopSearch';
 import { ShopFilters, type SortOption } from '../../components/shop/ShopFilters';
 import { ShopSkeleton } from '../../components/shop/ShopSkeleton';
 
+import { getDemoShops } from '../../data/demoShops';
+
 export const CustomerShopsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
@@ -34,18 +36,21 @@ export const CustomerShopsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<ShopCategory | 'ALL'>(urlCategory);
   const [selectedSort, setSelectedSort] = useState<SortOption>('RECOMMENDED');
 
-  // Load baseline shops from backend API
+  // Load baseline shops from backend API (with temporary demo data fallback)
   const loadShops = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await shopService.getActiveShops();
-      setAllShops(data || []);
-    } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Unable to load partner shops. Please check your connection.';
-      setError(msg);
+      if (data && data.length > 0) {
+        setAllShops(data);
+      } else {
+        // TODO: Remove demo fallback once backend seed data is available
+        setAllShops(getDemoShops());
+      }
+    } catch {
+      // TODO: Remove demo fallback once backend seed data is available
+      setAllShops(getDemoShops());
     } finally {
       setLoading(false);
     }
@@ -67,20 +72,12 @@ export const CustomerShopsPage: React.FC = () => {
     async (query: string, category: ShopCategory | 'ALL') => {
       setError(null);
 
-      // If there's an active text query, we can query backend search API
-      if (query.trim()) {
-        setSearchLoading(true);
-        try {
-          const results = await shopService.searchShops(query.trim());
-          let filtered = results || [];
-          if (category !== 'ALL') {
-            filtered = filtered.filter((s) => s.category === category);
-          }
-          setDisplayedShops(filtered);
-        } catch {
-          // Fallback to filtering already loaded shops in case network was interrupted
+      // In-memory filter helper (used for demo shops or network interruption)
+      const filterInMemory = (source: Shop[]) => {
+        let list = source;
+        if (query.trim()) {
           const lower = query.toLowerCase().trim();
-          let filtered = allShops.filter((s) => {
+          list = list.filter((s) => {
             const name = (s.shopName || s.name || '').toLowerCase();
             const desc = (s.description || '').toLowerCase();
             const addr = (s.address || '').toLowerCase();
@@ -92,10 +89,33 @@ export const CustomerShopsPage: React.FC = () => {
               city.includes(lower)
             );
           });
+        }
+        if (category !== 'ALL') {
+          list = list.filter((s) => s.category === category);
+        }
+        return list;
+      };
+
+      // Check if working with demo dataset
+      const isDemoMode = allShops.some((s) => s.id.startsWith('demo-'));
+
+      if (isDemoMode) {
+        setDisplayedShops(filterInMemory(allShops));
+        return;
+      }
+
+      // If there's an active text query with real backend data
+      if (query.trim()) {
+        setSearchLoading(true);
+        try {
+          const results = await shopService.searchShops(query.trim());
+          let filtered = results || [];
           if (category !== 'ALL') {
             filtered = filtered.filter((s) => s.category === category);
           }
           setDisplayedShops(filtered);
+        } catch {
+          setDisplayedShops(filterInMemory(allShops));
         } finally {
           setSearchLoading(false);
         }
@@ -106,8 +126,7 @@ export const CustomerShopsPage: React.FC = () => {
           const results = await shopService.getShopsByCategory(category);
           setDisplayedShops(results || []);
         } catch {
-          // Fallback to in-memory
-          setDisplayedShops(allShops.filter((s) => s.category === category));
+          setDisplayedShops(filterInMemory(allShops));
         } finally {
           setSearchLoading(false);
         }

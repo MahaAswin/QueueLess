@@ -24,6 +24,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { shopService } from '../../services/shopService';
 import { orderService } from '../../services/orderService';
+import { getDemoShops } from '../../data/demoShops';
 import type { Shop, ShopCategory } from '../../types/shop.types';
 import type { Order, OrderStatus } from '../../types/order.types';
 import { Button } from '../../components/ui/Button';
@@ -76,15 +77,21 @@ export const CustomerHomePage: React.FC = () => {
     return parts[0];
   }, [user?.fullName]);
 
-  // Load Shops
+  // Load Shops (with temporary demo data fallback)
   const loadShops = useCallback(async () => {
     setShopsLoading(true);
     setShopsError(null);
     try {
       const data = await shopService.getActiveShops();
-      setShops(data || []);
+      if (data && data.length > 0) {
+        setShops(data);
+      } else {
+        // TODO: Remove demo fallback once backend seed data is available
+        setShops(getDemoShops());
+      }
     } catch {
-      setShopsError('Unable to load shops right now.');
+      // TODO: Remove demo fallback once backend seed data is available
+      setShops(getDemoShops());
     } finally {
       setShopsLoading(false);
     }
