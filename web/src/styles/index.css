@@ -497,6 +497,10 @@ input, select, textarea {
   .grid-4, .grid-3, .grid-2 {
     grid-template-columns: 1fr;
   }
+  .cart-grid-layout {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
   .app-content {
     padding: 20px 16px;
   }

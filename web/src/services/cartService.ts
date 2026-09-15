@@ -119,6 +119,8 @@ export const cartService = {
         quantity,
         subtotal: demoProd.price * quantity,
         imageUrl: demoProd.imageUrl,
+        shopId: demoProd.shopId,
+        shopName: demoShop?.name || 'Partner Shop',
       });
     }
 

@@ -7,6 +7,8 @@ export interface CartItem {
   quantity: number;
   subtotal: number;
   imageUrl?: string;
+  shopId?: string;
+  shopName?: string;
 }
 
 export interface Cart {
