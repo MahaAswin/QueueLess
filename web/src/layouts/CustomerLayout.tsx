@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   Home,
@@ -14,12 +14,38 @@ import {
   Zap,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { notificationService } from '../services/notificationService';
 
 export const CustomerLayout: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number>(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchUnread = async () => {
+      try {
+        const count = await notificationService.getUnreadCount();
+        if (isMounted) setUnreadNotificationsCount(count ?? 0);
+      } catch {
+        // Soft fail
+      }
+    };
+
+    fetchUnread();
+
+    const handleUpdate = () => {
+      fetchUnread();
+    };
+
+    window.addEventListener('queueless:notifications-updated', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('queueless:notifications-updated', handleUpdate);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -255,7 +281,7 @@ export const CustomerLayout: React.FC = () => {
             </NavLink>
 
             <NavLink
-              to="/customer/profile?tab=notifications"
+              to="/customer/profile/notifications"
               style={{
                 position: 'relative',
                 padding: 8,
@@ -269,6 +295,29 @@ export const CustomerLayout: React.FC = () => {
               title="Notifications"
             >
               <Bell size={20} />
+              {unreadNotificationsCount > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 2,
+                    minWidth: 16,
+                    height: 16,
+                    borderRadius: 'var(--radius-full)',
+                    backgroundColor: 'var(--color-primary-deep)',
+                    color: '#FFFFFF',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 4px',
+                    boxShadow: '0 0 0 2px var(--color-surface)',
+                  }}
+                >
+                  {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
+                </span>
+              )}
             </NavLink>
           </div>
         </header>

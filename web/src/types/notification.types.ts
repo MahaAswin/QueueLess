@@ -2,15 +2,22 @@ export type NotificationType =
   | 'ORDER_PLACED'
   | 'ORDER_CONFIRMED'
   | 'ORDER_REJECTED'
+  | 'ORDER_CANCELLED'
+  | 'PICKUP_SLOT_REQUESTED'
+  | 'PICKUP_SLOT_ACCEPTED'
+  | 'PICKUP_SLOT_REJECTED'
+  | 'PICKUP_SLOT_COUNTER_PROPOSED'
+  | 'PICKUP_SLOT_CUSTOMER_ACCEPTED'
+  | 'PICKUP_SLOT_CUSTOMER_REJECTED'
   | 'ORDER_PREPARING'
   | 'ORDER_READY_FOR_PICKUP'
-  | 'ORDER_COMPLETED'
-  | 'ORDER_CANCELLED'
-  | 'SLOT_PROPOSED'
-  | 'SLOT_ACCEPTED'
-  | 'SLOT_REJECTED'
-  | 'COMPLAINT_UPDATE'
-  | 'SYSTEM';
+  | 'ORDER_COLLECTED'
+  | 'COMPLAINT_SUBMITTED'
+  | 'COMPLAINT_REVIEWED'
+  | 'ACCOUNT_SUSPENDED'
+  | 'ACCOUNT_REINSTATED'
+  | 'SHOP_SUSPENDED'
+  | 'SHOP_REINSTATED';
 
 export interface NotificationItem {
   id: string;
@@ -26,10 +33,11 @@ export interface NotificationItem {
 
 export interface NotificationPageResponse {
   content: NotificationItem[];
+  page: number;
+  size: number;
   totalElements: number;
   totalPages: number;
-  number: number;
-  size: number;
+  hasNext: boolean;
 }
 
 export interface UnreadCountResponse {

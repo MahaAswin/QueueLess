@@ -22,6 +22,7 @@ import { CustomerCheckoutPage } from '../pages/customer/CustomerCheckoutPage';
 import { CustomerOrdersPage } from '../pages/customer/CustomerOrdersPage';
 import { OrderDetailPage } from '../pages/customer/OrderDetailPage';
 import { CustomerProfilePage } from '../pages/customer/CustomerProfilePage';
+import { CustomerNotificationsPage } from '../pages/customer/CustomerNotificationsPage';
 
 // Dashboards
 import { ShopDashboard } from '../pages/shop/ShopDashboard';
@@ -78,6 +79,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="orders" element={<CustomerOrdersPage />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
           <Route path="profile" element={<CustomerProfilePage />} />
+          <Route path="profile/notifications" element={<CustomerNotificationsPage />} />
         </Route>
       </Route>
 

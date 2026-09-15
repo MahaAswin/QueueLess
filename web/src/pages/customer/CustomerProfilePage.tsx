@@ -1,102 +1,78 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   User as UserIcon,
   Mail,
   Phone,
-  Shield,
   Bell,
   LogOut,
   Sparkles,
-  CheckCircle2,
   Clock,
-  Check,
+  ArrowRight,
+  Receipt,
+  Store,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { notificationService } from '../../services/notificationService';
 import type { NotificationItem } from '../../types/notification.types';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
-import { LoadingState } from '../../components/feedback/LoadingState';
-
-type ProfileTab = 'PROFILE' | 'NOTIFICATIONS' | 'PREFERENCES';
+import { formatRelativeTime } from '../../utils/formatters';
 
 export const CustomerProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
 
-  const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<ProfileTab>(
-    tabParam === 'notifications' ? 'NOTIFICATIONS' : 'PROFILE'
-  );
-
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [notificationsLoading, setNotificationsLoading] = useState(false);
-  const [markingAll, setMarkingAll] = useState(false);
+  const [recentNotifications, setRecentNotifications] = useState<NotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [loadingNotifications, setLoadingNotifications] = useState<boolean>(true);
 
   useEffect(() => {
-    if (tabParam === 'notifications') {
-      setActiveTab('NOTIFICATIONS');
-    }
-  }, [tabParam]);
+    let isMounted = true;
+    const loadProfileData = async () => {
+      setLoadingNotifications(true);
+      try {
+        const [pageData, count] = await Promise.all([
+          notificationService.getUserNotifications(0, 3),
+          notificationService.getUnreadCount(),
+        ]);
+        if (isMounted) {
+          setRecentNotifications(pageData?.content || []);
+          setUnreadCount(count ?? 0);
+        }
+      } catch {
+        // Soft fail
+      } finally {
+        if (isMounted) setLoadingNotifications(false);
+      }
+    };
 
-  const loadNotifications = async () => {
-    setNotificationsLoading(true);
-    try {
-      const response = await notificationService.getUserNotifications(0, 30);
-      setNotifications(response?.content || []);
-    } catch {
-      // Soft fail
-    } finally {
-      setNotificationsLoading(false);
-    }
-  };
+    loadProfileData();
 
-  useEffect(() => {
-    if (activeTab === 'NOTIFICATIONS') {
-      loadNotifications();
-    }
-  }, [activeTab]);
+    const handleUpdate = () => {
+      loadProfileData();
+    };
 
-  const handleMarkAsRead = async (id: string) => {
-    try {
-      await notificationService.markAsRead(id);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      );
-    } catch {
-      // Soft fail
-    }
-  };
-
-  const handleMarkAllAsRead = async () => {
-    setMarkingAll(true);
-    try {
-      await notificationService.markAllAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    } catch {
-      // Soft fail
-    } finally {
-      setMarkingAll(false);
-    }
-  };
+    window.addEventListener('queueless:notifications-updated', handleUpdate);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('queueless:notifications-updated', handleUpdate);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28, maxWidth: 1040, margin: '0 auto' }}>
       {/* Header */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           flexWrap: 'wrap',
           gap: 16,
         }}
@@ -117,13 +93,13 @@ export const CustomerProfilePage: React.FC = () => {
             }}
           >
             <Sparkles size={13} />
-            <span>ACCOUNT OVERVIEW</span>
+            <span>ACCOUNT SETTINGS</span>
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-main)' }}>
-            Customer Account & Profile
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-main)', margin: 0 }}>
+            Account Profile
           </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14.5 }}>
-            Manage your personal profile, notification alerts, and express pickup preferences.
+          <p style={{ color: 'var(--color-text-muted)', fontSize: 14.5, marginTop: 4, marginBottom: 0 }}>
+            Manage your QueueLess account and preferences.
           </p>
         </div>
 
@@ -132,202 +108,118 @@ export const CustomerProfilePage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Profile Overview Card */}
+      {/* Profile Overview Hero Card */}
       <div
         className="card"
         style={{
-          background: 'linear-gradient(135deg, var(--color-surface) 0%, var(--color-light-sage) 100%)',
-          borderColor: 'var(--color-sage)',
+          background: 'linear-gradient(135deg, var(--color-surface) 0%, var(--color-light-sage, #F0FDF4) 100%)',
+          borderColor: 'var(--color-sage, #A7D7C5)',
           padding: '28px 32px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: 20,
+          borderRadius: 'var(--radius-xl, 16px)',
+          boxShadow: '0 4px 16px rgba(13, 92, 58, 0.04)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <div
             style={{
-              width: 64,
-              height: 64,
+              width: 68,
+              height: 68,
               borderRadius: 'var(--radius-full)',
               backgroundColor: 'var(--color-primary-deep)',
               color: '#FFFFFF',
-              fontSize: 24,
+              fontSize: 26,
               fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(13, 92, 58, 0.2)',
             }}
           >
             {user?.fullName?.charAt(0).toUpperCase() || 'C'}
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <h2 style={{ fontSize: 22, fontWeight: 800 }}>{user?.fullName || 'Customer User'}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
+              <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, color: 'var(--color-text-main)' }}>
+                {user?.fullName || 'Customer User'}
+              </h2>
               <Badge variant="success">Verified Customer</Badge>
             </div>
-            <div style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>
-              {user?.email || 'customer@queueless.com'}
+            <div style={{ fontSize: 14, color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Mail size={14} color="var(--color-text-light)" />
+              <span>{user?.email || 'customer@queueless.com'}</span>
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <Badge variant="neutral">Role: {user?.role || 'CUSTOMER'}</Badge>
           <Badge variant="info">Status: {user?.accountStatus || 'ACTIVE'}</Badge>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          borderBottom: '1px solid var(--color-border)',
-          paddingBottom: 4,
-        }}
-      >
-        <button
-          onClick={() => {
-            setActiveTab('PROFILE');
-            setSearchParams({});
-          }}
-          style={{
-            padding: '10px 20px',
-            borderBottom: activeTab === 'PROFILE' ? '2px solid var(--color-primary)' : '2px solid transparent',
-            color: activeTab === 'PROFILE' ? 'var(--color-primary-deep)' : 'var(--color-text-muted)',
-            fontWeight: activeTab === 'PROFILE' ? 700 : 500,
-            fontSize: 14,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <UserIcon size={16} />
-          <span>Profile Details</span>
-        </button>
+      {/* Main Grid Layout */}
+      <div className="grid-2" style={{ gap: 24, alignItems: 'start' }}>
+        {/* Left Column: Personal Information & Security */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div className="card" style={{ padding: 24, borderRadius: 'var(--radius-lg)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Personal Information</h3>
+              <Badge variant="neutral">Read Only</Badge>
+            </div>
 
-        <button
-          onClick={() => {
-            setActiveTab('NOTIFICATIONS');
-            setSearchParams({ tab: 'notifications' });
-          }}
-          style={{
-            padding: '10px 20px',
-            borderBottom: activeTab === 'NOTIFICATIONS' ? '2px solid var(--color-primary)' : '2px solid transparent',
-            color: activeTab === 'NOTIFICATIONS' ? 'var(--color-primary-deep)' : 'var(--color-text-muted)',
-            fontWeight: activeTab === 'NOTIFICATIONS' ? 700 : 500,
-            fontSize: 14,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <Bell size={16} />
-          <span>Notifications</span>
-          {unreadCount > 0 && (
-            <span
-              style={{
-                backgroundColor: 'var(--color-primary-deep)',
-                color: '#fff',
-                fontSize: 11,
-                fontWeight: 700,
-                padding: '2px 7px',
-                borderRadius: 'var(--radius-full)',
-              }}
-            >
-              {unreadCount}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('PREFERENCES');
-            setSearchParams({});
-          }}
-          style={{
-            padding: '10px 20px',
-            borderBottom: activeTab === 'PREFERENCES' ? '2px solid var(--color-primary)' : '2px solid transparent',
-            color: activeTab === 'PREFERENCES' ? 'var(--color-primary-deep)' : 'var(--color-text-muted)',
-            fontWeight: activeTab === 'PREFERENCES' ? 700 : 500,
-            fontSize: 14,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <Shield size={16} />
-          <span>Express Pickup Guide</span>
-        </button>
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'PROFILE' && (
-        <div className="grid-2">
-          {/* Personal Details */}
-          <div className="card" style={{ padding: 24 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Personal Information</h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', marginBottom: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', marginBottom: 5 }}>
                   Full Legal Name
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <UserIcon size={16} color="var(--color-text-light)" />
-                  {user?.fullName || 'Not specified'}
+                  <span>{user?.fullName || 'Not specified'}</span>
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', marginBottom: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', marginBottom: 5 }}>
                   Registered Email Address
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Mail size={16} color="var(--color-text-light)" />
-                  {user?.email || 'Not specified'}
+                  <span>{user?.email || 'Not specified'}</span>
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', marginBottom: 4 }}>
-                  Phone Number
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', marginBottom: 5 }}>
+                  Contact Phone Number
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-main)', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <Phone size={16} color="var(--color-text-light)" />
-                  {user?.phone || '+1 (555) 019-2834'}
+                  <span>{user?.phone || 'Not specified'}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Account Security & Role */}
-          <div className="card" style={{ padding: 24 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Account Security & Access</h3>
+          {/* Account Security Card */}
+          <div className="card" style={{ padding: 24, borderRadius: 'var(--radius-lg)' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Account Security</h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', marginBottom: 4 }}>
-                  System Role
+                  Authentication State
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-main)' }}>
-                  Customer (Store Pickup & Orders)
-                </div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', marginBottom: 4 }}>
-                  Session Security
-                </div>
-                <div style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>
-                  JWT Authenticated with Auto-Refresh & Secure Storage.
+                <div style={{ fontSize: 14, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+                  Protected by secure JWT session tokens with automatic refresh handling.
                 </div>
               </div>
 
-              <div style={{ paddingTop: 16, borderTop: '1px solid var(--color-border-subtle)' }}>
+              <div style={{ paddingTop: 14, borderTop: '1px solid var(--color-border-subtle)' }}>
                 <Button variant="outline" size="sm" onClick={handleLogout} icon={<LogOut size={15} />}>
                   Sign Out of QueueLess
                 </Button>
@@ -335,175 +227,162 @@ export const CustomerProfilePage: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
 
-      {activeTab === 'NOTIFICATIONS' && (
-        <div className="card" style={{ padding: 24 }}>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 20,
-              flexWrap: 'wrap',
-              gap: 12,
-            }}
-          >
-            <div>
-              <h3 style={{ fontSize: 18, fontWeight: 700 }}>Notifications & Alerts</h3>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: 13.5 }}>
-                Real-time updates regarding your express pickup orders and slots
-              </p>
+        {/* Right Column: Notifications Preview & Express Pickup Overview */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Notifications Card */}
+          <div className="card" style={{ padding: 24, borderRadius: 'var(--radius-lg)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Notifications</h3>
+                {unreadCount > 0 && (
+                  <Badge variant="success">{unreadCount} New</Badge>
+                )}
+              </div>
+
+              <Link
+                to="/customer/profile/notifications"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: 'var(--color-primary-deep)',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <span>View All</span>
+                <ArrowRight size={14} />
+              </Link>
             </div>
 
-            {notifications.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                isLoading={markingAll}
-                onClick={handleMarkAllAsRead}
-                icon={<Check size={14} />}
-              >
-                Mark All as Read
-              </Button>
+            {loadingNotifications ? (
+              <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 13.5 }}>
+                Checking recent alerts...
+              </div>
+            ) : recentNotifications.length === 0 ? (
+              <div style={{ padding: '24px 16px', textAlign: 'center', backgroundColor: 'var(--color-surface-subtle)', borderRadius: 'var(--radius-md)' }}>
+                <Bell size={28} style={{ margin: '0 auto 8px', color: 'var(--color-text-light)' }} />
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text-main)' }}>
+                  No new notifications
+                </div>
+                <div style={{ fontSize: 12.5, color: 'var(--color-text-muted)', marginTop: 2 }}>
+                  Order readiness and pickup schedule updates will appear here.
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {recentNotifications.map((n) => {
+                  return (
+                    <div
+                      key={n.id}
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 'var(--radius-md)',
+                        border: n.read ? '1px solid var(--color-border)' : '1px solid var(--color-primary-light, #A7D7C5)',
+                        backgroundColor: n.read ? 'var(--color-surface)' : 'var(--color-primary-subtle, #F0FDF4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 12,
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: n.read ? 600 : 700, color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {n.title}
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--color-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 1 }}>
+                          {n.message}
+                        </div>
+                      </div>
+
+                      <span style={{ fontSize: 11.5, color: 'var(--color-text-light)', flexShrink: 0, fontWeight: 500 }}>
+                        {formatRelativeTime(n.createdAt)}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                <div style={{ marginTop: 8 }}>
+                  <Link
+                    to="/customer/profile/notifications"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      padding: '8px 14px',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'var(--color-surface-subtle)',
+                      color: 'var(--color-primary-deep)',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <span>Open Notifications Inbox</span>
+                    <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
             )}
           </div>
 
-          {notificationsLoading ? (
-            <LoadingState message="Loading notification alerts..." />
-          ) : notifications.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--color-text-muted)' }}>
-              <Bell size={36} style={{ margin: '0 auto 12px', color: 'var(--color-text-light)' }} />
-              <div style={{ fontWeight: 600, fontSize: 15 }}>No notifications yet</div>
-              <div style={{ fontSize: 13.5, color: 'var(--color-text-light)', marginTop: 4 }}>
-                You will receive alerts here when your orders change status or express pickup slots are updated.
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {notifications.map((n) => (
-                <div
-                  key={n.id}
-                  style={{
-                    padding: '16px 18px',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--color-border)',
-                    backgroundColor: n.read ? 'var(--color-surface)' : 'var(--color-primary-subtle)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: 16,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                    <div
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: '50%',
-                        backgroundColor: n.read ? 'var(--color-surface-subtle)' : 'var(--color-sage)',
-                        color: 'var(--color-primary-deep)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        marginTop: 2,
-                      }}
-                    >
-                      <Bell size={18} />
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 14.5, color: 'var(--color-text-main)' }}>
-                        {n.title}
-                      </div>
-                      <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 2 }}>
-                        {n.message}
-                      </div>
-                      <div style={{ fontSize: 11.5, color: 'var(--color-text-light)', marginTop: 4 }}>
-                        {n.createdAt ? new Date(n.createdAt).toLocaleString() : 'Just now'}
-                      </div>
-                    </div>
-                  </div>
-
-                  {!n.read && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleMarkAsRead(n.id)}
-                    >
-                      Mark Read
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'PREFERENCES' && (
-        <div className="card" style={{ padding: 28 }}>
-          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>
-            QueueLess Express Pickup Guide
-          </h3>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
-            QueueLess is engineered to eliminate customer waiting lines at physical merchant outlets. Here is how our zero-wait guarantee operates:
-          </p>
-
-          <div className="grid-3" style={{ gap: 20 }}>
-            <div
-              style={{
-                padding: 20,
-                backgroundColor: 'var(--color-surface-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--color-border)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <Clock size={20} color="var(--color-primary)" />
-                <h4 style={{ fontSize: 15, fontWeight: 700 }}>1. Advance Preparation</h4>
-              </div>
-              <p style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                When you place your order, the merchant prepares and packs your basket ahead of time so it is ready when you arrive.
-              </p>
+          {/* Express Pickup Zero-Wait Summary Card */}
+          <div
+            className="card"
+            style={{
+              padding: 24,
+              borderRadius: 'var(--radius-lg)',
+              backgroundColor: 'var(--color-surface-subtle)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Clock size={18} color="var(--color-primary)" />
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Zero-Wait Express Pickup</h3>
             </div>
 
-            <div
-              style={{
-                padding: 20,
-                backgroundColor: 'var(--color-surface-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--color-border)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <Sparkles size={20} color="var(--color-primary)" />
-                <h4 style={{ fontSize: 15, fontWeight: 700 }}>2. Dedicated Slot</h4>
-              </div>
-              <p style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                Pickup slots distribute store footfall to avoid congestion at the pickup counter.
-              </p>
-            </div>
+            <p style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.55, margin: '0 0 16px 0' }}>
+              Your pickup time slots guarantee dedicated basket preparation before you arrive. Show your order reference code at the counter for instant pickup.
+            </p>
 
-            <div
-              style={{
-                padding: 20,
-                backgroundColor: 'var(--color-surface-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid var(--color-border)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <CheckCircle2 size={20} color="var(--color-primary)" />
-                <h4 style={{ fontSize: 15, fontWeight: 700 }}>3. Instant Handover</h4>
-              </div>
-              <p style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                Present your 8-digit order reference pass or QR code at the counter for contactless basket collection.
-              </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <Link
+                to="/customer/orders"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: 'var(--color-primary-deep)',
+                  textDecoration: 'none',
+                }}
+              >
+                <Receipt size={14} />
+                <span>My Active Orders</span>
+              </Link>
+              <span style={{ color: 'var(--color-border)' }}>•</span>
+              <Link
+                to="/customer/shops"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: 'var(--color-primary-deep)',
+                  textDecoration: 'none',
+                }}
+              >
+                <Store size={14} />
+                <span>Explore Shops</span>
+              </Link>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

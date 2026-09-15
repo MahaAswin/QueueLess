@@ -144,3 +144,130 @@ export const getOrderStatusMeta = (status: OrderStatus): OrderStatusMeta => {
       };
   }
 };
+
+/**
+ * Formats an ISO date-time into friendly relative time (e.g. "Just now", "5m ago", "2h ago", "Yesterday")
+ */
+export const formatRelativeTime = (dateStr?: string | null): string => {
+  if (!dateStr) return 'Just now';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    if (diffMs < 0) return 'Just now';
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHours = Math.floor(diffMin / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffSec < 45) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
+export interface NotificationMeta {
+  category: 'ORDER' | 'SLOT' | 'COMPLAINT' | 'ACCOUNT' | 'SYSTEM';
+  badgeVariant: 'success' | 'warning' | 'error' | 'info' | 'neutral';
+  color: string;
+  bgColor: string;
+}
+
+/**
+ * Returns UI metadata (category, color, badge variant) for a given NotificationType
+ */
+export const getNotificationMeta = (type: string): NotificationMeta => {
+  switch (type) {
+    case 'ORDER_PLACED':
+    case 'ORDER_CONFIRMED':
+    case 'ORDER_PREPARING':
+      return {
+        category: 'ORDER',
+        badgeVariant: 'info',
+        color: '#0D5C3A',
+        bgColor: '#E8F5EE',
+      };
+    case 'ORDER_READY_FOR_PICKUP':
+    case 'ORDER_COLLECTED':
+      return {
+        category: 'ORDER',
+        badgeVariant: 'success',
+        color: '#0D5C3A',
+        bgColor: '#DCFCE7',
+      };
+    case 'ORDER_REJECTED':
+    case 'ORDER_CANCELLED':
+      return {
+        category: 'ORDER',
+        badgeVariant: 'error',
+        color: '#DC2626',
+        bgColor: '#FEE2E2',
+      };
+    case 'PICKUP_SLOT_REQUESTED':
+    case 'PICKUP_SLOT_COUNTER_PROPOSED':
+      return {
+        category: 'SLOT',
+        badgeVariant: 'warning',
+        color: '#D97706',
+        bgColor: '#FEF3C7',
+      };
+    case 'PICKUP_SLOT_ACCEPTED':
+    case 'PICKUP_SLOT_CUSTOMER_ACCEPTED':
+      return {
+        category: 'SLOT',
+        badgeVariant: 'success',
+        color: '#0D5C3A',
+        bgColor: '#E8F5EE',
+      };
+    case 'PICKUP_SLOT_REJECTED':
+    case 'PICKUP_SLOT_CUSTOMER_REJECTED':
+      return {
+        category: 'SLOT',
+        badgeVariant: 'error',
+        color: '#DC2626',
+        bgColor: '#FEE2E2',
+      };
+    case 'COMPLAINT_SUBMITTED':
+    case 'COMPLAINT_REVIEWED':
+      return {
+        category: 'COMPLAINT',
+        badgeVariant: 'warning',
+        color: '#7C3AED',
+        bgColor: '#F5F3FF',
+      };
+    case 'ACCOUNT_SUSPENDED':
+    case 'SHOP_SUSPENDED':
+      return {
+        category: 'ACCOUNT',
+        badgeVariant: 'error',
+        color: '#DC2626',
+        bgColor: '#FEE2E2',
+      };
+    case 'ACCOUNT_REINSTATED':
+    case 'SHOP_REINSTATED':
+      return {
+        category: 'ACCOUNT',
+        badgeVariant: 'success',
+        color: '#0D5C3A',
+        bgColor: '#E8F5EE',
+      };
+    default:
+      return {
+        category: 'SYSTEM',
+        badgeVariant: 'neutral',
+        color: '#475569',
+        bgColor: '#F1F5F9',
+      };
+  }
+};
+
