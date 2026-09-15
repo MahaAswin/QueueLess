@@ -1,10 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Store,
   Sparkles,
-  ShoppingBag,
-  X,
   AlertCircle,
 } from 'lucide-react';
 import { cartService } from '../../services/cartService';
@@ -19,13 +17,13 @@ import { CartSkeleton } from './cart/CartSkeleton';
 import { MultiShopConflictBanner } from './cart/MultiShopConflictBanner';
 
 export const CustomerCartPage: React.FC = () => {
+  const navigate = useNavigate();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // Modals & Transitions
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  // Modals
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Fetch cart on mount
@@ -145,9 +143,9 @@ export const CustomerCartPage: React.FC = () => {
     }
   };
 
-  // Proceed to Checkout handler (Clean placeholder transition - NO fake orders!)
+  // Proceed to Checkout handler
   const handleProceedToCheckout = () => {
-    setShowCheckoutModal(true);
+    navigate('/customer/checkout');
   };
 
   // Check for multi-shop cart items
@@ -224,140 +222,6 @@ export const CustomerCartPage: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-      {/* Checkout Transition Modal (No fake orders!) */}
-      {showCheckoutModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-            zIndex: 100,
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
-          }}
-          onClick={() => setShowCheckoutModal(false)}
-        >
-          <div
-            className="card"
-            style={{
-              maxWidth: 460,
-              width: '100%',
-              textAlign: 'center',
-              padding: '36px 28px',
-              position: 'relative',
-              borderRadius: 'var(--radius-xl)',
-              boxShadow: 'var(--shadow-xl)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setShowCheckoutModal(false)}
-              aria-label="Close dialog"
-              style={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                padding: 6,
-                border: 'none',
-                backgroundColor: 'transparent',
-                color: 'var(--color-text-muted)',
-                cursor: 'pointer',
-                borderRadius: 'var(--radius-sm)',
-              }}
-            >
-              <X size={20} />
-            </button>
-
-            <div
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-light-sage)',
-                color: 'var(--color-primary-deep)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 18px',
-              }}
-            >
-              <ShoppingBag size={32} />
-            </div>
-
-            <h3
-              style={{
-                fontSize: 22,
-                fontWeight: 800,
-                marginBottom: 8,
-                color: 'var(--color-text-main)',
-                fontFamily: 'var(--font-heading)',
-              }}
-            >
-              Checkout is coming next
-            </h3>
-
-            <p
-              style={{
-                color: 'var(--color-text-muted)',
-                fontSize: 14.5,
-                lineHeight: 1.5,
-                marginBottom: 24,
-              }}
-            >
-              Express pickup slot selection and instant counter check-in are currently being prepared. You can continue reviewing your items or explore additional partner shops.
-            </p>
-
-            {/* Order Summary Snapshot */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface-subtle)',
-                padding: '16px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--color-border)',
-                marginBottom: 24,
-                textAlign: 'left',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
-                <span style={{ color: 'var(--color-text-muted)' }}>Shop:</span>
-                <span style={{ fontWeight: 600 }}>{primaryShopName}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
-                <span style={{ color: 'var(--color-text-muted)' }}>Total Items:</span>
-                <span style={{ fontWeight: 600 }}>{totalItemCount}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, paddingTop: 6, borderTop: '1px solid var(--color-border-subtle)' }}>
-                <span style={{ fontWeight: 700 }}>Total:</span>
-                <span style={{ fontWeight: 800, color: 'var(--color-primary-deep)' }}>₹{subtotal.toFixed(2)}</span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <Link to="/customer/shops" style={{ textDecoration: 'none' }}>
-                <Button
-                  variant="primary"
-                  size="md"
-                  style={{ width: '100%', justifyContent: 'center' }}
-                  icon={<Store size={16} />}
-                >
-                  Explore Partner Shops
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                size="md"
-                style={{ width: '100%', justifyContent: 'center' }}
-                onClick={() => setShowCheckoutModal(false)}
-              >
-                Keep Reviewing Cart
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Clear Cart Confirmation Modal */}
       {showClearConfirm && (

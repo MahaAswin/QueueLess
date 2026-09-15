@@ -18,6 +18,7 @@ import { CustomerHomePage } from '../pages/customer/CustomerHomePage';
 import { CustomerShopsPage } from '../pages/customer/CustomerShopsPage';
 import { ShopDetailsPage } from '../pages/customer/ShopDetailsPage';
 import { CustomerCartPage } from '../pages/customer/CustomerCartPage';
+import { CustomerCheckoutPage } from '../pages/customer/CustomerCheckoutPage';
 import { CustomerOrdersPage } from '../pages/customer/CustomerOrdersPage';
 import { CustomerProfilePage } from '../pages/customer/CustomerProfilePage';
 
@@ -72,6 +73,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="shops/:shopId" element={<ShopDetailsPage />} />
           <Route path="shop/:id" element={<ShopDetailsPage />} />
           <Route path="cart" element={<CustomerCartPage />} />
+          <Route path="checkout" element={<CustomerCheckoutPage />} />
           <Route path="orders" element={<CustomerOrdersPage />} />
           <Route path="profile" element={<CustomerProfilePage />} />
         </Route>

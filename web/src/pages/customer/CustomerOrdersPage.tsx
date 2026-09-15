@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Receipt,
   Store,
@@ -23,12 +23,29 @@ import { EmptyState } from '../../components/feedback/EmptyState';
 type FilterTab = 'ALL' | 'ACTIVE' | 'READY' | 'COMPLETED' | 'CANCELLED';
 
 export const CustomerOrdersPage: React.FC = () => {
+  const location = useLocation();
+  const locationState = location.state as {
+    orderPlaced?: boolean;
+    newlyCreatedOrderId?: string;
+    pickupSlot?: string;
+    pickupDate?: string;
+  } | null;
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [selectedQR, setSelectedQR] = useState<Order | null>(null);
+  const [successBanner, setSuccessBanner] = useState<string | null>(
+    locationState?.orderPlaced
+      ? `Order placed successfully! ${
+          locationState.pickupSlot
+            ? `Your pickup is scheduled for ${locationState.pickupSlot}.`
+            : ''
+        }`
+      : null
+  );
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -257,6 +274,42 @@ export const CustomerOrdersPage: React.FC = () => {
           </Button>
         </Link>
       </div>
+
+      {/* Success Notification Banner */}
+      {successBanner && (
+        <div
+          className="card"
+          style={{
+            padding: '16px 20px',
+            backgroundColor: 'var(--color-success-bg)',
+            borderColor: 'var(--color-success-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <CheckCircle2 size={20} color="var(--color-success)" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#166534' }}>
+              {successBanner}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSuccessBanner(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#166534',
+              cursor: 'pointer',
+              padding: 4,
+            }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <div
