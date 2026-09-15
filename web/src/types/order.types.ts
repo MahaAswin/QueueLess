@@ -4,6 +4,7 @@ export type OrderStatus =
   | 'ACCEPTED'
   | 'PREPARING'
   | 'READY_FOR_PICKUP'
+  | 'COLLECTED'
   | 'COMPLETED'
   | 'CANCELLED'
   | 'REJECTED';
@@ -17,6 +18,18 @@ export interface OrderItem {
   subtotal: number;
 }
 
+export interface OrderPickupSlotInfo {
+  id?: string;
+  pickupDate?: string;
+  startTime?: string;
+  endTime?: string;
+  requestedStartTime?: string;
+  requestedEndTime?: string;
+  agreedStartTime?: string;
+  agreedEndTime?: string;
+  status?: string;
+}
+
 export interface Order {
   id: string;
   customerId: string;
@@ -28,12 +41,7 @@ export interface Order {
   status: OrderStatus;
   totalAmount: number;
   items: OrderItem[];
-  pickupSlot?: {
-    id: string;
-    startTime: string;
-    endTime: string;
-    status: string;
-  };
+  pickupSlot?: OrderPickupSlotInfo;
   createdAt: string;
   updatedAt?: string;
 }

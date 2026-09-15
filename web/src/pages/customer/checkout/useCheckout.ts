@@ -221,42 +221,37 @@ export const useCheckout = () => {
     setError(null);
 
     try {
-      const isDemo = cart.shopId?.startsWith('demo-') || cart.items.some((i) => i.productId?.startsWith('demo-'));
+      const containsDemoItems = cart.shopId?.startsWith('demo-') || cart.items.some((i) => i.productId?.startsWith('demo-') || (i.id && i.id.startsWith('demo-')));
 
-      if (isDemo) {
-        // Demo order flow
-        await cartService.clearCart();
-        navigate('/customer/orders', {
-          state: {
-            orderPlaced: true,
-            pickupDate: selectedDate,
-            pickupSlot: selectedSlot.displayLabel,
-          },
-        });
+      if (containsDemoItems) {
+        setError('Checkout API requires active database catalog items. Demo items cannot be persisted to the backend order system.');
         return;
       }
 
       // Real Backend Order Placement (POST /api/orders)
       const order = await orderService.checkout();
 
-      // Request Pickup Slot (POST /api/orders/{orderId}/pickup-slot)
-      if (order && order.id) {
-        try {
-          const slotPayload: CreatePickupSlotRequest = {
-            pickupDate: selectedDate,
-            startTime: selectedSlot.startTime,
-            endTime: selectedSlot.endTime,
-          };
-          await pickupService.requestPickupSlot(order.id, slotPayload);
-        } catch {
-          // Soft-fail slot reservation if already allocated, order itself is successfully created
-        }
+      if (!order || !order.id) {
+        throw new Error('Order creation failed: Backend did not return an order ID.');
       }
 
-      // Clear demo cart if any remained
+      // Request Pickup Slot (POST /api/orders/{orderId}/pickup-slot)
+      try {
+        const slotPayload: CreatePickupSlotRequest = {
+          pickupDate: selectedDate,
+          startTime: selectedSlot.startTime,
+          endTime: selectedSlot.endTime,
+        };
+        await pickupService.requestPickupSlot(order.id, slotPayload);
+      } catch (slotErr) {
+        console.warn('Pickup slot reservation note:', slotErr);
+        // Soft-fail slot reservation if already allocated, order itself is successfully created
+      }
+
+      // Clear cart
       await cartService.clearCart();
 
-      // Navigate to orders with confirmation state
+      // Navigate to orders with confirmation state ONLY when real order is confirmed
       navigate('/customer/orders', {
         state: {
           newlyCreatedOrderId: order.id,
@@ -266,7 +261,7 @@ export const useCheckout = () => {
         },
       });
     } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || 'Unable to place your order.';
+      const message = err?.response?.data?.message || err?.message || 'Unable to place your order. Please try again.';
       setError(message);
     } finally {
       setSubmitting(false);

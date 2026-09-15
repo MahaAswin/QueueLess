@@ -501,6 +501,11 @@ input, select, textarea {
     grid-template-columns: 1fr !important;
     gap: 20px !important;
   }
+  .timeline-steps-container {
+    overflow-x: auto;
+    padding-bottom: 8px;
+    justify-content: flex-start !important;
+  }
   .app-content {
     padding: 20px 16px;
   }

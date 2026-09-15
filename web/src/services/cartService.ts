@@ -34,27 +34,35 @@ const saveLocalDemoCart = (cart: Cart): Cart => {
   return updatedCart;
 };
 
+const normalizeCart = (raw: any): Cart => {
+  if (!raw) return { items: [], totalItemCount: 0, subtotal: 0 };
+  const rawItems = Array.isArray(raw.items) ? raw.items : [];
+  const normalizedItems: CartItem[] = rawItems.map((item: any) => ({
+    ...item,
+    id: item.itemId || item.id,
+    itemId: item.itemId || item.id,
+    price: typeof item.price === 'number' ? item.price : parseFloat(String(item.price)) || 0,
+    subtotal: typeof item.subtotal === 'number' ? item.subtotal : parseFloat(String(item.subtotal)) || 0,
+  }));
+  return {
+    ...raw,
+    items: normalizedItems,
+    subtotal: typeof raw.subtotal === 'number' ? raw.subtotal : parseFloat(String(raw.subtotal)) || 0,
+    totalItemCount: typeof raw.totalItemCount === 'number' ? raw.totalItemCount : normalizedItems.reduce((acc, i) => acc + i.quantity, 0),
+  };
+};
+
 export const cartService = {
   /**
-   * Fetch current cart. Prioritizes real backend API data,
-   * falling back to temporary local demo cart if API returns empty or fails.
-   * 
-   * TODO: Remove demo fallback once backend cart & seed products are active.
+   * Fetch current cart. Prioritizes real backend API data.
+   * Only falls back to local demo cart if the backend API is unreachable.
    */
   async getCart(): Promise<Cart> {
     try {
       const response = await apiClient.get<Cart>('/api/cart');
-      if (response.data && response.data.items && response.data.items.length > 0) {
-        return response.data;
-      }
-      // If backend returns empty cart, check if local demo cart has items
-      const localCart = getLocalDemoCart();
-      if (localCart.items.length > 0) {
-        return localCart;
-      }
-      return response.data || { items: [], totalItemCount: 0, subtotal: 0 };
+      return normalizeCart(response.data || { items: [], totalItemCount: 0, subtotal: 0 });
     } catch {
-      // Backend unavailable or error -> fallback to local demo cart
+      // Backend unavailable (offline / network failure) -> fallback to local demo cart
       return getLocalDemoCart();
     }
   },
@@ -69,7 +77,9 @@ export const cartService = {
     if (!isDemoProduct) {
       try {
         const response = await apiClient.post<Cart>('/api/cart/items', { productId, quantity });
-        return response.data;
+        // Purge any stale local demo cart when interacting with real backend catalog
+        localStorage.removeItem(DEMO_CART_STORAGE_KEY);
+        return normalizeCart(response.data);
       } catch (err: any) {
         // If API fails with non-validation error, check demo fallback
         const demoProd = getDemoProductById(productId);
@@ -166,7 +176,7 @@ export const cartService = {
 
     try {
       const response = await apiClient.put<Cart>(`/api/cart/items/${itemId}`, { quantity });
-      return response.data;
+      return normalizeCart(response.data);
     } catch {
       // Fallback update in demo cart
       const currentCart = getLocalDemoCart();
@@ -213,7 +223,7 @@ export const cartService = {
 
     try {
       const response = await apiClient.delete<Cart>(`/api/cart/items/${itemId}`);
-      return response.data;
+      return normalizeCart(response.data);
     } catch {
       const currentCart = getLocalDemoCart();
       const filtered = currentCart.items.filter(
