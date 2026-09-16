@@ -38,6 +38,25 @@ public class AdminManagementController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<com.queueless.backend.admin.dto.AdminUserResponse> getUserDetails(@PathVariable UUID userId) {
+        com.queueless.backend.admin.dto.AdminUserResponse response = adminManagementService.getUserDetails(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/users/{userId}/suspend")
+    public ResponseEntity<Void> suspendUser(@PathVariable UUID userId) {
+        adminManagementService.suspendUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/users/{userId}/reinstate")
+    public ResponseEntity<Void> reinstateUser(@PathVariable UUID userId) {
+        adminManagementService.reinstateUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+
     @GetMapping("/shops")
     public ResponseEntity<AdminShopPageResponse> getAdminShops(
             @RequestParam(required = false) ShopStatus status,
@@ -63,4 +82,17 @@ public class AdminManagementController {
         AdminShopResponse response = adminManagementService.activateShop(shopId);
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/shops/{shopId}/suspend")
+    public ResponseEntity<Void> suspendShop(@PathVariable UUID shopId) {
+        adminManagementService.suspendShop(shopId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/shops/{shopId}/reinstate")
+    public ResponseEntity<Void> reinstateShop(@PathVariable UUID shopId) {
+        adminManagementService.reinstateShop(shopId);
+        return ResponseEntity.noContent().build();
+    }
 }
+

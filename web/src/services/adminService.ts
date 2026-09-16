@@ -97,6 +97,31 @@ export const adminService = {
   },
 
   /**
+   * Fetch a single user's details.
+   * Endpoint: GET /api/admin/users/{userId}
+   */
+  async getUserDetails(userId: string): Promise<AdminUser> {
+    const response = await apiClient.get<AdminUser>(`/api/admin/users/${userId}`);
+    return response.data;
+  },
+
+  /**
+   * Suspend a customer or shop owner account.
+   * Endpoint: PATCH /api/admin/users/{userId}/suspend
+   */
+  async suspendUser(userId: string): Promise<void> {
+    await apiClient.patch(`/api/admin/users/${userId}/suspend`);
+  },
+
+  /**
+   * Reinstate a suspended user account.
+   * Endpoint: PATCH /api/admin/users/{userId}/reinstate
+   */
+  async reinstateUser(userId: string): Promise<void> {
+    await apiClient.patch(`/api/admin/users/${userId}/reinstate`);
+  },
+
+  /**
    * Fetch registered shops with status, category, and city filters.
    * Endpoint: GET /api/admin/shops
    */
@@ -115,3 +140,4 @@ export const adminService = {
     return response.data;
   },
 };
+

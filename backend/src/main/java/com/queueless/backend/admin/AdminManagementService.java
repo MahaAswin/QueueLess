@@ -78,15 +78,37 @@ public class AdminManagementService {
         return getAdminShops(ShopStatus.PENDING, null, null, null, page, size);
     }
 
+    @Transactional(readOnly = true)
+    public AdminUserResponse getUserDetails(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+        return AdminUserResponse.fromEntity(user);
+    }
+
     @Transactional
     public void suspendUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+        if (user.getRole() == Role.ADMIN) {
+            throw new IllegalStateException("The single default Admin account is protected and cannot be suspended or deactivated.");
+        }
+
         trustService.suspendUser(userId);
     }
 
     @Transactional
     public void reinstateUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+
+        if (user.getRole() == Role.ADMIN) {
+            throw new IllegalStateException("The single default Admin account is protected.");
+        }
+
         trustService.reinstateUser(userId);
     }
+
 
     @Transactional
     public void suspendShop(UUID shopId) {

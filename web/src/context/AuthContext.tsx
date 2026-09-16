@@ -12,6 +12,7 @@ interface AuthContextType {
   register: (payload: RegisterPayload) => Promise<User>;
   logout: () => Promise<void>;
   checkAuthSession: () => Promise<boolean>;
+  hasRole: (requiredRoles: Role | Role[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -109,6 +110,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const role = user?.role || null;
 
+  const hasRole = useCallback(
+    (requiredRoles: Role | Role[]): boolean => {
+      if (!user) return false;
+      const allowed = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
+      return allowed.includes(user.role);
+    },
+    [user]
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -120,6 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         logout,
         checkAuthSession,
+        hasRole,
       }}
     >
       {children}

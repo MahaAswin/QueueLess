@@ -4,6 +4,7 @@ import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { getRoleHomeRoute, isRouteAllowedForRole } from '../../utils/auth';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
@@ -30,16 +31,13 @@ export const LoginPage: React.FC = () => {
       setIsSubmitting(true);
       const user = await login({ email: email.trim(), password });
 
-      // Navigate based on role or original requested path
-      if (from) {
-        navigate(from, { replace: true });
-      } else if (user.role === 'ADMIN') {
-        navigate('/admin', { replace: true });
-      } else if (user.role === 'SHOP_OWNER') {
-        navigate('/shop', { replace: true });
-      } else {
-        navigate('/customer', { replace: true });
-      }
+      // Role-safe navigation: only honor requested path if permissible for authenticated role
+      const roleHome = getRoleHomeRoute(user.role);
+      const targetPath = (from && isRouteAllowedForRole(from, user.role))
+        ? from
+        : roleHome;
+
+      navigate(targetPath, { replace: true });
     } catch (err: any) {
       let message = err.response?.data?.message;
       if (!message) {

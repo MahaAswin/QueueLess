@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ProtectedRoute } from './ProtectedRoute';
+import { getRoleHomeRoute } from '../utils/auth';
 
 // Layouts
 import { AuthLayout } from '../layouts/AuthLayout';
@@ -36,6 +37,8 @@ import { ShopProfilePage } from '../pages/shop/ShopProfilePage';
 
 // Admin Pages
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
+import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
+
 
 // Shared Error Pages
 import { ForbiddenPage } from '../pages/shared/ForbiddenPage';
@@ -53,15 +56,7 @@ const RootRedirect: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
 
-  if (user.role === 'ADMIN') {
-    return <Navigate to="/admin" replace />;
-  }
-
-  if (user.role === 'SHOP_OWNER') {
-    return <Navigate to="/shop-owner" replace />;
-  }
-
-  return <Navigate to="/customer" replace />;
+  return <Navigate to={getRoleHomeRoute(user.role)} replace />;
 };
 
 export const AppRoutes: React.FC = () => {
@@ -114,7 +109,7 @@ export const AppRoutes: React.FC = () => {
       <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
-          <Route path="users" element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsersPage />} />
           <Route path="shops" element={<AdminDashboard />} />
           <Route path="products" element={<AdminDashboard />} />
           <Route path="orders" element={<AdminDashboard />} />
@@ -123,6 +118,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="settings" element={<AdminDashboard />} />
         </Route>
       </Route>
+
 
       {/* Error & Fallback Routes */}
       <Route path="/forbidden" element={<ForbiddenPage />} />

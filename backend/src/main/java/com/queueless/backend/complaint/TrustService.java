@@ -77,6 +77,11 @@ public class TrustService {
     public void suspendUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + userId));
+
+        if (user.getRole() == com.queueless.backend.user.Role.ADMIN) {
+            throw new IllegalStateException("The single default Admin account is protected and cannot be suspended or deactivated.");
+        }
+
         user.setAccountStatus(AccountStatus.SUSPENDED);
         userRepository.save(user);
 
@@ -94,6 +99,11 @@ public class TrustService {
     public void reinstateUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with ID: " + userId));
+
+        if (user.getRole() == com.queueless.backend.user.Role.ADMIN) {
+            throw new IllegalStateException("The single default Admin account is protected.");
+        }
+
         user.setAccountStatus(AccountStatus.ACTIVE);
         userRepository.save(user);
 
@@ -106,6 +116,7 @@ public class TrustService {
                 null
         );
     }
+
 
     @Transactional
     public void suspendShop(UUID shopId) {

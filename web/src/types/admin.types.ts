@@ -92,14 +92,17 @@ export interface AdminRecentComplaintPageResponse {
 }
 
 export interface AdminUser {
-  id: string;
+  userId?: string;
+  id?: string;
   fullName: string;
   email: string;
   phone?: string;
   role: Role;
   accountStatus: AccountStatus;
+  validComplaintCount?: number;
   createdAt?: string;
 }
+
 
 export interface AdminUserPageResponse {
   content: AdminUser[];
