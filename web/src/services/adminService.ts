@@ -139,5 +139,41 @@ export const adminService = {
     );
     return response.data;
   },
+
+  /**
+   * Fetch a single shop's full details.
+   * Endpoint: GET /api/admin/shops/{shopId}
+   */
+  async getShopDetails(shopId: string): Promise<AdminShop> {
+    const response = await apiClient.get<AdminShop>(`/api/admin/shops/${shopId}`);
+    return response.data;
+  },
+
+  /**
+   * Reject a pending shop outlet (sets status to INACTIVE).
+   * Endpoint: PATCH /api/admin/shops/{shopId}/reject
+   */
+  async rejectShop(shopId: string): Promise<AdminShop> {
+    const response = await apiClient.patch<AdminShop>(
+      `/api/admin/shops/${shopId}/reject`
+    );
+    return response.data;
+  },
+
+  /**
+   * Suspend a shop outlet for platform compliance review.
+   * Endpoint: PATCH /api/admin/shops/{shopId}/suspend
+   */
+  async suspendShop(shopId: string): Promise<void> {
+    await apiClient.patch(`/api/admin/shops/${shopId}/suspend`);
+  },
+
+  /**
+   * Reinstate a suspended shop outlet back to active status.
+   * Endpoint: PATCH /api/admin/shops/{shopId}/reinstate
+   */
+  async reinstateShop(shopId: string): Promise<void> {
+    await apiClient.patch(`/api/admin/shops/${shopId}/reinstate`);
+  },
 };
 

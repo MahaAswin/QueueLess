@@ -39,7 +39,7 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
         log.info("Checking and initializing QueueLess development test catalog data...");
 
         try {
-            // 1. Initialize Test Users (Customer, Shop Owner)
+            // 1. Initialize Test Users (Customer, Shop Owner, Admin)
             User customer = getOrCreateUser(
                     "customer@queueless.com",
                     "Test Customer",
@@ -56,8 +56,16 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
                     Role.SHOP_OWNER
             );
 
-            // 2. Initialize Campus Cafe Shop
+            // Initial account for admin as standard user (promoted by AdminPromotionInitializer)
+            getOrCreateUser(
+                    "admin@queueless.com",
+                    "QueueLess Admin",
+                    "9990000003",
+                    "password123",
+                    Role.CUSTOMER
+            );
 
+            // 2. Initialize Campus Cafe Shop (Active)
             Shop campusCafe = getOrCreateShop(
                     owner,
                     "Campus Cafe",
@@ -71,6 +79,22 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
                     LocalTime.of(7, 30),
                     LocalTime.of(22, 0),
                     ShopStatus.ACTIVE
+            );
+
+            // 3. Initialize Fresh Bakery Shop (Pending approval for Admin verification testing)
+            getOrCreateShop(
+                    owner,
+                    "Campus Bakery & Snacks",
+                    "Fresh artisan breads, pastries, cookies, and evening snacks for campus students.",
+                    ShopCategory.BAKERY,
+                    "9990000002",
+                    "Block B Commercial Complex, Room 102",
+                    "Bangalore",
+                    12.9720,
+                    77.5950,
+                    LocalTime.of(8, 0),
+                    LocalTime.of(20, 0),
+                    ShopStatus.PENDING
             );
 
             // 3. Initialize Required Test Products for Campus Cafe
@@ -156,7 +180,7 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
         Optional<User> existingByEmail = userRepository.findByEmail(email);
         if (existingByEmail.isPresent()) {
             User user = existingByEmail.get();
-            if (user.getRole() != role || user.getAccountStatus() != AccountStatus.ACTIVE) {
+            if (user.getRole() != Role.ADMIN && (user.getRole() != role || user.getAccountStatus() != AccountStatus.ACTIVE)) {
                 user.setRole(role);
                 user.setAccountStatus(AccountStatus.ACTIVE);
                 return userRepository.save(user);
@@ -168,7 +192,7 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
         Optional<User> existingByPhone = userRepository.findByPhone(phone);
         if (existingByPhone.isPresent()) {
             User user = existingByPhone.get();
-            if (user.getRole() != role || user.getAccountStatus() != AccountStatus.ACTIVE) {
+            if (user.getRole() != Role.ADMIN && (user.getRole() != role || user.getAccountStatus() != AccountStatus.ACTIVE)) {
                 user.setRole(role);
                 user.setAccountStatus(AccountStatus.ACTIVE);
                 return userRepository.save(user);

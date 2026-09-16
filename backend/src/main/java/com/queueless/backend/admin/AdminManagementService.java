@@ -57,7 +57,10 @@ public class AdminManagementService {
     public AdminShopPageResponse getAdminShops(ShopStatus status, ShopCategory category, String city, String search, int page, int size) {
         int limitSize = Math.min(size, 100);
         PageRequest pageRequest = PageRequest.of(page, limitSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Shop> shopPage = shopRepository.findAdminShopsFilter(status, category, city, search, pageRequest);
+        String cleanCity = (city != null && !city.isBlank()) ? city.trim() : null;
+        String cleanSearch = (search != null && !search.isBlank()) ? search.trim() : null;
+
+        Page<Shop> shopPage = shopRepository.findAdminShopsFilter(status, category, cleanCity, cleanSearch, pageRequest);
 
         List<AdminShopResponse> content = shopPage.getContent().stream()
                 .map(AdminShopResponse::fromEntity)
@@ -110,6 +113,13 @@ public class AdminManagementService {
     }
 
 
+    @Transactional(readOnly = true)
+    public AdminShopResponse getShopDetails(UUID shopId) {
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new ShopNotFoundException("Shop not found with ID: " + shopId));
+        return AdminShopResponse.fromEntity(shop);
+    }
+
     @Transactional
     public void suspendShop(UUID shopId) {
         trustService.suspendShop(shopId);
@@ -130,6 +140,20 @@ public class AdminManagementService {
         }
 
         shop.setStatus(ShopStatus.ACTIVE);
+        Shop updatedShop = shopRepository.save(shop);
+        return AdminShopResponse.fromEntity(updatedShop);
+    }
+
+    @Transactional
+    public AdminShopResponse rejectShop(UUID shopId) {
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new ShopNotFoundException("Shop not found with ID: " + shopId));
+
+        if (shop.getStatus() == ShopStatus.SUSPENDED) {
+            throw new IllegalStateException("Cannot reject a suspended shop. Use reinstate or suspend endpoints.");
+        }
+
+        shop.setStatus(ShopStatus.INACTIVE);
         Shop updatedShop = shopRepository.save(shop);
         return AdminShopResponse.fromEntity(updatedShop);
     }

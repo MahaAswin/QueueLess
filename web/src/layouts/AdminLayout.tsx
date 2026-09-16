@@ -120,7 +120,7 @@ export const AdminLayout: React.FC = () => {
             onClick={() => setMobileMenuOpen(false)}
           >
             <Store size={19} className="nav-icon" />
-            <span>Shop Approvals</span>
+            <span>Shops</span>
           </NavLink>
 
           <NavLink

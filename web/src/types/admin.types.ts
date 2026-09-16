@@ -113,17 +113,27 @@ export interface AdminUserPageResponse {
 }
 
 export interface AdminShop {
-  id: string;
+  shopId?: string;
+  id?: string;
   shopName: string;
   name?: string;
+  description?: string;
   ownerId?: string;
   ownerName?: string;
+  ownerEmail?: string;
+  ownerPhone?: string;
   category: ShopCategory;
-  city: string;
   phone: string;
+  address?: string;
+  city: string;
+  latitude?: number;
+  longitude?: number;
+  openingTime?: string;
+  closingTime?: string;
   status: ShopStatus;
   validComplaintCount?: number;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface AdminShopPageResponse {

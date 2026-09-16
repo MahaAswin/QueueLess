@@ -35,8 +35,8 @@ public interface ShopRepository extends JpaRepository<Shop, UUID> {
     @Query("SELECT s FROM Shop s WHERE " +
            "(:status IS NULL OR s.status = :status) AND " +
            "(:category IS NULL OR s.category = :category) AND " +
-           "(:city IS NULL OR LOWER(s.city) = LOWER(:city)) AND " +
-           "(:search IS NULL OR LOWER(s.shopName) LIKE LOWER(CONCAT('%', :search, '%')))")
+           "(:city IS NULL OR :city = '' OR LOWER(s.city) = LOWER(:city)) AND " +
+           "(:search IS NULL OR :search = '' OR LOWER(s.shopName) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<Shop> findAdminShopsFilter(
             @Param("status") ShopStatus status,
             @Param("category") ShopCategory category,

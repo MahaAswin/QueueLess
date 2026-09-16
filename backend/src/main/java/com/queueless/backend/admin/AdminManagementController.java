@@ -77,9 +77,21 @@ public class AdminManagementController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/shops/{shopId}")
+    public ResponseEntity<AdminShopResponse> getShopDetails(@PathVariable UUID shopId) {
+        AdminShopResponse response = adminManagementService.getShopDetails(shopId);
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/shops/{shopId}/activate")
     public ResponseEntity<AdminShopResponse> activateShop(@PathVariable UUID shopId) {
         AdminShopResponse response = adminManagementService.activateShop(shopId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/shops/{shopId}/reject")
+    public ResponseEntity<AdminShopResponse> rejectShop(@PathVariable UUID shopId) {
+        AdminShopResponse response = adminManagementService.rejectShop(shopId);
         return ResponseEntity.ok(response);
     }
 
