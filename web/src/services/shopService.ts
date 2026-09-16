@@ -41,12 +41,20 @@ export const shopService = {
   },
 
   async createShop(payload: CreateShopPayload): Promise<Shop> {
-    const response = await apiClient.post<Shop>('/api/shops', payload);
+    const body = {
+      ...payload,
+      shopName: payload.shopName || payload.name,
+    };
+    const response = await apiClient.post<Shop>('/api/shops', body);
     return normalizeShop(response.data);
   },
 
   async updateShop(id: string, payload: UpdateShopPayload): Promise<Shop> {
-    const response = await apiClient.put<Shop>(`/api/shops/${id}`, payload);
+    const body = {
+      ...payload,
+      shopName: payload.shopName || payload.name,
+    };
+    const response = await apiClient.put<Shop>(`/api/shops/${id}`, body);
     return normalizeShop(response.data);
   },
 };
