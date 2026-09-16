@@ -1,159 +1,99 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { productService } from '../../services/productService';
-import { shopService } from '../../services/shopService';
-import type { Product, ProductCategory, CreateProductPayload } from '../../types/product.types';
-import type { Shop } from '../../types/shop.types';
-import { formatCurrency } from '../../utils/formatters';
+import { Plus, RefreshCw, Package, Search, Store } from 'lucide-react';
+import { useShopOwnerProducts } from './hooks/useShopOwnerProducts';
+import { ProductKPIs } from './components/ProductKPIs';
+import { ProductFiltersBar } from './components/ProductFiltersBar';
+import { ProductTable } from './components/ProductTable';
+import { ProductCardList } from './components/ProductCardList';
+import { ProductFormModal } from './components/ProductFormModal';
+import { ProductDeleteModal } from './components/ProductDeleteModal';
+import { ProductSkeleton } from './components/ProductSkeleton';
 import { Button } from '../../components/ui/Button';
-import { LoadingState } from '../../components/feedback/LoadingState';
 import { ErrorState } from '../../components/feedback/ErrorState';
-import { Plus, Package, Trash2, RefreshCw } from 'lucide-react';
-
-const CATEGORIES: ProductCategory[] = [
-  'GROCERY',
-  'FRUITS_VEGETABLES',
-  'DAIRY',
-  'BEVERAGES',
-  'SNACKS',
-  'MEDICINE',
-  'PERSONAL_CARE',
-  'BAKERY',
-  'RESTAURANT',
-  'STATIONERY',
-  'MEAT',
-  'PRODUCE',
-  'HOUSEHOLD',
-  'OTHER',
-];
+import type {
+  Product,
+  CreateProductPayload,
+  UpdateProductPayload,
+} from '../../types/product.types';
 
 export const ShopProductsPage: React.FC = () => {
-  const [shops, setShops] = useState<Shop[]>([]);
-  const [selectedShopId, setSelectedShopId] = useState<string>('');
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    shops,
+    selectedShopId,
+    setSelectedShopId,
+    products,
+    filteredProducts,
+    loading,
+    error,
+    actionLoading,
+    searchQuery,
+    setSearchQuery,
+    categoryFilter,
+    setCategoryFilter,
+    availabilityFilter,
+    setAvailabilityFilter,
+    stockFilter,
+    setStockFilter,
+    sortBy,
+    setSortBy,
+    kpis,
+    refetch,
+    handleToggleAvailability,
+    handleUpdateStock,
+    handleCreateProduct,
+    handleUpdateProduct,
+    handleDeleteProduct,
+    clearFilters,
+  } = useShopOwnerProducts();
 
-  // New product form modal state
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [formData, setFormData] = useState<CreateProductPayload>({
-    name: '',
-    description: '',
-    price: 0,
-    category: 'GROCERY',
-    stockQuantity: 10,
-    unit: 'pcs',
-  });
-  const [submitting, setSubmitting] = useState(false);
+  // Modals state
+  const [formModalOpen, setFormModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  // Load shops first
-  useEffect(() => {
-    async function loadShops() {
-      try {
-        const myShops = await shopService.getMyShops();
-        setShops(myShops);
-        if (myShops.length > 0) {
-          setSelectedShopId(myShops[0].id);
-        }
-      } catch (err: any) {
-        setError(err?.response?.data?.message || 'Failed to load shops.');
-      }
-    }
-    loadShops();
-  }, []);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
-  const fetchProducts = useCallback(async () => {
-    if (!selectedShopId) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await productService.getProductsByShop(selectedShopId);
-      setProducts(res || []);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to load products for this shop.');
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedShopId]);
+  // Open Create Modal
+  const openCreateModal = () => {
+    setEditingProduct(null);
+    setFormModalOpen(true);
+  };
 
-  useEffect(() => {
-    if (selectedShopId) {
-      fetchProducts();
-    }
-  }, [selectedShopId, fetchProducts]);
+  // Open Edit Modal
+  const openEditModal = (product: Product) => {
+    setEditingProduct(product);
+    setFormModalOpen(true);
+  };
 
-  const handleToggleAvailability = async (product: Product) => {
-    try {
-      await productService.updateAvailability(product.id, !product.available);
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? { ...p, available: !p.available } : p))
-      );
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to update availability');
+  // Open Delete Modal
+  const openDeleteModal = (product: Product) => {
+    setDeletingProduct(product);
+    setDeleteModalOpen(true);
+  };
+
+  // Submit Handler for Form Modal (Create or Edit)
+  const handleFormSubmit = async (payload: CreateProductPayload | UpdateProductPayload) => {
+    if (editingProduct) {
+      return await handleUpdateProduct(editingProduct.id, payload);
+    } else {
+      return await handleCreateProduct(payload as CreateProductPayload);
     }
   };
 
-  const handleStockUpdate = async (product: Product, newStock: number) => {
-    try {
-      await productService.updateStock(product.id, newStock);
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? { ...p, stockQuantity: newStock } : p))
-      );
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to update stock');
-    }
-  };
-
-  const handleDeleteProduct = async (productId: string) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-    try {
-      await productService.deleteProduct(productId);
-      setProducts((prev) => prev.filter((p) => p.id !== productId));
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to delete product');
-    }
-  };
-
-  const handleCreateProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedShopId) {
-      alert('Please select or register a store outlet first.');
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await productService.createProduct(selectedShopId, {
-        name: formData.name,
-        description: formData.description || undefined,
-        price: Number(formData.price),
-        stockQuantity: Number(formData.stockQuantity),
-        category: formData.category,
-        unit: formData.unit,
-        available: true,
-      });
-      setShowAddModal(false);
-      setFormData({
-        name: '',
-        description: '',
-        price: 0,
-        category: 'GROCERY',
-        stockQuantity: 10,
-        unit: 'pcs',
-      });
-      await fetchProducts();
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to add product');
-    } finally {
-      setSubmitting(false);
+  // Confirm Deletion
+  const handleConfirmDelete = async () => {
+    if (!deletingProduct) return;
+    const success = await handleDeleteProduct(deletingProduct.id);
+    if (success) {
+      setDeleteModalOpen(false);
+      setDeletingProduct(null);
     }
   };
 
   return (
-    <div>
-      {/* Top Banner */}
+    <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+      {/* Top Banner & Header Actions */}
       <div
         style={{
           display: 'flex',
@@ -165,34 +105,38 @@ export const ShopProductsPage: React.FC = () => {
         }}
       >
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px 0' }}>
-            Products & Inventory
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px 0', color: 'var(--color-text-main)' }}>
+            Products
           </h1>
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14, margin: 0 }}>
-            Manage catalog pricing, stock levels, and item availability
+            Manage the products available in your shop.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Shop Switcher (if owner has multiple registered shops) */}
           {shops.length > 1 && (
-            <select
-              value={selectedShopId}
-              onChange={(e) => setSelectedShopId(e.target.value)}
-              className="form-input"
-              style={{ width: 'auto', padding: '8px 12px' }}
-            >
-              {shops.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.shopName || s.name}
-                </option>
-              ))}
-            </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Store size={16} color="var(--color-text-light)" />
+              <select
+                value={selectedShopId}
+                onChange={(e) => setSelectedShopId(e.target.value)}
+                className="form-input"
+                style={{ width: 'auto', padding: '8px 12px', fontSize: 13, fontWeight: 600 }}
+              >
+                {shops.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.shopName || s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
 
           <Button
             variant="outline"
             size="md"
-            onClick={fetchProducts}
+            onClick={refetch}
             icon={<RefreshCw size={16} className={loading ? 'spin' : ''} />}
           >
             Refresh
@@ -202,7 +146,7 @@ export const ShopProductsPage: React.FC = () => {
             variant="primary"
             size="md"
             disabled={shops.length === 0}
-            onClick={() => setShowAddModal(true)}
+            onClick={openCreateModal}
             icon={<Plus size={16} />}
           >
             Add Product
@@ -210,14 +154,16 @@ export const ShopProductsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content Area */}
-      {shops.length === 0 ? (
+      {/* Main View State Handling */}
+      {shops.length === 0 && !loading ? (
         <div
           className="card"
           style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--color-text-muted)' }}
         >
           <Package size={36} color="var(--color-text-light)" style={{ marginBottom: 12 }} />
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No store outlet registered yet</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: 'var(--color-text-main)' }}>
+            No store outlet registered yet
+          </h3>
           <p style={{ fontSize: 13, color: 'var(--color-text-light)', marginBottom: 16 }}>
             Please register your store outlet before managing inventory and products.
           </p>
@@ -228,249 +174,142 @@ export const ShopProductsPage: React.FC = () => {
           </Link>
         </div>
       ) : loading ? (
-        <LoadingState message="Loading catalog..." />
+        <ProductSkeleton />
       ) : error ? (
-        <ErrorState message={error} onRetry={fetchProducts} />
+        <ErrorState message={error} onRetry={refetch} />
       ) : products.length === 0 ? (
+        /* Empty Store Catalog */
         <div
           className="card"
-          style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--color-text-muted)' }}
-        >
-          <Package size={36} color="var(--color-text-light)" style={{ marginBottom: 12 }} />
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No products in store</h3>
-          <p style={{ fontSize: 13, color: 'var(--color-text-light)', marginBottom: 16 }}>
-            Add products to your catalog so customers can discover and order them.
-          </p>
-          <Button variant="primary" size="md" onClick={() => setShowAddModal(true)} icon={<Plus size={16} />}>
-            Add First Product
-          </Button>
-        </div>
-      ) : (
-        <div className="data-table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Product Name</th>
-                <th>Category</th>
-                <th>Price</th>
-                <th>Stock Quantity</th>
-                <th>Status</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{p.name}</div>
-                    {p.description && (
-                      <div style={{ fontSize: 12, color: 'var(--color-text-light)' }}>
-                        {p.description}
-                      </div>
-                    )}
-                  </td>
-                  <td>
-                    <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        padding: '2px 8px',
-                        borderRadius: 'var(--radius-sm)',
-                        backgroundColor: 'var(--color-surface-subtle)',
-                        border: '1px solid var(--color-border)',
-                      }}
-                    >
-                      {p.category}
-                    </span>
-                  </td>
-                  <td>
-                    <span style={{ fontWeight: 700 }}>{formatCurrency(p.price)}</span>
-                    {p.unit && (
-                      <span style={{ fontSize: 12, color: 'var(--color-text-light)', marginLeft: 4 }}>
-                        /{p.unit}
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <input
-                        type="number"
-                        min="0"
-                        defaultValue={p.stockQuantity}
-                        onBlur={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          if (!isNaN(val) && val !== p.stockQuantity) {
-                            handleStockUpdate(p, val);
-                          }
-                        }}
-                        style={{
-                          width: 64,
-                          padding: '4px 6px',
-                          border: '1px solid var(--color-border)',
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: 13,
-                          fontWeight: 600,
-                          textAlign: 'center',
-                        }}
-                      />
-                      <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>units</span>
-                    </div>
-                  </td>
-                  <td>
-                    <button
-                      onClick={() => handleToggleAvailability(p)}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: 'var(--radius-full)',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        border: '1px solid',
-                        backgroundColor: p.available ? 'var(--color-success-bg)' : 'var(--color-surface-subtle)',
-                        borderColor: p.available ? 'var(--color-success-border)' : 'var(--color-border)',
-                        color: p.available ? 'var(--color-success)' : 'var(--color-text-muted)',
-                      }}
-                    >
-                      {p.available ? 'Available' : 'Out of Stock'}
-                    </button>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <button
-                      onClick={() => handleDeleteProduct(p.id)}
-                      title="Delete Product"
-                      style={{
-                        padding: 6,
-                        color: 'var(--color-error)',
-                        borderRadius: 'var(--radius-sm)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Add Product Modal */}
-      {showAddModal && (
-        <div
           style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.5)',
-            zIndex: 50,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backdropFilter: 'blur(4px)',
+            textAlign: 'center',
+            padding: '56px 20px',
+            color: 'var(--color-text-muted)',
           }}
         >
           <div
-            className="card"
             style={{
-              width: 480,
-              maxWidth: '90%',
-              boxShadow: 'var(--shadow-xl)',
+              width: 56,
+              height: 56,
+              borderRadius: 'var(--radius-full)',
+              backgroundColor: 'var(--color-primary-bg)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+              color: 'var(--color-primary)',
             }}
           >
-            <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>Add New Product</h2>
-            <form onSubmit={handleCreateProduct}>
-              <div className="form-group">
-                <label className="form-label">Product Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g. Farm Fresh Milk 1L"
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Description</label>
-                <input
-                  type="text"
-                  value={formData.description || ''}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Short description of the item"
-                  className="form-input"
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="form-group">
-                  <label className="form-label">Price (₹) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    required
-                    value={formData.price || ''}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                    placeholder="0.00"
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Category *</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value as ProductCategory })}
-                    className="form-input"
-                  >
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="form-group">
-                  <label className="form-label">Stock Quantity *</label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    value={formData.stockQuantity || ''}
-                    onChange={(e) => setFormData({ ...formData, stockQuantity: parseInt(e.target.value, 10) || 0 })}
-                    placeholder="10"
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Unit</label>
-                  <input
-                    type="text"
-                    value={formData.unit || ''}
-                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    placeholder="pcs, kg, packet"
-                    className="form-input"
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
-                <Button variant="outline" size="md" type="button" onClick={() => setShowAddModal(false)}>
-                  Cancel
-                </Button>
-                <Button variant="primary" size="md" type="submit" disabled={submitting}>
-                  {submitting ? 'Saving...' : 'Add Product'}
-                </Button>
-              </div>
-            </form>
+            <Package size={28} />
           </div>
+          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: 'var(--color-text-main)' }}>
+            No products yet
+          </h3>
+          <p style={{ fontSize: 14, color: 'var(--color-text-light)', maxWidth: 400, margin: '0 auto 20px auto' }}>
+            Add products to start accepting customer orders and managing inventory.
+          </p>
+          <Button variant="primary" size="md" onClick={openCreateModal} icon={<Plus size={16} />}>
+            Add Product
+          </Button>
+        </div>
+      ) : (
+        /* Catalog with products */
+        <div>
+          {/* Summary KPIs */}
+          <ProductKPIs
+            kpis={kpis}
+            activeStockFilter={stockFilter}
+            onSelectStockFilter={(filter) =>
+              setStockFilter(stockFilter === filter ? 'ALL' : filter)
+            }
+          />
+
+          {/* Filter & Search Controls */}
+          <ProductFiltersBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            categoryFilter={categoryFilter}
+            onCategoryChange={setCategoryFilter}
+            availabilityFilter={availabilityFilter}
+            onAvailabilityChange={setAvailabilityFilter}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            totalCount={products.length}
+            filteredCount={filteredProducts.length}
+            onClearFilters={clearFilters}
+          />
+
+          {/* Filtered Empty State */}
+          {filteredProducts.length === 0 ? (
+            <div
+              className="card"
+              style={{
+                textAlign: 'center',
+                padding: '48px 20px',
+                color: 'var(--color-text-muted)',
+              }}
+            >
+              <Search size={32} color="var(--color-text-light)" style={{ marginBottom: 12 }} />
+              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: 'var(--color-text-main)' }}>
+                No matching products found
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--color-text-light)', marginBottom: 16 }}>
+                Try adjusting your search query, category, or availability filters.
+              </p>
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                Clear All Filters
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="desktop-only">
+                <ProductTable
+                  products={filteredProducts}
+                  onToggleAvailability={handleToggleAvailability}
+                  onUpdateStock={handleUpdateStock}
+                  onEdit={openEditModal}
+                  onDelete={openDeleteModal}
+                />
+              </div>
+
+              {/* Mobile / Tablet Cards View */}
+              <div className="mobile-only">
+                <ProductCardList
+                  products={filteredProducts}
+                  onToggleAvailability={handleToggleAvailability}
+                  onEdit={openEditModal}
+                  onDelete={openDeleteModal}
+                />
+              </div>
+            </>
+          )}
         </div>
       )}
+
+      {/* Reusable Create & Edit Product Modal */}
+      <ProductFormModal
+        isOpen={formModalOpen}
+        onClose={() => {
+          setFormModalOpen(false);
+          setEditingProduct(null);
+        }}
+        onSubmit={handleFormSubmit}
+        editingProduct={editingProduct}
+        submitting={actionLoading}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ProductDeleteModal
+        isOpen={deleteModalOpen}
+        product={deletingProduct}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setDeletingProduct(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        loading={actionLoading}
+      />
     </div>
   );
 };
