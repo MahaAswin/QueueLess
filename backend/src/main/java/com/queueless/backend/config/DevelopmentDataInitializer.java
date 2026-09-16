@@ -39,7 +39,7 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
         log.info("Checking and initializing QueueLess development test catalog data...");
 
         try {
-            // 1. Initialize Test Users (Customer, Shop Owner, Admin)
+            // 1. Initialize Test Users (Customer, Shop Owner)
             User customer = getOrCreateUser(
                     "customer@queueless.com",
                     "Test Customer",
@@ -56,15 +56,8 @@ public class DevelopmentDataInitializer implements CommandLineRunner {
                     Role.SHOP_OWNER
             );
 
-            getOrCreateUser(
-                    "admin@queueless.com",
-                    "System Admin",
-                    "9990000003",
-                    "password123",
-                    Role.ADMIN
-            );
-
             // 2. Initialize Campus Cafe Shop
+
             Shop campusCafe = getOrCreateShop(
                     owner,
                     "Campus Cafe",

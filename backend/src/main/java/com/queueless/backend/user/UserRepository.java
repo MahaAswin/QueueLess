@@ -22,7 +22,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByPhone(String phone);
 
+    boolean existsByRole(Role role);
+
+    Optional<User> findFirstByRole(Role role);
+
     long countByRole(Role role);
+
 
     long countByAccountStatus(AccountStatus accountStatus);
 

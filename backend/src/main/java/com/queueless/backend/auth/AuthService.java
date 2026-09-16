@@ -38,9 +38,10 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (request.getRole() == Role.ADMIN) {
-            throw new IllegalArgumentException("Public registration of ADMIN accounts is strictly prohibited");
+        if (request.getRole() != Role.CUSTOMER && request.getRole() != Role.SHOP_OWNER) {
+            throw new IllegalArgumentException("Public registration is restricted to CUSTOMER and SHOP_OWNER accounts only. Direct ADMIN registration is strictly prohibited.");
         }
+
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException("User with email " + request.getEmail() + " already exists");
