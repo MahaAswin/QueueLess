@@ -27,6 +27,7 @@ import { CustomerNotificationsPage } from '../pages/customer/CustomerNotificatio
 // Shop Owner Pages
 import { ShopDashboard } from '../pages/shop/ShopDashboard';
 import { ShopOrdersPage } from '../pages/shop/ShopOrdersPage';
+import { ShopOrderDetailPage } from '../pages/shop/ShopOrderDetailPage';
 import { ShopProductsPage } from '../pages/shop/ShopProductsPage';
 import { ShopPickupSlotsPage } from '../pages/shop/ShopPickupSlotsPage';
 import { ShopQrScannerPage } from '../pages/shop/ShopQrScannerPage';
@@ -96,6 +97,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/shop-owner" element={<ShopOwnerLayout />}>
           <Route index element={<ShopDashboard />} />
           <Route path="orders" element={<ShopOrdersPage />} />
+          <Route path="orders/:id" element={<ShopOrderDetailPage />} />
           <Route path="products" element={<ShopProductsPage />} />
           <Route path="pickup-slots" element={<ShopPickupSlotsPage />} />
           <Route path="qr-pickup" element={<ShopQrScannerPage />} />

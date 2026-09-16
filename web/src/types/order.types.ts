@@ -20,11 +20,18 @@ export interface OrderItem {
 
 export interface OrderPickupSlotInfo {
   id?: string;
+  slotId?: string;
   pickupDate?: string;
   startTime?: string;
   endTime?: string;
   requestedStartTime?: string;
   requestedEndTime?: string;
+  proposedDate?: string;
+  proposedStartTime?: string;
+  proposedEndTime?: string;
+  finalPickupDate?: string;
+  finalStartTime?: string;
+  finalEndTime?: string;
   agreedStartTime?: string;
   agreedEndTime?: string;
   status?: string;
