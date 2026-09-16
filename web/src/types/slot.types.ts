@@ -9,6 +9,60 @@ export type PickupSlotStatus =
   | 'CANCELLED'
   | 'REJECTED';
 
+export interface SlotStatusMeta {
+  label: string;
+  variant: 'success' | 'warning' | 'error' | 'info' | 'neutral';
+  description: string;
+}
+
+export const SLOT_STATUS_META: Record<PickupSlotStatus, SlotStatusMeta> = {
+  REQUESTED: {
+    label: 'Requested',
+    variant: 'warning',
+    description: 'Awaiting shop review',
+  },
+  ACCEPTED: {
+    label: 'Accepted',
+    variant: 'success',
+    description: 'Confirmed by shop',
+  },
+  COUNTER_PROPOSED: {
+    label: 'Counter-Proposed',
+    variant: 'info',
+    description: 'Awaiting customer response',
+  },
+  CUSTOMER_ACCEPTED: {
+    label: 'Agreed by Customer',
+    variant: 'success',
+    description: 'Customer accepted proposed time',
+  },
+  CUSTOMER_REJECTED: {
+    label: 'Declined by Customer',
+    variant: 'error',
+    description: 'Customer declined proposed time',
+  },
+  SHOP_REJECTED: {
+    label: 'Rejected by Shop',
+    variant: 'error',
+    description: 'Shop rejected slot request',
+  },
+  REJECTED: {
+    label: 'Rejected',
+    variant: 'error',
+    description: 'Slot request rejected',
+  },
+  EXPIRED: {
+    label: 'Expired',
+    variant: 'neutral',
+    description: 'Slot window passed',
+  },
+  CANCELLED: {
+    label: 'Cancelled',
+    variant: 'neutral',
+    description: 'Slot cancelled with order',
+  },
+};
+
 export interface CreatePickupSlotRequest {
   pickupDate: string; // YYYY-MM-DD
   startTime: string; // HH:mm:ss or HH:mm
@@ -74,3 +128,11 @@ export interface PickupVerificationResponse {
   collectedAt?: string;
 }
 
+export type PickupSlotFilter =
+  | 'ALL'
+  | 'REQUESTED'
+  | 'ACCEPTED'
+  | 'COUNTER_PROPOSED'
+  | 'REJECTED';
+
+export type PickupDateFilter = 'TODAY' | 'TOMORROW' | 'ALL_DATES' | 'CUSTOM';

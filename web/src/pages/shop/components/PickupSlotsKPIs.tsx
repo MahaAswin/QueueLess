@@ -1,23 +1,23 @@
 import React from 'react';
-import { Package, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
-import type { ProductStockFilter } from '../../../types/product.types';
+import { Clock, CheckCircle2, MessageSquare, Calendar } from 'lucide-react';
+import type { PickupSlotFilter } from '../../../types/slot.types';
 
-interface ProductKPIsProps {
+interface PickupSlotsKPIsProps {
   kpis: {
-    totalProducts: number;
-    availableCount: number;
-    outOfStockCount: number;
-    lowStockCount: number;
-    distinctCategories: number;
+    total: number;
+    pendingCount: number;
+    confirmedCount: number;
+    counterProposedCount: number;
+    rejectedCount: number;
   };
-  activeStockFilter: ProductStockFilter;
-  onSelectStockFilter: (filter: ProductStockFilter) => void;
+  activeFilter: PickupSlotFilter;
+  onSelectFilter: (filter: PickupSlotFilter) => void;
 }
 
-export const ProductKPIs: React.FC<ProductKPIsProps> = ({
+export const PickupSlotsKPIs: React.FC<PickupSlotsKPIsProps> = ({
   kpis,
-  activeStockFilter,
-  onSelectStockFilter,
+  activeFilter,
+  onSelectFilter,
 }) => {
   const cards: Array<{
     id: string;
@@ -27,47 +27,47 @@ export const ProductKPIs: React.FC<ProductKPIsProps> = ({
     icon: React.ReactNode;
     iconBg: string;
     color: string;
-    filterKey: ProductStockFilter;
+    filterKey: PickupSlotFilter;
   }> = [
     {
       id: 'ALL',
-      title: 'Total Products',
-      value: kpis.totalProducts,
-      subtitle: `${kpis.distinctCategories} categories in catalog`,
-      icon: <Package size={20} color="var(--color-primary)" />,
+      title: 'Total Pickups',
+      value: kpis.total,
+      subtitle: 'All scheduled & requested',
+      icon: <Calendar size={20} color="var(--color-primary)" />,
       iconBg: 'var(--color-primary-bg)',
       color: 'var(--color-primary)',
       filterKey: 'ALL',
     },
     {
-      id: 'IN_STOCK',
-      title: 'Available & In Stock',
-      value: kpis.availableCount,
-      subtitle: 'Ready for customer orders',
+      id: 'REQUESTED',
+      title: 'Awaiting Review',
+      value: kpis.pendingCount,
+      subtitle: 'Requested by customer',
+      icon: <Clock size={20} color="var(--color-warning)" />,
+      iconBg: 'var(--color-warning-bg)',
+      color: 'var(--color-warning)',
+      filterKey: 'REQUESTED',
+    },
+    {
+      id: 'ACCEPTED',
+      title: 'Confirmed Slots',
+      value: kpis.confirmedCount,
+      subtitle: 'Ready for order pickup',
       icon: <CheckCircle2 size={20} color="var(--color-success)" />,
       iconBg: 'var(--color-success-bg)',
       color: 'var(--color-success)',
-      filterKey: 'IN_STOCK',
+      filterKey: 'ACCEPTED',
     },
     {
-      id: 'LOW_STOCK',
-      title: 'Low Stock (< 5)',
-      value: kpis.lowStockCount,
-      subtitle: 'Needs replenishment soon',
-      icon: <AlertTriangle size={20} color="var(--color-warning)" />,
-      iconBg: 'var(--color-warning-bg)',
-      color: 'var(--color-warning)',
-      filterKey: 'LOW_STOCK',
-    },
-    {
-      id: 'OUT_OF_STOCK',
-      title: 'Out of Stock / Unavailable',
-      value: kpis.outOfStockCount,
-      subtitle: 'Hidden or unorderable',
-      icon: <XCircle size={20} color="var(--color-error)" />,
-      iconBg: 'var(--color-error-bg)',
-      color: 'var(--color-error)',
-      filterKey: 'OUT_OF_STOCK',
+      id: 'COUNTER_PROPOSED',
+      title: 'Counter-Proposed',
+      value: kpis.counterProposedCount,
+      subtitle: 'Awaiting customer response',
+      icon: <MessageSquare size={20} color="var(--color-info)" />,
+      iconBg: 'var(--color-info-bg)',
+      color: 'var(--color-info)',
+      filterKey: 'COUNTER_PROPOSED',
     },
   ];
 
@@ -81,11 +81,11 @@ export const ProductKPIs: React.FC<ProductKPIsProps> = ({
       }}
     >
       {cards.map((card) => {
-        const isSelected = activeStockFilter === card.filterKey;
+        const isSelected = activeFilter === card.filterKey;
         return (
           <div
             key={card.id}
-            onClick={() => onSelectStockFilter(card.filterKey)}
+            onClick={() => onSelectFilter(card.filterKey)}
             className="card"
             style={{
               padding: '16px 20px',

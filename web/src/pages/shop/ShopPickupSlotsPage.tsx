@@ -1,94 +1,65 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { pickupService } from '../../services/pickupService';
-import type { PickupSlotResponse, CounterProposalRequest } from '../../types/slot.types';
-import { formatOrderId, formatTimeLabel, formatDateShort } from '../../utils/formatters';
+import React, { useState } from 'react';
+import { RefreshCw, Clock } from 'lucide-react';
+import { useShopOwnerPickupSlots } from './hooks/useShopOwnerPickupSlots';
+import { PickupSlotsKPIs } from './components/PickupSlotsKPIs';
+import { DateNavigationHeader } from './components/DateNavigationHeader';
+import { PickupSlotsFiltersBar } from './components/PickupSlotsFiltersBar';
+import { PickupSlotTable } from './components/PickupSlotTable';
+import { PickupSlotCardList } from './components/PickupSlotCardList';
+import { CounterProposalModal } from './components/CounterProposalModal';
+import { PickupSlotsSkeleton } from './components/PickupSlotsSkeleton';
 import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
-import { LoadingState } from '../../components/feedback/LoadingState';
 import { ErrorState } from '../../components/feedback/ErrorState';
-import { Clock, Check, X, RefreshCw, MessageSquare } from 'lucide-react';
+import type { PickupSlotResponse } from '../../types/slot.types';
 
 export const ShopPickupSlotsPage: React.FC = () => {
-  const [slots, setSlots] = useState<PickupSlotResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const {
+    slots,
+    filteredSlots,
+    selectedShop,
+    loading,
+    error,
+    actionLoadingId,
+    dateFilterMode,
+    selectedDate,
+    statusFilter,
+    setStatusFilter,
+    searchQuery,
+    setSearchQuery,
+    kpis,
+    refetch,
+    goToToday,
+    goToTomorrow,
+    goToPreviousDay,
+    goToNextDay,
+    setCustomDate,
+    showAllDates,
+    handleAcceptSlot,
+    handleRejectSlot,
+    handleCounterPropose,
+  } = useShopOwnerPickupSlots();
 
   // Counter proposal modal state
   const [counterSlot, setCounterSlot] = useState<PickupSlotResponse | null>(null);
-  const [proposal, setProposal] = useState<CounterProposalRequest>({
-    pickupDate: new Date().toISOString().split('T')[0],
-    startTime: '10:00:00',
-    endTime: '10:30:00',
-  });
   const [proposing, setProposing] = useState(false);
 
-  const fetchSlots = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await pickupService.getShopPickupSlots();
-      setSlots(res || []);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to load pickup slots.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchSlots();
-  }, [fetchSlots]);
-
-  const handleAccept = async (slot: PickupSlotResponse) => {
-    const id = slot.id || slot.slotId;
-    if (!id) return;
-    setActionLoadingId(id);
-    try {
-      await pickupService.acceptSlot(id);
-      await fetchSlots();
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to accept pickup slot');
-    } finally {
-      setActionLoadingId(null);
-    }
+  const handleOpenCounter = (slot: PickupSlotResponse) => {
+    setCounterSlot(slot);
   };
 
-  const handleReject = async (slot: PickupSlotResponse) => {
-    const id = slot.id || slot.slotId;
-    if (!id) return;
-    if (!window.confirm('Are you sure you want to reject this pickup slot?')) return;
-    setActionLoadingId(id);
-    try {
-      await pickupService.rejectSlot(id);
-      await fetchSlots();
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to reject pickup slot');
-    } finally {
-      setActionLoadingId(null);
-    }
+  const handleCloseCounter = () => {
+    setCounterSlot(null);
   };
 
-  const handleCounterPropose = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!counterSlot) return;
-    const id = counterSlot.id || counterSlot.slotId;
-    if (!id) return;
-
+  const handleSubmitCounter = async (slotId: string, payload: any) => {
     setProposing(true);
-    try {
-      await pickupService.counterProposeSlot(id, proposal);
-      setCounterSlot(null);
-      await fetchSlots();
-    } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to submit counter proposal');
-    } finally {
-      setProposing(false);
-    }
+    const success = await handleCounterPropose(slotId, payload);
+    setProposing(false);
+    return success;
   };
 
   return (
-    <div>
+    <div style={{ maxWidth: 1280, margin: '0 auto' }}>
       {/* Top Banner */}
       <div
         style={{
@@ -101,229 +72,150 @@ export const ShopPickupSlotsPage: React.FC = () => {
         }}
       >
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px 0' }}>
-            Pickup Slot Schedule
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px 0', color: 'var(--color-text-main)' }}>
+            Pickup Slots
           </h1>
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14, margin: 0 }}>
-            Review customer requested arrival times and manage store capacity
+            Manage pickup availability and customer capacity.
           </p>
         </div>
 
         <Button
           variant="outline"
           size="md"
-          onClick={fetchSlots}
+          onClick={refetch}
           icon={<RefreshCw size={16} className={loading ? 'spin' : ''} />}
         >
           Refresh
         </Button>
       </div>
 
-      {/* Slots Table */}
+      {/* Main View State Handling */}
       {loading ? (
-        <LoadingState message="Loading pickup slots..." />
+        <PickupSlotsSkeleton />
       ) : error ? (
-        <ErrorState message={error} onRetry={fetchSlots} />
-      ) : slots.length === 0 ? (
-        <div
-          className="card"
-          style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--color-text-muted)' }}
-        >
-          <Clock size={36} color="var(--color-text-light)" style={{ marginBottom: 12 }} />
-          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No pickup slots scheduled</h3>
-          <p style={{ fontSize: 13, color: 'var(--color-text-light)' }}>
-            Customer pickup slot requests for orders will appear here.
-          </p>
-        </div>
+        <ErrorState message={error} onRetry={refetch} />
       ) : (
-        <div className="data-table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Order Ref</th>
-                <th>Scheduled Date</th>
-                <th>Time Window</th>
-                <th>Status</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {slots.map((slot) => {
-                const id = slot.id || slot.slotId || '';
-                const isProcessing = actionLoadingId === id;
-                const dateStr = slot.finalPickupDate || slot.pickupDate;
-                const start = slot.finalStartTime || slot.requestedStartTime;
-                const end = slot.finalEndTime || slot.requestedEndTime;
+        <div>
+          {/* Summary KPIs */}
+          <PickupSlotsKPIs
+            kpis={kpis}
+            activeFilter={statusFilter}
+            onSelectFilter={(filter) =>
+              setStatusFilter(statusFilter === filter ? 'ALL' : filter)
+            }
+          />
 
-                return (
-                  <tr key={id || slot.orderId}>
-                    <td>
-                      <span
-                        style={{
-                          fontFamily: 'var(--mono)',
-                          fontWeight: 700,
-                          color: 'var(--color-primary-deep)',
-                        }}
-                      >
-                        {formatOrderId(slot.orderId)}
-                      </span>
-                    </td>
-                    <td>
-                      <strong>{dateStr ? formatDateShort(dateStr) : 'Today'}</strong>
-                    </td>
-                    <td>
-                      {start && end
-                        ? `${formatTimeLabel(start)} – ${formatTimeLabel(end)}`
-                        : 'Standard Pickup'}
-                    </td>
-                    <td>
-                      <Badge
-                        variant={
-                          slot.status === 'ACCEPTED' || slot.status === 'CUSTOMER_ACCEPTED'
-                            ? 'success'
-                            : slot.status === 'REQUESTED'
-                            ? 'warning'
-                            : slot.status === 'COUNTER_PROPOSED'
-                            ? 'info'
-                            : 'neutral'
-                        }
-                      >
-                        {slot.status}
-                      </Badge>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      {slot.status === 'REQUESTED' && (
-                        <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            disabled={isProcessing}
-                            onClick={() => handleAccept(slot)}
-                            icon={<Check size={14} />}
-                          >
-                            Accept
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            disabled={isProcessing}
-                            onClick={() => {
-                              setCounterSlot(slot);
-                              setProposal({
-                                pickupDate: slot.pickupDate || new Date().toISOString().split('T')[0],
-                                startTime: '12:00:00',
-                                endTime: '12:30:00',
-                              });
-                            }}
-                            icon={<MessageSquare size={14} />}
-                          >
-                            Counter
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            disabled={isProcessing}
-                            onClick={() => handleReject(slot)}
-                            icon={<X size={14} />}
-                          >
-                            Decline
-                          </Button>
-                        </div>
-                      )}
+          {/* Date Navigation Header */}
+          <DateNavigationHeader
+            selectedDate={selectedDate}
+            dateFilterMode={dateFilterMode}
+            onPreviousDay={goToPreviousDay}
+            onNextDay={goToNextDay}
+            onToday={goToToday}
+            onTomorrow={goToTomorrow}
+            onCustomDate={setCustomDate}
+            onAllDates={showAllDates}
+            operatingHours={{
+              openingTime: selectedShop?.openingTime,
+              closingTime: selectedShop?.closingTime,
+            }}
+          />
 
-                      {slot.status !== 'REQUESTED' && (
-                        <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>
-                          Processed
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          {/* Status and Search Filters Bar */}
+          <PickupSlotsFiltersBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            statusFilter={statusFilter}
+            onStatusChange={setStatusFilter}
+            totalCount={slots.length}
+            filteredCount={filteredSlots.length}
+          />
+
+          {/* Empty State */}
+          {filteredSlots.length === 0 ? (
+            <div
+              className="card"
+              style={{
+                textAlign: 'center',
+                padding: '56px 20px',
+                color: 'var(--color-text-muted)',
+              }}
+            >
+              <div
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-primary-bg)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px auto',
+                  color: 'var(--color-primary)',
+                }}
+              >
+                <Clock size={28} />
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: 'var(--color-text-main)' }}>
+                No pickup slots found
+              </h3>
+              <p style={{ fontSize: 14, color: 'var(--color-text-light)', maxWidth: 440, margin: '0 auto 20px auto' }}>
+                {searchQuery || statusFilter !== 'ALL' || dateFilterMode !== 'ALL_DATES'
+                  ? 'No pickup requests match your selected date or status filters. Try viewing All Dates or resetting filters.'
+                  : 'Customer pickup slot requests for scheduled orders will appear here.'}
+              </p>
+              {(searchQuery || statusFilter !== 'ALL' || dateFilterMode !== 'ALL_DATES') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setStatusFilter('ALL');
+                    showAllDates();
+                  }}
+                >
+                  View All Dates & Slots
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="desktop-only">
+                <PickupSlotTable
+                  slots={filteredSlots}
+                  actionLoadingId={actionLoadingId}
+                  onAccept={handleAcceptSlot}
+                  onReject={handleRejectSlot}
+                  onOpenCounter={handleOpenCounter}
+                />
+              </div>
+
+              {/* Mobile Card List View */}
+              <div className="mobile-only">
+                <PickupSlotCardList
+                  slots={filteredSlots}
+                  actionLoadingId={actionLoadingId}
+                  onAccept={handleAcceptSlot}
+                  onReject={handleRejectSlot}
+                  onOpenCounter={handleOpenCounter}
+                />
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {/* Counter Proposal Modal */}
-      {counterSlot && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.5)',
-            zIndex: 50,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backdropFilter: 'blur(4px)',
-          }}
-        >
-          <div
-            className="card"
-            style={{
-              width: 440,
-              maxWidth: '90%',
-              boxShadow: 'var(--shadow-xl)',
-            }}
-          >
-            <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
-              Counter-Propose Pickup Time
-            </h2>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: 13, marginBottom: 16 }}>
-              Suggest an alternate date/time window for Order #{counterSlot.orderId.slice(0, 8)}
-            </p>
-
-            <form onSubmit={handleCounterPropose}>
-              <div className="form-group">
-                <label className="form-label">Proposed Date *</label>
-                <input
-                  type="date"
-                  required
-                  value={proposal.pickupDate}
-                  onChange={(e) => setProposal({ ...proposal, pickupDate: e.target.value })}
-                  className="form-input"
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="form-group">
-                  <label className="form-label">Start Time *</label>
-                  <input
-                    type="time"
-                    required
-                    step="60"
-                    value={proposal.startTime.slice(0, 5)}
-                    onChange={(e) => setProposal({ ...proposal, startTime: `${e.target.value}:00` })}
-                    className="form-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">End Time *</label>
-                  <input
-                    type="time"
-                    required
-                    step="60"
-                    value={proposal.endTime.slice(0, 5)}
-                    onChange={(e) => setProposal({ ...proposal, endTime: `${e.target.value}:00` })}
-                    className="form-input"
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
-                <Button variant="outline" size="md" type="button" onClick={() => setCounterSlot(null)}>
-                  Cancel
-                </Button>
-                <Button variant="primary" size="md" type="submit" disabled={proposing}>
-                  {proposing ? 'Submitting...' : 'Send Proposal'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CounterProposalModal
+        isOpen={Boolean(counterSlot)}
+        slot={counterSlot}
+        onClose={handleCloseCounter}
+        onSubmit={handleSubmitCounter}
+        shop={selectedShop}
+        loading={proposing}
+      />
     </div>
   );
 };
