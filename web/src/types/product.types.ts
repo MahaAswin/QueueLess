@@ -1,13 +1,17 @@
 export type ProductCategory =
+  | 'GROCERY'
+  | 'FRUITS_VEGETABLES'
   | 'DAIRY'
-  | 'SNACKS'
   | 'BEVERAGES'
-  | 'BAKERY'
-  | 'PRODUCE'
-  | 'MEAT'
-  | 'PERSONAL_CARE'
-  | 'HOUSEHOLD'
+  | 'SNACKS'
   | 'MEDICINE'
+  | 'PERSONAL_CARE'
+  | 'BAKERY'
+  | 'RESTAURANT'
+  | 'STATIONERY'
+  | 'MEAT'
+  | 'PRODUCE'
+  | 'HOUSEHOLD'
   | 'OTHER';
 
 export interface Product {
@@ -20,6 +24,7 @@ export interface Product {
   imageUrl?: string;
   available: boolean;
   stockQuantity: number;
+  unit?: string;
   preparationTimeMinutes?: number;
   createdAt?: string;
 }
@@ -31,6 +36,8 @@ export interface CreateProductPayload {
   category: ProductCategory;
   imageUrl?: string;
   stockQuantity: number;
+  unit?: string;
+  available?: boolean;
   preparationTimeMinutes?: number;
 }
 
@@ -42,5 +49,7 @@ export interface UpdateProductPayload {
   imageUrl?: string;
   available?: boolean;
   stockQuantity?: number;
+  unit?: string;
   preparationTimeMinutes?: number;
 }
+

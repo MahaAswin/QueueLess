@@ -1,24 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { productService } from '../../services/productService';
 import { shopService } from '../../services/shopService';
 import type { Product, ProductCategory, CreateProductPayload } from '../../types/product.types';
 import type { Shop } from '../../types/shop.types';
 import { formatCurrency } from '../../utils/formatters';
 import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
 import { LoadingState } from '../../components/feedback/LoadingState';
 import { ErrorState } from '../../components/feedback/ErrorState';
-import { Plus, Package, Edit2, Trash2, Check, RefreshCw } from 'lucide-react';
+import { Plus, Package, Trash2, RefreshCw } from 'lucide-react';
 
 const CATEGORIES: ProductCategory[] = [
   'GROCERY',
+  'FRUITS_VEGETABLES',
+  'DAIRY',
   'BEVERAGES',
   'SNACKS',
-  'DAIRY',
-  'BAKERY',
+  'MEDICINE',
   'PERSONAL_CARE',
+  'BAKERY',
+  'RESTAURANT',
+  'STATIONERY',
+  'MEAT',
+  'PRODUCE',
   'HOUSEHOLD',
-  'PHARMACY',
   'OTHER',
 ];
 
@@ -58,7 +63,10 @@ export const ShopProductsPage: React.FC = () => {
   }, []);
 
   const fetchProducts = useCallback(async () => {
-    if (!selectedShopId) return;
+    if (!selectedShopId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -111,10 +119,21 @@ export const ShopProductsPage: React.FC = () => {
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedShopId) return;
+    if (!selectedShopId) {
+      alert('Please select or register a store outlet first.');
+      return;
+    }
     setSubmitting(true);
     try {
-      await productService.createProduct(selectedShopId, formData);
+      await productService.createProduct(selectedShopId, {
+        name: formData.name,
+        description: formData.description || undefined,
+        price: Number(formData.price),
+        stockQuantity: Number(formData.stockQuantity),
+        category: formData.category,
+        unit: formData.unit,
+        available: true,
+      });
       setShowAddModal(false);
       setFormData({
         name: '',
@@ -182,6 +201,7 @@ export const ShopProductsPage: React.FC = () => {
           <Button
             variant="primary"
             size="md"
+            disabled={shops.length === 0}
             onClick={() => setShowAddModal(true)}
             icon={<Plus size={16} />}
           >
@@ -190,8 +210,24 @@ export const ShopProductsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Products Table */}
-      {loading ? (
+      {/* Main Content Area */}
+      {shops.length === 0 ? (
+        <div
+          className="card"
+          style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--color-text-muted)' }}
+        >
+          <Package size={36} color="var(--color-text-light)" style={{ marginBottom: 12 }} />
+          <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>No store outlet registered yet</h3>
+          <p style={{ fontSize: 13, color: 'var(--color-text-light)', marginBottom: 16 }}>
+            Please register your store outlet before managing inventory and products.
+          </p>
+          <Link to="/shop-owner/profile">
+            <Button variant="primary" size="md">
+              Register Store Outlet
+            </Button>
+          </Link>
+        </div>
+      ) : loading ? (
         <LoadingState message="Loading catalog..." />
       ) : error ? (
         <ErrorState message={error} onRetry={fetchProducts} />
@@ -372,7 +408,7 @@ export const ShopProductsPage: React.FC = () => {
                   <input
                     type="number"
                     step="0.01"
-                    min="0"
+                    min="0.01"
                     required
                     value={formData.price || ''}
                     onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
