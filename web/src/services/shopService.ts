@@ -37,16 +37,16 @@ export const shopService = {
   // Shop Owner Endpoints
   async getMyShops(): Promise<Shop[]> {
     const response = await apiClient.get<Shop[]>('/api/shops/my');
-    return response.data;
+    return Array.isArray(response.data) ? response.data.map(normalizeShop) : [];
   },
 
   async createShop(payload: CreateShopPayload): Promise<Shop> {
     const response = await apiClient.post<Shop>('/api/shops', payload);
-    return response.data;
+    return normalizeShop(response.data);
   },
 
   async updateShop(id: string, payload: UpdateShopPayload): Promise<Shop> {
     const response = await apiClient.put<Shop>(`/api/shops/${id}`, payload);
-    return response.data;
+    return normalizeShop(response.data);
   },
 };

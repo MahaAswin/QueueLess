@@ -1,8 +1,11 @@
 import { apiClient } from '../api/axiosClient';
 import type {
   CreatePickupSlotRequest,
+  CounterProposalRequest,
   PickupSlotResponse,
   PickupQrResponse,
+  PickupVerificationRequest,
+  PickupVerificationResponse,
 } from '../types/slot.types';
 
 export const pickupService = {
@@ -71,4 +74,69 @@ export const pickupService = {
     );
     return response.data;
   },
+
+  // ==========================================
+  // Shop Owner Endpoints
+  // ==========================================
+
+  /**
+   * Fetch all pickup slots for the shop owner.
+   * Endpoint: GET /api/shop/pickup-slots
+   */
+  async getShopPickupSlots(): Promise<PickupSlotResponse[]> {
+    const response = await apiClient.get<PickupSlotResponse[]>('/api/shop/pickup-slots');
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  /**
+   * Accept a customer's requested pickup slot.
+   * Endpoint: PATCH /api/pickup-slots/{slotId}/accept
+   */
+  async acceptSlot(slotId: string): Promise<PickupSlotResponse> {
+    const response = await apiClient.patch<PickupSlotResponse>(
+      `/api/pickup-slots/${slotId}/accept`
+    );
+    return response.data;
+  },
+
+  /**
+   * Reject a customer's requested pickup slot.
+   * Endpoint: PATCH /api/pickup-slots/{slotId}/reject
+   */
+  async rejectSlot(slotId: string): Promise<PickupSlotResponse> {
+    const response = await apiClient.patch<PickupSlotResponse>(
+      `/api/pickup-slots/${slotId}/reject`
+    );
+    return response.data;
+  },
+
+  /**
+   * Propose an alternate pickup slot time.
+   * Endpoint: PATCH /api/pickup-slots/{slotId}/counter-propose
+   */
+  async counterProposeSlot(
+    slotId: string,
+    payload: CounterProposalRequest
+  ): Promise<PickupSlotResponse> {
+    const response = await apiClient.patch<PickupSlotResponse>(
+      `/api/pickup-slots/${slotId}/counter-propose`,
+      payload
+    );
+    return response.data;
+  },
+
+  /**
+   * Verify a customer's pickup QR token and complete the order.
+   * Endpoint: POST /api/shop/pickup/verify
+   */
+  async verifyPickup(
+    payload: PickupVerificationRequest
+  ): Promise<PickupVerificationResponse> {
+    const response = await apiClient.post<PickupVerificationResponse>(
+      '/api/shop/pickup/verify',
+      payload
+    );
+    return response.data;
+  },
 };
+

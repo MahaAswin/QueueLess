@@ -1,10 +1,13 @@
 export type PickupSlotStatus =
   | 'REQUESTED'
   | 'ACCEPTED'
-  | 'REJECTED'
   | 'COUNTER_PROPOSED'
   | 'CUSTOMER_ACCEPTED'
-  | 'CUSTOMER_REJECTED';
+  | 'CUSTOMER_REJECTED'
+  | 'SHOP_REJECTED'
+  | 'EXPIRED'
+  | 'CANCELLED'
+  | 'REJECTED';
 
 export interface CreatePickupSlotRequest {
   pickupDate: string; // YYYY-MM-DD
@@ -12,20 +15,31 @@ export interface CreatePickupSlotRequest {
   endTime: string; // HH:mm:ss or HH:mm
 }
 
+export interface CounterProposalRequest {
+  pickupDate: string; // YYYY-MM-DD
+  startTime: string; // HH:mm:ss or HH:mm
+  endTime: string; // HH:mm:ss or HH:mm
+}
+
 export interface PickupSlotResponse {
-  id: string;
+  id?: string;
+  slotId?: string;
   orderId: string;
   shopId?: string;
   shopName?: string;
+  customerName?: string;
   pickupDate: string;
   requestedStartTime: string;
   requestedEndTime: string;
+  proposedDate?: string;
+  proposedStartTime?: string;
+  proposedEndTime?: string;
+  finalPickupDate?: string;
+  finalStartTime?: string;
+  finalEndTime?: string;
   agreedStartTime?: string;
   agreedEndTime?: string;
   status: PickupSlotStatus;
-  counterProposalStartTime?: string;
-  counterProposalEndTime?: string;
-  counterProposalReason?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -40,7 +54,23 @@ export interface TimeSlotOption {
 
 export interface PickupQrResponse {
   orderId: string;
-  qrPayload: string;
-  verificationCode: string;
-  status: string;
+  pickupToken?: string;
+  qrPayload?: string;
+  verificationCode?: string;
+  expiresAt?: string;
+  status?: string;
 }
+
+export interface PickupVerificationRequest {
+  pickupToken: string;
+}
+
+export interface PickupVerificationResponse {
+  success: boolean;
+  message: string;
+  orderId: string;
+  status: string;
+  shopName?: string;
+  collectedAt?: string;
+}
+

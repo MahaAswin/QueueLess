@@ -24,8 +24,16 @@ import { OrderDetailPage } from '../pages/customer/OrderDetailPage';
 import { CustomerProfilePage } from '../pages/customer/CustomerProfilePage';
 import { CustomerNotificationsPage } from '../pages/customer/CustomerNotificationsPage';
 
-// Dashboards
+// Shop Owner Pages
 import { ShopDashboard } from '../pages/shop/ShopDashboard';
+import { ShopOrdersPage } from '../pages/shop/ShopOrdersPage';
+import { ShopProductsPage } from '../pages/shop/ShopProductsPage';
+import { ShopPickupSlotsPage } from '../pages/shop/ShopPickupSlotsPage';
+import { ShopQrScannerPage } from '../pages/shop/ShopQrScannerPage';
+import { ShopComplaintsPage } from '../pages/shop/ShopComplaintsPage';
+import { ShopProfilePage } from '../pages/shop/ShopProfilePage';
+
+// Admin Pages
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 
 // Shared Error Pages
@@ -49,7 +57,7 @@ const RootRedirect: React.FC = () => {
   }
 
   if (user.role === 'SHOP_OWNER') {
-    return <Navigate to="/shop" replace />;
+    return <Navigate to="/shop-owner" replace />;
   }
 
   return <Navigate to="/customer" replace />;
@@ -85,15 +93,19 @@ export const AppRoutes: React.FC = () => {
 
       {/* Protected Shop Owner Routes */}
       <Route element={<ProtectedRoute allowedRoles={['SHOP_OWNER']} />}>
-        <Route path="/shop" element={<ShopOwnerLayout />}>
+        <Route path="/shop-owner" element={<ShopOwnerLayout />}>
           <Route index element={<ShopDashboard />} />
-          <Route path="orders" element={<ShopDashboard />} />
-          <Route path="products" element={<ShopDashboard />} />
-          <Route path="pickup-slots" element={<ShopDashboard />} />
-          <Route path="qr-pickup" element={<ShopDashboard />} />
-          <Route path="complaints" element={<ShopDashboard />} />
-          <Route path="profile" element={<ShopDashboard />} />
+          <Route path="orders" element={<ShopOrdersPage />} />
+          <Route path="products" element={<ShopProductsPage />} />
+          <Route path="pickup-slots" element={<ShopPickupSlotsPage />} />
+          <Route path="qr-pickup" element={<ShopQrScannerPage />} />
+          <Route path="complaints" element={<ShopComplaintsPage />} />
+          <Route path="profile" element={<ShopProfilePage />} />
         </Route>
+
+        {/* Backward Compatibility Alias for /shop */}
+        <Route path="/shop" element={<Navigate to="/shop-owner" replace />} />
+        <Route path="/shop/*" element={<Navigate to="/shop-owner" replace />} />
       </Route>
 
       {/* Protected Admin Routes */}
