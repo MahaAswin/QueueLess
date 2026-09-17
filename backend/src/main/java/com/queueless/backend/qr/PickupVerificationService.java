@@ -38,10 +38,8 @@ public class PickupVerificationService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final com.queueless.backend.admin.AdminSettingsService adminSettingsService;
     private final SecureRandom secureRandom = new SecureRandom();
-
-    @Value("${queueless.qr.expiration-minutes:30}")
-    private int expirationMinutes;
 
 
     @Transactional
@@ -69,7 +67,7 @@ public class PickupVerificationService {
 
         String rawToken = generateSecureToken();
         String tokenHash = hashToken(rawToken);
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(expirationMinutes);
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(adminSettingsService.getQrExpirationMinutes());
 
         Optional<PickupToken> existingTokenOpt = pickupTokenRepository.findByOrder(order);
         PickupToken pickupToken;

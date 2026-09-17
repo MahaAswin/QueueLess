@@ -25,15 +25,13 @@ public class TrustService {
     private final UserRepository userRepository;
     private final ShopRepository shopRepository;
     private final NotificationService notificationService;
-
-    @Value("${queueless.trust.user-suspension-threshold:3}")
-    private int userThreshold;
-
-    @Value("${queueless.trust.shop-suspension-threshold:3}")
-    private int shopThreshold;
+    private final com.queueless.backend.admin.AdminSettingsService adminSettingsService;
 
     @Transactional
     public void processValidComplaint(Complaint complaint) {
+        int userThreshold = adminSettingsService.getUserSuspensionThreshold();
+        int shopThreshold = adminSettingsService.getShopSuspensionThreshold();
+
         User reportedUser = complaint.getReportedUser();
         boolean userWasSuspended = reportedUser.getAccountStatus() == AccountStatus.SUSPENDED;
         reportedUser.setValidComplaintCount(reportedUser.getValidComplaintCount() + 1);
