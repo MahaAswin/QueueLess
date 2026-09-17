@@ -2,7 +2,7 @@ package com.queueless.backend.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.queueless.backend.admin.dto.UpdateSystemSettingsRequest;
-import com.queueless.backend.auth.dto.RegisterRequest;
+import com.queueless.backend.auth.JwtService;
 import com.queueless.backend.setting.SystemSettingRepository;
 import com.queueless.backend.user.AccountStatus;
 import com.queueless.backend.user.Role;
@@ -18,18 +18,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,6 +48,9 @@ class AdminSettingsIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
+    private JwtService jwtService;
+
+    @Autowired
     private AdminSettingsService adminSettingsService;
 
     private MockMvc mockMvc;
@@ -60,7 +59,7 @@ class AdminSettingsIntegrationTest {
     private String customerToken;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context)
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
@@ -79,15 +78,16 @@ class AdminSettingsIntegrationTest {
                         .validComplaintCount(0)
                         .build())
         );
-        if (admin.getRole() != Role.ADMIN) {
+        if (admin.getRole() != Role.ADMIN || admin.getAccountStatus() != AccountStatus.ACTIVE) {
             admin.setRole(Role.ADMIN);
-            userRepository.save(admin);
+            admin.setAccountStatus(AccountStatus.ACTIVE);
+            admin = userRepository.save(admin);
         }
 
-        adminToken = obtainAccessToken("admin@queueless.com", "password123");
+        adminToken = jwtService.generateToken(admin);
 
         // Ensure Customer user
-        userRepository.findByEmail("settings.customer@queueless.com").orElseGet(() ->
+        User customer = userRepository.findByEmail("settings.customer@queueless.com").orElseGet(() ->
                 userRepository.save(User.builder()
                         .email("settings.customer@queueless.com")
                         .fullName("Regular Customer")
@@ -98,20 +98,13 @@ class AdminSettingsIntegrationTest {
                         .validComplaintCount(0)
                         .build())
         );
+        if (customer.getRole() != Role.CUSTOMER || customer.getAccountStatus() != AccountStatus.ACTIVE) {
+            customer.setRole(Role.CUSTOMER);
+            customer.setAccountStatus(AccountStatus.ACTIVE);
+            customer = userRepository.save(customer);
+        }
 
-        customerToken = obtainAccessToken("settings.customer@queueless.com", "password123");
-    }
-
-    private String obtainAccessToken(String email, String password) throws Exception {
-        String body = objectMapper.writeValueAsString(Map.of("email", email, "password", password));
-        MvcResult res = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        Map<?, ?> map = objectMapper.readValue(res.getResponse().getContentAsString(), Map.class);
-        return (String) map.get("accessToken");
+        customerToken = jwtService.generateToken(customer);
     }
 
     @Test
