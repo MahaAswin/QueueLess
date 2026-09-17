@@ -27,8 +27,26 @@ public class AdminComplaintController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<ComplaintResponse>> getAllComplaints(Authentication authentication) {
-        List<ComplaintResponse> response = complaintReviewService.getAllComplaints(authentication.getName());
+    public ResponseEntity<com.queueless.backend.admin.dto.AdminComplaintPageResponse> getAdminComplaints(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) ComplaintStatus status,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) ComplaintType type,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String search,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "20") int size,
+            Authentication authentication
+    ) {
+        com.queueless.backend.admin.dto.AdminComplaintPageResponse response =
+                complaintReviewService.getAdminComplaints(status, type, search, page, size, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/summary")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<com.queueless.backend.admin.dto.AdminComplaintSummaryResponse> getComplaintSummary(
+            Authentication authentication
+    ) {
+        com.queueless.backend.admin.dto.AdminComplaintSummaryResponse response =
+                complaintReviewService.getComplaintSummary(authentication.getName());
         return ResponseEntity.ok(response);
     }
 

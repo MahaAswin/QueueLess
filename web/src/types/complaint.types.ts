@@ -79,9 +79,22 @@ export const COMPLAINT_TYPE_LABELS: Record<string, string> = {
   OTHER: 'General Concern',
 };
 
+export interface EvidenceResponse {
+  evidenceId: string;
+  type: 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'TEXT' | 'OTHER';
+  fileUrl: string;
+  description?: string;
+  createdAt: string;
+}
+
 export interface CreateComplaintRequest {
   type: ComplaintType;
   description: string;
+}
+
+export interface ReviewComplaintRequest {
+  status: ComplaintStatus;
+  reviewNote?: string;
 }
 
 export interface ComplaintResponse {
@@ -97,6 +110,7 @@ export interface ComplaintResponse {
   description: string;
   status: ComplaintStatus;
   evidenceCount?: number;
+  evidenceItems?: EvidenceResponse[];
   reviewNote?: string;
   reviewedByAdminEmail?: string;
   reviewedAt?: string;

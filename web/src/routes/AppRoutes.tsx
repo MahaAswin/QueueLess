@@ -41,7 +41,8 @@ import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
 import { AdminShopsPage } from '../pages/admin/AdminShopsPage';
 import { AdminOrdersPage } from '../pages/admin/AdminOrdersPage';
 import { AdminOrderDetailPage } from '../pages/admin/AdminOrderDetailPage';
-
+import { AdminComplaintsPage } from '../pages/admin/AdminComplaintsPage';
+import { AdminComplaintDetailPage } from '../pages/admin/AdminComplaintDetailPage';
 
 // Shared Error Pages
 import { ForbiddenPage } from '../pages/shared/ForbiddenPage';
@@ -117,7 +118,8 @@ export const AppRoutes: React.FC = () => {
           <Route path="orders" element={<AdminOrdersPage />} />
           <Route path="orders/:id" element={<AdminOrderDetailPage />} />
           <Route path="products" element={<AdminDashboard />} />
-          <Route path="complaints" element={<AdminDashboard />} />
+          <Route path="complaints" element={<AdminComplaintsPage />} />
+          <Route path="complaints/:id" element={<AdminComplaintDetailPage />} />
           <Route path="analytics" element={<AdminDashboard />} />
           <Route path="settings" element={<AdminDashboard />} />
         </Route>

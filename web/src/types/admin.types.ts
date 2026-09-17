@@ -39,7 +39,9 @@ export interface AdminOrderSummary {
 
 export interface AdminComplaintSummary {
   totalComplaints: number;
-  pendingComplaints: number;
+  submittedComplaints: number;
+  pendingComplaints?: number;
+  underReviewComplaints: number;
   validComplaints: number;
   invalidComplaints: number;
   dismissedComplaints: number;
@@ -197,6 +199,23 @@ export interface AdminOrderFilterParams {
   search?: string;
   from?: string;
   to?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface AdminComplaintPageResponse {
+  content: import('./complaint.types').ComplaintResponse[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+  hasNext: boolean;
+}
+
+export interface AdminComplaintFilterParams {
+  status?: ComplaintStatus;
+  type?: ComplaintType;
+  search?: string;
   page?: number;
   size?: number;
 }

@@ -32,6 +32,65 @@ public class ComplaintReviewService {
     private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
+    public com.queueless.backend.admin.dto.AdminComplaintPageResponse getAdminComplaints(
+            ComplaintStatus status,
+            ComplaintType type,
+            String search,
+            int page,
+            int size,
+            String adminEmail
+    ) {
+        verifyAdminUser(adminEmail);
+        int limitSize = Math.min(Math.max(size, 1), 100);
+        org.springframework.data.domain.PageRequest pageRequest =
+                org.springframework.data.domain.PageRequest.of(page, limitSize, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt"));
+        String cleanSearch = (search != null && !search.isBlank()) ? search.trim() : null;
+
+        org.springframework.data.domain.Page<Complaint> complaintPage = complaintRepository.findAll(
+                ComplaintSpecifications.withAdminFilters(status, type, cleanSearch),
+                pageRequest
+        );
+
+        List<ComplaintResponse> content = complaintPage.getContent().stream()
+                .map(c -> {
+                    List<EvidenceResponse> evidences = complaintEvidenceRepository.findByComplaintOrderByCreatedAtAsc(c).stream()
+                            .map(EvidenceResponse::fromEntity)
+                            .collect(Collectors.toList());
+                    return ComplaintResponse.fromEntity(c, evidences);
+                })
+                .collect(Collectors.toList());
+
+        return com.queueless.backend.admin.dto.AdminComplaintPageResponse.builder()
+                .content(content)
+                .page(complaintPage.getNumber())
+                .size(complaintPage.getSize())
+                .totalElements(complaintPage.getTotalElements())
+                .totalPages(complaintPage.getTotalPages())
+                .hasNext(complaintPage.hasNext())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public com.queueless.backend.admin.dto.AdminComplaintSummaryResponse getComplaintSummary(String adminEmail) {
+        verifyAdminUser(adminEmail);
+        long totalComplaints = complaintRepository.count();
+        long submittedComplaints = complaintRepository.countByStatus(ComplaintStatus.SUBMITTED);
+        long underReviewComplaints = complaintRepository.countByStatus(ComplaintStatus.UNDER_REVIEW);
+        long validComplaints = complaintRepository.countByStatus(ComplaintStatus.VALID);
+        long invalidComplaints = complaintRepository.countByStatus(ComplaintStatus.INVALID);
+        long dismissedComplaints = complaintRepository.countByStatus(ComplaintStatus.DISMISSED);
+
+        return com.queueless.backend.admin.dto.AdminComplaintSummaryResponse.builder()
+                .totalComplaints(totalComplaints)
+                .submittedComplaints(submittedComplaints)
+                .underReviewComplaints(underReviewComplaints)
+                .validComplaints(validComplaints)
+                .invalidComplaints(invalidComplaints)
+                .dismissedComplaints(dismissedComplaints)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
     public List<ComplaintResponse> getAllComplaints(String adminEmail) {
         verifyAdminUser(adminEmail);
         return complaintRepository.findAll().stream()
