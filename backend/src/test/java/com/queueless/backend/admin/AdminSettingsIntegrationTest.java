@@ -84,7 +84,7 @@ class AdminSettingsIntegrationTest {
             admin = userRepository.save(admin);
         }
 
-        adminToken = jwtService.generateToken(admin);
+        adminToken = jwtService.generateAccessToken(admin);
 
         // Ensure Customer user
         User customer = userRepository.findByEmail("settings.customer@queueless.com").orElseGet(() ->
@@ -104,7 +104,7 @@ class AdminSettingsIntegrationTest {
             customer = userRepository.save(customer);
         }
 
-        customerToken = jwtService.generateToken(customer);
+        customerToken = jwtService.generateAccessToken(customer);
     }
 
     @Test
