@@ -1,5 +1,6 @@
 package com.queueless.backend.admin;
 
+import com.queueless.backend.admin.dto.AdminReportsOverviewResponse;
 import com.queueless.backend.admin.dto.ComplaintAnalyticsResponse;
 import com.queueless.backend.admin.dto.OrderAnalyticsResponse;
 import com.queueless.backend.admin.dto.ProductAnalyticsResponse;
@@ -18,12 +19,20 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/admin/analytics")
+@RequestMapping({"/api/admin/analytics", "/api/admin/reports"})
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
 public class AdminAnalyticsController {
 
     private final AdminAnalyticsService adminAnalyticsService;
+
+    @GetMapping("/overview")
+    public ResponseEntity<AdminReportsOverviewResponse> getReportsOverview(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        AdminReportsOverviewResponse response = adminAnalyticsService.getReportsOverview(from, to);
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/orders")
     public ResponseEntity<OrderAnalyticsResponse> getOrderAnalytics(

@@ -4,11 +4,9 @@ import {
   ShieldAlert,
   Users,
   Store,
-  Package,
   Receipt,
   AlertCircle,
   BarChart3,
-  Settings,
   LogOut,
   Menu,
   X,
@@ -124,15 +122,6 @@ export const AdminLayout: React.FC = () => {
           </NavLink>
 
           <NavLink
-            to="/admin/products"
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <Package size={19} className="nav-icon" />
-            <span>Product Catalog</span>
-          </NavLink>
-
-          <NavLink
             to="/admin/orders"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             onClick={() => setMobileMenuOpen(false)}
@@ -151,21 +140,12 @@ export const AdminLayout: React.FC = () => {
           </NavLink>
 
           <NavLink
-            to="/admin/analytics"
+            to="/admin/reports"
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             onClick={() => setMobileMenuOpen(false)}
           >
             <BarChart3 size={19} className="nav-icon" />
             <span>Analytics & Reports</span>
-          </NavLink>
-
-          <NavLink
-            to="/admin/settings"
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <Settings size={19} className="nav-icon" />
-            <span>System Settings</span>
           </NavLink>
         </div>
 

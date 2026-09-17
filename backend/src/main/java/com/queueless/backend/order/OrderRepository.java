@@ -50,22 +50,35 @@ public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecific
     @Query("SELECT o.shop.id, o.shop.shopName, COUNT(o) FROM Order o GROUP BY o.shop.id, o.shop.shopName ORDER BY COUNT(o) DESC")
     List<Object[]> findTopShopsByOrderCount(Pageable pageable);
 
-    @Query("SELECT o FROM Order o WHERE " +
-           "(:status IS NULL OR o.status = :status) AND " +
-           "(:shopId IS NULL OR o.shop.id = :shopId) AND " +
-           "(:from IS NULL OR o.createdAt >= :from) AND " +
-           "(:to IS NULL OR o.createdAt <= :to) AND " +
-           "(:search IS NULL OR :search = '' OR " +
-           " LOWER(o.customer.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           " LOWER(o.customer.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           " LOWER(o.shop.shopName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           " CAST(o.id AS string) LIKE CONCAT('%', :search, '%'))")
-    Page<Order> findAdminOrdersFilter(
-            @Param("status") OrderStatus status,
-            @Param("shopId") UUID shopId,
-            @Param("from") Instant from,
-            @Param("to") Instant to,
-            @Param("search") String search,
-            Pageable pageable);
+
+    @Query("SELECT o.status, COUNT(o), SUM(o.totalAmount) FROM Order o WHERE o.createdAt >= :from AND o.createdAt <= :to GROUP BY o.status")
+    List<Object[]> findOrderStatusAggregatesBetween(@Param("from") Instant from, @Param("to") Instant to);
+
+    @Query("SELECT o.status, COUNT(o), SUM(o.totalAmount) FROM Order o GROUP BY o.status")
+    List<Object[]> findAllOrderStatusAggregates();
+
+    @Query("SELECT o.shop.id, o.shop.shopName, o.shop.category, o.shop.status, o.shop.validComplaintCount, " +
+           "COUNT(o), " +
+           "SUM(CASE WHEN o.status = com.queueless.backend.order.OrderStatus.COLLECTED THEN 1L ELSE 0L END), " +
+           "SUM(CASE WHEN o.status = com.queueless.backend.order.OrderStatus.CANCELLED THEN 1L ELSE 0L END), " +
+           "SUM(o.totalAmount) " +
+           "FROM Order o WHERE o.createdAt >= :from AND o.createdAt <= :to " +
+           "GROUP BY o.shop.id, o.shop.shopName, o.shop.category, o.shop.status, o.shop.validComplaintCount " +
+           "ORDER BY COUNT(o) DESC")
+    List<Object[]> findTopShopsPerformanceBetween(@Param("from") Instant from, @Param("to") Instant to, Pageable pageable);
+
+    @Query("SELECT o.shop.id, o.shop.shopName, o.shop.category, o.shop.status, o.shop.validComplaintCount, " +
+           "COUNT(o), " +
+           "SUM(CASE WHEN o.status = com.queueless.backend.order.OrderStatus.COLLECTED THEN 1L ELSE 0L END), " +
+           "SUM(CASE WHEN o.status = com.queueless.backend.order.OrderStatus.CANCELLED THEN 1L ELSE 0L END), " +
+           "SUM(o.totalAmount) " +
+           "FROM Order o " +
+           "GROUP BY o.shop.id, o.shop.shopName, o.shop.category, o.shop.status, o.shop.validComplaintCount " +
+           "ORDER BY COUNT(o) DESC")
+    List<Object[]> findAllTopShopsPerformance(Pageable pageable);
+
+    List<Order> findByCreatedAtBetweenOrderByCreatedAtAsc(Instant from, Instant to);
+
+    List<Order> findAllByOrderByCreatedAtAsc();
 }
 
