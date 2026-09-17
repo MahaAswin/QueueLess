@@ -3,7 +3,7 @@ import { pickupService } from '../../services/pickupService';
 import type { PickupVerificationResponse } from '../../types/slot.types';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
-import { QrCode, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import { QrCode, CheckCircle2, AlertCircle } from 'lucide-react';
 import { formatDateLong } from '../../utils/formatters';
 
 export const ShopQrScannerPage: React.FC = () => {

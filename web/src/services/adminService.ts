@@ -6,6 +6,7 @@ import type {
   AdminUserPageResponse,
   AdminShopPageResponse,
   AdminShop,
+  AdminUser,
 } from '../types/admin.types';
 import type { Role, AccountStatus } from '../types/auth.types';
 import type { ShopCategory, ShopStatus } from '../types/shop.types';

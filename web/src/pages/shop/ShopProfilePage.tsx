@@ -15,7 +15,6 @@ export const ShopProfilePage: React.FC = () => {
     shops,
     selectedShopId,
     setSelectedShopId,
-    selectedShop,
     loading,
     saving,
     error,

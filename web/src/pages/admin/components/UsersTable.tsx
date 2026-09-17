@@ -2,7 +2,6 @@ import React from 'react';
 import { Eye, ShieldAlert, ShieldCheck, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
-import { formatDateShort } from '../../../utils/formatters';
 import type { AdminUser } from '../../../types/admin.types';
 
 interface UsersTableProps {
@@ -10,7 +9,7 @@ interface UsersTableProps {
   totalElements: number;
   totalPages: number;
   currentPage: number;
-  pageSize: number;
+  pageSize?: number;
   onPageChange: (page: number) => void;
   onViewDetails: (user: AdminUser) => void;
   onOpenConfirmAction: (user: AdminUser, action: 'SUSPEND' | 'REINSTATE') => void;
@@ -21,7 +20,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   totalElements,
   totalPages,
   currentPage,
-  pageSize,
   onPageChange,
   onViewDetails,
   onOpenConfirmAction,

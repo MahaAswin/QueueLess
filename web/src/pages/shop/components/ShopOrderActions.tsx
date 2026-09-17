@@ -5,7 +5,7 @@ import type { OrderStatus } from '../../../types/order.types';
 import { Button } from '../../../components/ui/Button';
 
 interface ShopOrderActionsProps {
-  orderId: string;
+  orderId?: string;
   status: OrderStatus;
   isLoading?: boolean;
   onConfirm: () => void;
@@ -16,7 +16,6 @@ interface ShopOrderActionsProps {
 }
 
 export const ShopOrderActions: React.FC<ShopOrderActionsProps> = ({
-  orderId,
   status,
   isLoading = false,
   onConfirm,

@@ -1,6 +1,6 @@
-import type { User, Role, AccountStatus } from './auth.types';
-import type { Shop, ShopCategory, ShopStatus } from './shop.types';
-import type { OrderStatus } from './order.types';
+import type { Role, AccountStatus } from './auth.types';
+import type { ShopCategory, ShopStatus } from './shop.types';
+import type { OrderStatus, OrderPickupSlotInfo } from './order.types';
 import type { ComplaintType, ComplaintStatus } from './complaint.types';
 
 export interface AdminUserSummary {
@@ -34,6 +34,7 @@ export interface AdminOrderSummary {
   collectedOrders: number;
   rejectedOrders: number;
   cancelledOrders: number;
+  totalRevenue?: number;
 }
 
 export interface AdminComplaintSummary {
@@ -68,7 +69,8 @@ export interface AdminRecentOrderPageResponse {
   content: AdminRecentOrder[];
   totalElements: number;
   totalPages: number;
-  number: number;
+  page?: number;
+  number?: number;
   size: number;
 }
 
@@ -87,7 +89,8 @@ export interface AdminRecentComplaintPageResponse {
   content: AdminRecentComplaint[];
   totalElements: number;
   totalPages: number;
-  number: number;
+  page?: number;
+  number?: number;
   size: number;
 }
 
@@ -103,12 +106,12 @@ export interface AdminUser {
   createdAt?: string;
 }
 
-
 export interface AdminUserPageResponse {
   content: AdminUser[];
   totalElements: number;
   totalPages: number;
-  number: number;
+  page?: number;
+  number?: number;
   size: number;
 }
 
@@ -140,6 +143,60 @@ export interface AdminShopPageResponse {
   content: AdminShop[];
   totalElements: number;
   totalPages: number;
-  number: number;
+  page?: number;
+  number?: number;
   size: number;
+}
+
+export interface AdminOrderItem {
+  id: string;
+  productId: string;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
+}
+
+export interface AdminOrder {
+  orderId: string;
+  customerId: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  shopId: string;
+  shopName?: string;
+  shopCategory?: string;
+  totalAmount: number;
+  status: OrderStatus;
+  pickupSlot?: OrderPickupSlotInfo;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface AdminOrderDetail extends AdminOrder {
+  shopAddress?: string;
+  shopCity?: string;
+  shopPhone?: string;
+  ownerName?: string;
+  ownerEmail?: string;
+  items: AdminOrderItem[];
+}
+
+export interface AdminOrderPageResponse {
+  content: AdminOrder[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+  hasNext: boolean;
+}
+
+export interface AdminOrderFilterParams {
+  status?: OrderStatus;
+  shopId?: string;
+  search?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  size?: number;
 }

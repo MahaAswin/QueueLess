@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Mail, Phone, Calendar, AlertTriangle, ShieldCheck, ShieldAlert, X } from 'lucide-react';
+import { Mail, Phone, Calendar, AlertTriangle, ShieldCheck, ShieldAlert, X } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { formatDateShort } from '../../../utils/formatters';

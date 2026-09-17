@@ -103,15 +103,16 @@ export const PendingShopApprovalsWidget: React.FC<PendingShopApprovalsWidgetProp
             </thead>
             <tbody>
               {pendingShops.map((shop) => {
-                const isActivating = actionLoadingId === shop.id;
+                const shopId = shop.shopId || shop.id || '';
+                const isActivating = actionLoadingId === shopId;
                 return (
-                  <tr key={shop.id}>
+                  <tr key={shopId}>
                     <td>
                       <div style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--color-text-main)' }}>
                         {shop.shopName || shop.name}
                       </div>
                       <div style={{ fontSize: 11, color: 'var(--color-text-light)' }}>
-                        ID: {shop.id.slice(0, 8)}...
+                        ID: {shopId ? `${shopId.slice(0, 8)}...` : 'N/A'}
                       </div>
                     </td>
                     <td>
@@ -143,8 +144,8 @@ export const PendingShopApprovalsWidget: React.FC<PendingShopApprovalsWidgetProp
                       <Button
                         variant="primary"
                         size="sm"
-                        disabled={isActivating}
-                        onClick={() => onActivateShop(shop.id)}
+                        disabled={isActivating || !shopId}
+                        onClick={() => shopId && onActivateShop(shopId)}
                         icon={isActivating ? undefined : <Check size={14} />}
                       >
                         {isActivating ? 'Activating...' : 'Approve & Activate'}

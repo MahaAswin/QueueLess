@@ -5,6 +5,7 @@ import com.queueless.backend.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, UUID> {
+public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecificationExecutor<Order> {
 
     List<Order> findByCustomerOrderByCreatedAtDesc(User customer);
 
@@ -48,4 +49,23 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     @Query("SELECT o.shop.id, o.shop.shopName, COUNT(o) FROM Order o GROUP BY o.shop.id, o.shop.shopName ORDER BY COUNT(o) DESC")
     List<Object[]> findTopShopsByOrderCount(Pageable pageable);
+
+    @Query("SELECT o FROM Order o WHERE " +
+           "(:status IS NULL OR o.status = :status) AND " +
+           "(:shopId IS NULL OR o.shop.id = :shopId) AND " +
+           "(:from IS NULL OR o.createdAt >= :from) AND " +
+           "(:to IS NULL OR o.createdAt <= :to) AND " +
+           "(:search IS NULL OR :search = '' OR " +
+           " LOWER(o.customer.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           " LOWER(o.customer.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           " LOWER(o.shop.shopName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           " CAST(o.id AS string) LIKE CONCAT('%', :search, '%'))")
+    Page<Order> findAdminOrdersFilter(
+            @Param("status") OrderStatus status,
+            @Param("shopId") UUID shopId,
+            @Param("from") Instant from,
+            @Param("to") Instant to,
+            @Param("search") String search,
+            Pageable pageable);
 }
+

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Calendar, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import type { PickupSlotResponse } from '../../../types/slot.types';
 import { formatTimeLabel, formatDateShort } from '../../../utils/formatters';
 import { Badge } from '../../../components/ui/Badge';

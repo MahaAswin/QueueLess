@@ -21,7 +21,7 @@ interface ShopsTableProps {
   totalElements: number;
   totalPages: number;
   currentPage: number;
-  pageSize: number;
+  pageSize?: number;
   onPageChange: (page: number) => void;
   onViewDetails: (shop: AdminShop) => void;
   onOpenConfirmAction: (
@@ -35,7 +35,6 @@ export const ShopsTable: React.FC<ShopsTableProps> = ({
   totalElements,
   totalPages,
   currentPage,
-  pageSize,
   onPageChange,
   onViewDetails,
   onOpenConfirmAction,

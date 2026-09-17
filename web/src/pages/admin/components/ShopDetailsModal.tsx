@@ -2,17 +2,12 @@ import React from 'react';
 import {
   Store,
   MapPin,
-  Clock,
   User,
-  Mail,
-  Phone,
-  Calendar,
   AlertTriangle,
   CheckCircle2,
   XCircle,
   ShieldCheck,
   X,
-  Compass,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';

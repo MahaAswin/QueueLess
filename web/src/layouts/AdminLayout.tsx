@@ -138,7 +138,7 @@ export const AdminLayout: React.FC = () => {
             onClick={() => setMobileMenuOpen(false)}
           >
             <Receipt size={19} className="nav-icon" />
-            <span>Order Logs</span>
+            <span>Orders</span>
           </NavLink>
 
           <NavLink

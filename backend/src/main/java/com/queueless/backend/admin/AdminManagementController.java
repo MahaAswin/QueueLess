@@ -47,13 +47,13 @@ public class AdminManagementController {
     @PatchMapping("/users/{userId}/suspend")
     public ResponseEntity<Void> suspendUser(@PathVariable UUID userId) {
         adminManagementService.suspendUser(userId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/users/{userId}/reinstate")
     public ResponseEntity<Void> reinstateUser(@PathVariable UUID userId) {
         adminManagementService.reinstateUser(userId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
 
@@ -98,13 +98,13 @@ public class AdminManagementController {
     @PatchMapping("/shops/{shopId}/suspend")
     public ResponseEntity<Void> suspendShop(@PathVariable UUID shopId) {
         adminManagementService.suspendShop(shopId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/shops/{shopId}/reinstate")
     public ResponseEntity<Void> reinstateShop(@PathVariable UUID shopId) {
         adminManagementService.reinstateShop(shopId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }
 

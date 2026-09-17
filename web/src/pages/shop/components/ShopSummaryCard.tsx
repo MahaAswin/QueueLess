@@ -1,5 +1,5 @@
 import React from 'react';
-import { Store, MapPin, Clock, Phone, ChevronDown, CheckCircle2 } from 'lucide-react';
+import { Store, MapPin, Clock, Phone } from 'lucide-react';
 import type { Shop } from '../../../types/shop.types';
 import { Badge } from '../../../components/ui/Badge';
 import { formatTimeLabel } from '../../../utils/formatters';
