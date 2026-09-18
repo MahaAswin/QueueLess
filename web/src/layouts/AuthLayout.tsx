@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { Zap, Clock, ShieldCheck, QrCode } from 'lucide-react';
+import { Clock, ShieldCheck, QrCode } from 'lucide-react';
+import { QueueLessLogo } from '../components/ui/QueueLessLogo';
 
 export const AuthLayout: React.FC = () => {
   return (
@@ -26,30 +27,12 @@ export const AuthLayout: React.FC = () => {
         }}
         className="auth-hero-banner"
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 'var(--radius-lg)',
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(8px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Zap size={24} fill="#fff" />
-          </div>
-          <div>
-            <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 22, letterSpacing: '-0.3px' }}>
-              QueueLess
-            </div>
-            <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.8, letterSpacing: '1.2px' }}>
-              EXPRESS PICKUP PLATFORM
-            </div>
-          </div>
-        </div>
+        <QueueLessLogo
+          size="lg"
+          textColor="#fff"
+          subtitle="EXPRESS PICKUP PLATFORM"
+          subtitleColor="rgba(255, 255, 255, 0.85)"
+        />
 
         <div style={{ maxWidth: 480, margin: '60px 0' }}>
           <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.15, color: '#fff', marginBottom: 16 }}>
@@ -100,14 +83,23 @@ export const AuthLayout: React.FC = () => {
         }}
       >
         <div style={{ width: '100%', maxWidth: 420 }}>
+          <div className="mobile-auth-logo" style={{ marginBottom: 28, justifyContent: 'center' }}>
+            <QueueLessLogo size="lg" subtitle="EXPRESS PICKUP" />
+          </div>
           <Outlet />
         </div>
       </div>
 
       <style>{`
+        .mobile-auth-logo {
+          display: none;
+        }
         @media (max-width: 900px) {
           .auth-hero-banner {
             display: none !important;
+          }
+          .mobile-auth-logo {
+            display: flex !important;
           }
         }
       `}</style>

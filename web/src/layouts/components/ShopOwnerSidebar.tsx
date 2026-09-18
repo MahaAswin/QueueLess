@@ -10,8 +10,8 @@ import {
   Store,
   LogOut,
   X,
-  Zap,
 } from 'lucide-react';
+import { QueueLessLogo } from '../../components/ui/QueueLessLogo';
 import { useAuth } from '../../context/AuthContext';
 
 interface ShopOwnerSidebarProps {
@@ -30,7 +30,22 @@ export const ShopOwnerSidebar: React.FC<ShopOwnerSidebarProps> = ({
   };
 
   return (
-    <aside className={`app-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
+    <aside
+      className={`app-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}
+      style={{
+        width: 'var(--sidebar-width)',
+        backgroundColor: 'var(--color-surface)',
+        borderRight: '1px solid var(--color-border)',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        zIndex: 100,
+        transition: 'transform var(--transition-normal)',
+      }}
+    >
       {/* Brand Header */}
       <div
         style={{
@@ -42,45 +57,7 @@ export const ShopOwnerSidebar: React.FC<ShopOwnerSidebarProps> = ({
           justifyContent: 'space-between',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'var(--color-primary-deep)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-            }}
-          >
-            <Zap size={20} fill="#fff" />
-          </div>
-          <div>
-            <div
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontWeight: 800,
-                fontSize: 17,
-                color: 'var(--color-primary-deep)',
-                letterSpacing: '-0.3px',
-              }}
-            >
-              QueueLess
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                color: 'var(--color-primary)',
-                letterSpacing: '0.8px',
-              }}
-            >
-              SHOP PARTNER
-            </div>
-          </div>
-        </div>
+        <QueueLessLogo size="md" subtitle="SHOP PARTNER" subtitleColor="var(--color-primary)" />
         <button
           onClick={onCloseMobileMenu}
           aria-label="Close menu"

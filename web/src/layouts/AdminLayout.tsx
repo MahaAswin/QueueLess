@@ -11,8 +11,8 @@ import {
   LogOut,
   Menu,
   X,
-  ShieldCheck,
 } from 'lucide-react';
+import { QueueLessLogo } from '../components/ui/QueueLessLogo';
 import { useAuth } from '../context/AuthContext';
 import { Badge } from '../components/ui/Badge';
 
@@ -42,8 +42,8 @@ export const AdminLayout: React.FC = () => {
         />
       )}
 
-      {/* Persistent Desktop Sidebar */}
-      <aside className={`app-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
+      {/* Admin Sidebar */}
+      <aside className={`app-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
         {/* Brand Header */}
         <div
           style={{
@@ -55,30 +55,7 @@ export const AdminLayout: React.FC = () => {
             justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: '#1E293B',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-              }}
-            >
-              <ShieldCheck size={20} color="#38BDF8" />
-            </div>
-            <div>
-              <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 17, color: 'var(--color-text-main)', letterSpacing: '-0.3px' }}>
-                QueueLess
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#0284C7', letterSpacing: '0.8px' }}>
-                ADMIN CONTROL
-              </div>
-            </div>
-          </div>
+          <QueueLessLogo size="md" subtitle="ADMIN CONTROL" subtitleColor="#0284C7" />
           <button
             onClick={() => setMobileMenuOpen(false)}
             style={{ display: 'none' }}

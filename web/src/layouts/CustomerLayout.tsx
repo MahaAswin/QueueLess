@@ -11,8 +11,8 @@ import {
   Search,
   Menu,
   X,
-  Zap,
 } from 'lucide-react';
+import { QueueLessLogo } from '../components/ui/QueueLessLogo';
 import { useAuth } from '../context/AuthContext';
 import { notificationService } from '../services/notificationService';
 
@@ -88,30 +88,7 @@ export const CustomerLayout: React.FC = () => {
             justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-primary-deep)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-              }}
-            >
-              <Zap size={20} fill="#fff" />
-            </div>
-            <div>
-              <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: 17, color: 'var(--color-primary-deep)', letterSpacing: '-0.3px' }}>
-                QueueLess
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.8px' }}>
-                EXPRESS PICKUP
-              </div>
-            </div>
-          </div>
+          <QueueLessLogo size="md" subtitle="EXPRESS PICKUP" />
           <button
             onClick={() => setMobileMenuOpen(false)}
             style={{ display: 'none' }}
