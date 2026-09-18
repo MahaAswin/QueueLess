@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Receipt,
   Store,
@@ -17,6 +17,7 @@ import { ErrorState } from '../../components/feedback/ErrorState';
 import { formatOrderId } from '../../utils/formatters';
 
 export const CustomerOrdersPage: React.FC = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const locationState = location.state as {
     orderPlaced?: boolean;
@@ -206,7 +207,7 @@ export const CustomerOrdersPage: React.FC = () => {
           title="No orders yet"
           message="Your completed and upcoming orders will appear here."
           actionText="Explore Shops"
-          onAction={() => window.location.assign('/customer/shops')}
+          onAction={() => navigate('/customer/shops')}
         />
       ) : filteredOrders.length === 0 ? (
         <EmptyState

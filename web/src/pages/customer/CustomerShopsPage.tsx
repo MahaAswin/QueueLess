@@ -18,8 +18,6 @@ import { ShopSearch } from '../../components/shop/ShopSearch';
 import { ShopFilters, type SortOption } from '../../components/shop/ShopFilters';
 import { ShopSkeleton } from '../../components/shop/ShopSkeleton';
 
-import { getDemoShops } from '../../data/demoShops';
-
 export const CustomerShopsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
@@ -36,21 +34,18 @@ export const CustomerShopsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<ShopCategory | 'ALL'>(urlCategory);
   const [selectedSort, setSelectedSort] = useState<SortOption>('RECOMMENDED');
 
-  // Load baseline shops from backend API (with temporary demo data fallback)
+  // Load baseline shops from backend API
   const loadShops = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await shopService.getActiveShops();
-      if (data && data.length > 0) {
-        setAllShops(data);
-      } else {
-        // TODO: Remove demo fallback once backend seed data is available
-        setAllShops(getDemoShops());
-      }
+      setAllShops(data || []);
+      setDisplayedShops(data || []);
     } catch {
-      // TODO: Remove demo fallback once backend seed data is available
-      setAllShops(getDemoShops());
+      setError('Unable to load shops right now. Please try again.');
+      setAllShops([]);
+      setDisplayedShops([]);
     } finally {
       setLoading(false);
     }
@@ -72,7 +67,7 @@ export const CustomerShopsPage: React.FC = () => {
     async (query: string, category: ShopCategory | 'ALL') => {
       setError(null);
 
-      // In-memory filter helper (used for demo shops or network interruption)
+      // In-memory filter helper
       const filterInMemory = (source: Shop[]) => {
         let list = source;
         if (query.trim()) {
@@ -96,15 +91,7 @@ export const CustomerShopsPage: React.FC = () => {
         return list;
       };
 
-      // Check if working with demo dataset
-      const isDemoMode = allShops.some((s) => s.id.startsWith('demo-'));
-
-      if (isDemoMode) {
-        setDisplayedShops(filterInMemory(allShops));
-        return;
-      }
-
-      // If there's an active text query with real backend data
+      // If there's an active text query with backend search
       if (query.trim()) {
         setSearchLoading(true);
         try {

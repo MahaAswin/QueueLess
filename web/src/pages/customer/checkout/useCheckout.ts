@@ -5,7 +5,6 @@ import { cartService } from '../../../services/cartService';
 import { orderService } from '../../../services/orderService';
 import { shopService } from '../../../services/shopService';
 import { pickupService } from '../../../services/pickupService';
-import { getDemoShopById } from '../../../data/demoShops';
 import type { Cart } from '../../../types/cart.types';
 import type { Shop } from '../../../types/shop.types';
 import type { TimeSlotOption, CreatePickupSlotRequest } from '../../../types/slot.types';
@@ -154,18 +153,11 @@ export const useCheckout = () => {
       setCart(cartData);
 
       if (cartData && cartData.shopId) {
-        // Fetch shop details for opening hours
-        if (cartData.shopId.startsWith('demo-')) {
-          const demoShop = getDemoShopById(cartData.shopId);
-          if (demoShop) setShop(demoShop);
-        } else {
-          try {
-            const shopData = await shopService.getShopById(cartData.shopId);
-            setShop(shopData);
-          } catch {
-            const fallbackShop = getDemoShopById(cartData.shopId);
-            if (fallbackShop) setShop(fallbackShop);
-          }
+        try {
+          const shopData = await shopService.getShopById(cartData.shopId);
+          setShop(shopData);
+        } catch {
+          // Shop fetch non-fatal for checkout load
         }
       }
     } catch (err: any) {
@@ -221,13 +213,6 @@ export const useCheckout = () => {
     setError(null);
 
     try {
-      const containsDemoItems = cart.shopId?.startsWith('demo-') || cart.items.some((i) => i.productId?.startsWith('demo-') || (i.id && i.id.startsWith('demo-')));
-
-      if (containsDemoItems) {
-        setError('Checkout API requires active database catalog items. Demo items cannot be persisted to the backend order system.');
-        return;
-      }
-
       // Real Backend Order Placement (POST /api/orders)
       const order = await orderService.checkout();
 

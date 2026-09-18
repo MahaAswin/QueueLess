@@ -36,7 +36,6 @@ import { Badge } from '../../components/ui/Badge';
 import { ErrorState } from '../../components/feedback/ErrorState';
 import { EmptyState } from '../../components/feedback/EmptyState';
 import { ShopDetailSkeleton } from './ShopDetailSkeleton';
-import { getDemoShopById, getDemoProductsByShopId } from '../../data/demoShops';
 
 // Category metadata helper for aesthetic badges & icons
 const CATEGORY_META: Record<
@@ -137,7 +136,7 @@ export const ShopDetailsPage: React.FC = () => {
     existingShopName?: string;
   }>({ show: false });
 
-  // Initial Data Fetch (with temporary demo data fallback)
+  // Initial Data Fetch
   const loadData = useCallback(async () => {
     if (!effectiveShopId) {
       setError('Invalid shop identifier.');
@@ -147,23 +146,6 @@ export const ShopDetailsPage: React.FC = () => {
 
     setLoading(true);
     setError(null);
-
-    // If ID is explicitly a demo shop ID, load demo directly
-    if (effectiveShopId.startsWith('demo-') || effectiveShopId.startsWith('demo_')) {
-      const demoShop = getDemoShopById(effectiveShopId);
-      if (demoShop) {
-        setShop(demoShop);
-        setProducts(getDemoProductsByShopId(demoShop.id));
-        try {
-          const cartData = await cartService.getCart();
-          setCart(cartData);
-        } catch {
-          // Ignore
-        }
-        setLoading(false);
-        return;
-      }
-    }
 
     try {
       const [shopData, productsData, cartData] = await Promise.all([
@@ -176,25 +158,11 @@ export const ShopDetailsPage: React.FC = () => {
         setShop(shopData);
         setProducts(productsData || []);
       } else {
-        // TODO: Remove demo fallback once backend seed data is available
-        const demoShop = getDemoShopById(effectiveShopId);
-        if (demoShop) {
-          setShop(demoShop);
-          setProducts(getDemoProductsByShopId(demoShop.id));
-        } else {
-          setError('This partner shop does not exist or has been removed.');
-        }
+        setError('This partner shop does not exist or has been removed.');
       }
       setCart(cartData);
     } catch {
-      // TODO: Remove demo fallback once backend seed data is available
-      const demoShop = getDemoShopById(effectiveShopId);
-      if (demoShop) {
-        setShop(demoShop);
-        setProducts(getDemoProductsByShopId(demoShop.id));
-      } else {
-        setError('Unable to load shop details and catalog.');
-      }
+      setError('Unable to load shop details and catalog.');
     } finally {
       setLoading(false);
     }
