@@ -1,5 +1,5 @@
 import { apiClient } from '../api/axiosClient';
-import type { Order, OrderPageResponse, OrderStatus } from '../types/order.types';
+import type { Order, OrderPageResponse, OrderStatus, CustomerExpenseSummary } from '../types/order.types';
 
 export const orderService = {
   // Customer Endpoints
@@ -22,6 +22,11 @@ export const orderService = {
 
   async cancelOrder(orderId: string): Promise<Order> {
     const response = await apiClient.post<Order>(`/api/orders/${orderId}/cancel`);
+    return response.data;
+  },
+
+  async getCustomerExpenseSummary(): Promise<CustomerExpenseSummary> {
+    const response = await apiClient.get<CustomerExpenseSummary>('/api/customer/summary/expenses');
     return response.data;
   },
 

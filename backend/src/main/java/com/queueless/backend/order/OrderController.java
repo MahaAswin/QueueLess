@@ -49,6 +49,15 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/summary/expenses")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<com.queueless.backend.order.dto.CustomerExpenseSummaryResponse> getCustomerExpenseSummary(
+            Authentication authentication) {
+        com.queueless.backend.order.dto.CustomerExpenseSummaryResponse response =
+                orderService.getCustomerExpenseSummary(authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/{orderId}/cancel")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<OrderResponse> cancelOrder(

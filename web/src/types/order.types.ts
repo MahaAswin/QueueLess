@@ -60,3 +60,11 @@ export interface OrderPageResponse {
   number: number;
   size: number;
 }
+
+export interface CustomerExpenseSummary {
+  totalSpent: number;
+  completedOrders: number;
+  totalOrders?: number;
+  activeOrders?: number;
+  averageOrderValue: number;
+}

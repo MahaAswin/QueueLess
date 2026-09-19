@@ -32,6 +32,9 @@ public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecific
 
     Page<Order> findByShopInAndStatus(List<Shop> shops, OrderStatus status, Pageable pageable);
 
+    @Query("SELECT COUNT(o), SUM(o.totalAmount) FROM Order o WHERE o.customer = :customer AND o.status = com.queueless.backend.order.OrderStatus.COLLECTED")
+    List<Object[]> getCustomerOrderAggregatesByStatus(@Param("customer") User customer);
+
     long countByStatus(OrderStatus status);
 
     long countByCreatedAtBetween(Instant from, Instant to);

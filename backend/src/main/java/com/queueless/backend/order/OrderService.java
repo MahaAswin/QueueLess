@@ -7,6 +7,7 @@ import com.queueless.backend.common.OrderNotFoundException;
 import com.queueless.backend.common.ProductNotFoundException;
 import com.queueless.backend.notification.NotificationService;
 import com.queueless.backend.notification.NotificationType;
+import com.queueless.backend.order.dto.CustomerExpenseSummaryResponse;
 import com.queueless.backend.order.dto.OrderPageResponse;
 import com.queueless.backend.order.dto.OrderResponse;
 import com.queueless.backend.product.Product;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -209,6 +211,46 @@ public class OrderService {
         );
 
         return toOrderResponse(updatedOrder);
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerExpenseSummaryResponse getCustomerExpenseSummary(String currentUserEmail) {
+        User customer = getCustomerUser(currentUserEmail);
+        List<Order> customerOrders = orderRepository.findByCustomerOrderByCreatedAtDesc(customer);
+
+        List<Order> validOrders = customerOrders.stream()
+                .filter(o -> o.getStatus() != OrderStatus.CANCELLED && o.getStatus() != OrderStatus.REJECTED)
+                .collect(Collectors.toList());
+
+        long completedOrders = customerOrders.stream()
+                .filter(o -> o.getStatus() == OrderStatus.COLLECTED)
+                .count();
+
+        long activeOrders = customerOrders.stream()
+                .filter(o -> o.getStatus() == OrderStatus.PENDING ||
+                             o.getStatus() == OrderStatus.CONFIRMED ||
+                             o.getStatus() == OrderStatus.PREPARING ||
+                             o.getStatus() == OrderStatus.READY_FOR_PICKUP)
+                .count();
+
+        BigDecimal totalSpent = validOrders.stream()
+                .map(Order::getTotalAmount)
+                .filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal averageOrderValue = BigDecimal.ZERO;
+        long divisor = completedOrders > 0 ? completedOrders : validOrders.size();
+        if (divisor > 0 && totalSpent.compareTo(BigDecimal.ZERO) > 0) {
+            averageOrderValue = totalSpent.divide(BigDecimal.valueOf(divisor), 2, RoundingMode.HALF_UP);
+        }
+
+        return CustomerExpenseSummaryResponse.builder()
+                .totalSpent(totalSpent.setScale(2, RoundingMode.HALF_UP))
+                .completedOrders(completedOrders)
+                .totalOrders((long) validOrders.size())
+                .activeOrders(activeOrders)
+                .averageOrderValue(averageOrderValue.setScale(2, RoundingMode.HALF_UP))
+                .build();
     }
 
     @Transactional(readOnly = true)

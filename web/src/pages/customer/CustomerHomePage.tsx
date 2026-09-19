@@ -4,7 +4,6 @@ import {
   Store,
   ShoppingBag,
   Receipt,
-  Bell,
   ArrowRight,
   Clock,
   MapPin,
@@ -25,9 +24,10 @@ import { useAuth } from '../../context/AuthContext';
 import { shopService } from '../../services/shopService';
 import { orderService } from '../../services/orderService';
 import type { Shop, ShopCategory } from '../../types/shop.types';
-import type { Order, OrderStatus } from '../../types/order.types';
+import type { Order, OrderStatus, CustomerExpenseSummary } from '../../types/order.types';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import { ExpenseSummarySection } from './components/ExpenseSummarySection';
 
 const CATEGORY_LABELS: Record<string, string> = {
   ALL: 'All Categories',
@@ -61,6 +61,11 @@ export const CustomerHomePage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState<boolean>(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+
+  // Expense Summary State
+  const [expenseSummary, setExpenseSummary] = useState<CustomerExpenseSummary | null>(null);
+  const [expenseLoading, setExpenseLoading] = useState<boolean>(true);
+  const [expenseError, setExpenseError] = useState<string | null>(null);
 
   // Time-of-day greeting
   const greeting = useMemo(() => {
@@ -104,10 +109,25 @@ export const CustomerHomePage: React.FC = () => {
     }
   }, []);
 
+  // Load Customer Expense Summary
+  const loadExpenseSummary = useCallback(async () => {
+    setExpenseLoading(true);
+    setExpenseError(null);
+    try {
+      const data = await orderService.getCustomerExpenseSummary();
+      setExpenseSummary(data);
+    } catch {
+      setExpenseError('Unable to load spending summary.');
+    } finally {
+      setExpenseLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadShops();
     loadOrders();
-  }, [loadShops, loadOrders]);
+    loadExpenseSummary();
+  }, [loadShops, loadOrders, loadExpenseSummary]);
 
   // Active Order detection
   const activeOrder = useMemo(() => {
@@ -393,163 +413,13 @@ export const CustomerHomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. QUICK ACTIONS */}
-      <section>
-        <div style={{ marginBottom: 14 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-text-main)' }}>
-            Quick Actions
-          </h2>
-          <p style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-            Frequent shortcuts for express ordering, pickups, and account management
-          </p>
-        </div>
-
-        <div className="grid-4">
-          <Link
-            to="/customer/shops"
-            className="card interactive-card"
-            style={{
-              padding: '18px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 16,
-              textDecoration: 'none',
-            }}
-          >
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-primary-subtle)',
-                color: 'var(--color-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Store size={22} />
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)' }}>
-                Explore Shops
-              </div>
-              <div style={{ fontSize: 12.5, color: 'var(--color-text-muted)', marginTop: 1 }}>
-                Browse menus & outlets
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            to="/customer/cart"
-            className="card interactive-card"
-            style={{
-              padding: '18px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 16,
-              textDecoration: 'none',
-            }}
-          >
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-sage)',
-                color: 'var(--color-primary-deep)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <ShoppingBag size={22} />
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)' }}>
-                My Cart
-              </div>
-              <div style={{ fontSize: 12.5, color: 'var(--color-text-muted)', marginTop: 1 }}>
-                Review items & checkout
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            to="/customer/orders"
-            className="card interactive-card"
-            style={{
-              padding: '18px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 16,
-              textDecoration: 'none',
-            }}
-          >
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-info-bg)',
-                color: 'var(--color-info)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Receipt size={22} />
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)' }}>
-                Orders & Pickups
-              </div>
-              <div style={{ fontSize: 12.5, color: 'var(--color-text-muted)', marginTop: 1 }}>
-                Live tickets & history
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            to="/customer/profile?tab=notifications"
-            className="card interactive-card"
-            style={{
-              padding: '18px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 16,
-              textDecoration: 'none',
-            }}
-          >
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--color-warning-bg)',
-                color: 'var(--color-warning)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              <Bell size={22} />
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)' }}>
-                Notifications
-              </div>
-              <div style={{ fontSize: 12.5, color: 'var(--color-text-muted)', marginTop: 1 }}>
-                Pickup readiness alerts
-              </div>
-            </div>
-          </Link>
-        </div>
-      </section>
+      {/* 2. EXPENSE SUMMARY / MY SPENDING */}
+      <ExpenseSummarySection
+        summary={expenseSummary}
+        loading={expenseLoading}
+        error={expenseError}
+        onRetry={loadExpenseSummary}
+      />
 
       {/* 3. ACTIVE ORDER MONITOR */}
       <section>
