@@ -4,7 +4,7 @@ import {
   ArrowLeft,
   User,
   Clock,
-  QrCode,
+  KeyRound,
   Package,
   RefreshCw,
   AlertCircle,
@@ -382,9 +382,9 @@ export const ShopOrderDetailPage: React.FC = () => {
                   variant="primary"
                   size="md"
                   style={{ width: '100%', justifyContent: 'center' }}
-                  icon={<QrCode size={16} />}
+                  icon={<KeyRound size={16} />}
                 >
-                  Verify Customer QR
+                  Verify Pickup OTP
                 </Button>
               </Link>
             )}

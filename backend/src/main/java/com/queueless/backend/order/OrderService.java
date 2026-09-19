@@ -36,6 +36,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.queueless.backend.otp.PickupOtpRepository;
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -48,6 +51,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final PickupSlotRepository pickupSlotRepository;
     private final NotificationService notificationService;
+    private final PickupOtpRepository pickupOtpRepository;
 
     @Transactional
     public OrderResponse checkout(String currentUserEmail) {
@@ -372,6 +376,44 @@ public class OrderService {
                 NotificationType.ORDER_READY_FOR_PICKUP,
                 "Order Ready for Pickup",
                 "Your order is ready for pickup.",
+                updatedOrder.getId(),
+                updatedOrder.getShop().getId()
+        );
+
+        return toOrderResponse(updatedOrder);
+    }
+
+    @Transactional
+    public OrderResponse completeOrder(UUID orderId, String currentUserEmail) {
+        User owner = getShopOwnerUser(currentUserEmail);
+        Order order = getOrderEntityById(orderId);
+
+        if (!order.getShop().getOwner().getId().equals(owner.getId())) {
+            throw new AccessDeniedException("You are not authorized to manage orders for this shop");
+        }
+
+        if (order.getStatus() == OrderStatus.COLLECTED) {
+            throw new IllegalStateException("Order has already been collected");
+        }
+
+        if (order.getStatus() != OrderStatus.READY_FOR_PICKUP) {
+            throw new IllegalStateException("Only READY_FOR_PICKUP orders can be marked as COLLECTED. Current status: " + order.getStatus());
+        }
+
+        order.setStatus(OrderStatus.COLLECTED);
+        Order updatedOrder = orderRepository.save(order);
+
+        pickupOtpRepository.findByOrder(order).ifPresent(otp -> {
+            otp.setConsumed(true);
+            otp.setConsumedAt(LocalDateTime.now());
+            pickupOtpRepository.save(otp);
+        });
+
+        notificationService.createNotification(
+                updatedOrder.getCustomer(),
+                NotificationType.ORDER_COLLECTED,
+                "Order Collected",
+                "Your order has been collected.",
                 updatedOrder.getId(),
                 updatedOrder.getShop().getId()
         );

@@ -1,22 +1,27 @@
 import React from 'react';
-import { X, QrCode, Store, Calendar } from 'lucide-react';
+import { X, KeyRound, Store, Calendar, Clock, RefreshCw, AlertCircle } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
+import { Badge } from '../../../components/ui/Badge';
 import type { Order } from '../../../types/order.types';
-import type { PickupQrResponse } from '../../../types/slot.types';
-import { formatOrderId } from '../../../utils/formatters';
+import { formatOrderId, getOrderStatusMeta } from '../../../utils/formatters';
+import { usePickupOtp } from './usePickupOtp';
 
 interface OrderPickupPassProps {
   order: Order;
-  qrData?: PickupQrResponse | null;
   onClose: () => void;
 }
 
 export const OrderPickupPass: React.FC<OrderPickupPassProps> = ({
   order,
-  qrData,
   onClose,
 }) => {
-  const referenceCode = qrData?.verificationCode || formatOrderId(order.id).replace('#', '');
+  const isReady = order.status === 'READY_FOR_PICKUP';
+  const { otpData, loading, error, timeLeft, isExpired, refetchOtp } = usePickupOtp(
+    order.id,
+    isReady
+  );
+
+  const meta = getOrderStatusMeta(order.status);
   const slotDisplay = order.pickupSlot
     ? `${order.pickupSlot.startTime || ''} – ${order.pickupSlot.endTime || ''}`
     : 'Ready upon merchant notification';
@@ -39,7 +44,7 @@ export const OrderPickupPass: React.FC<OrderPickupPassProps> = ({
       <div
         className="card"
         style={{
-          maxWidth: 420,
+          maxWidth: 440,
           width: '100%',
           textAlign: 'center',
           padding: '32px 24px',
@@ -81,74 +86,162 @@ export const OrderPickupPass: React.FC<OrderPickupPassProps> = ({
             margin: '0 auto 16px',
           }}
         >
-          <QrCode size={32} />
+          <KeyRound size={30} />
         </div>
 
-        <h3
-          style={{
-            fontSize: 20,
-            fontWeight: 800,
-            color: 'var(--color-text-main)',
-            marginBottom: 4,
-            fontFamily: 'var(--font-heading)',
-          }}
-        >
-          Zero-Wait Pickup Pass
-        </h3>
-
-        <p style={{ color: 'var(--color-text-muted)', fontSize: 13.5, marginBottom: 20, lineHeight: 1.4 }}>
-          Present this verification reference at <strong>{order.shopName || 'the shop'}</strong> counter for immediate pickup.
-        </p>
-
-        {/* Verification Code Box */}
-        <div
-          style={{
-            backgroundColor: 'var(--color-surface-subtle)',
-            padding: '20px 16px',
-            borderRadius: 'var(--radius-lg)',
-            border: '2px dashed var(--color-sage)',
-            marginBottom: 20,
-          }}
-        >
-          <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text-light)', letterSpacing: 1.2 }}>
-            EXPRESS PICKUP TOKEN
-          </div>
-          <div
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <h3
             style={{
-              fontSize: 28,
-              fontFamily: 'var(--font-heading)',
+              fontSize: 20,
               fontWeight: 800,
-              color: 'var(--color-primary-deep)',
-              letterSpacing: 3,
-              marginTop: 4,
+              color: 'var(--color-text-main)',
+              fontFamily: 'var(--font-heading)',
+              margin: 0,
             }}
           >
-            {referenceCode}
-          </div>
+            Pickup Verification
+          </h3>
         </div>
 
-        {/* Shop and Slot Meta */}
+        <p style={{ color: 'var(--color-text-muted)', fontSize: 13.5, marginBottom: 18, lineHeight: 1.4 }}>
+          Share this OTP with the Shop Owner to collect your order.
+        </p>
+
+        {/* OTP Presentation Box */}
+        {isReady ? (
+          <div
+            style={{
+              backgroundColor: isExpired ? 'var(--color-error-bg)' : 'var(--color-surface-subtle)',
+              padding: '20px 16px',
+              borderRadius: 'var(--radius-lg)',
+              border: `2px dashed ${isExpired ? 'var(--color-error)' : 'var(--color-sage)'}`,
+              marginBottom: 18,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 800,
+                color: isExpired ? 'var(--color-error)' : 'var(--color-text-light)',
+                letterSpacing: 1.2,
+                textTransform: 'uppercase',
+              }}
+            >
+              Your Pickup OTP
+            </div>
+
+            {loading ? (
+              <div style={{ padding: '16px 0', fontSize: 16, color: 'var(--color-text-muted)' }}>
+                Generating secure OTP...
+              </div>
+            ) : error ? (
+              <div style={{ padding: '10px 0', color: 'var(--color-error)', fontSize: 13 }}>
+                <AlertCircle size={18} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: 4 }} />
+                {error}
+              </div>
+            ) : (
+              <>
+                <div
+                  style={{
+                    fontSize: 34,
+                    fontFamily: 'var(--font-heading)',
+                    fontWeight: 800,
+                    color: isExpired ? 'var(--color-text-light)' : 'var(--color-primary-deep)',
+                    letterSpacing: 8,
+                    marginTop: 6,
+                    marginBottom: 6,
+                    textDecoration: isExpired ? 'line-through' : 'none',
+                  }}
+                >
+                  {otpData?.otp || '------'}
+                </div>
+
+                {/* Expiration Info */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: isExpired ? 'var(--color-error)' : 'var(--color-text-muted)',
+                  }}
+                >
+                  <Clock size={14} />
+                  <span>
+                    {isExpired ? 'OTP Expired' : timeLeft ? `Valid for ${timeLeft}` : 'Active'}
+                  </span>
+
+                  {isExpired && (
+                    <button
+                      type="button"
+                      onClick={() => refetchOtp()}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--color-primary)',
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        marginLeft: 6,
+                        textDecoration: 'underline',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}
+                    >
+                      <RefreshCw size={12} /> Regenerate
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div
+            style={{
+              backgroundColor: 'var(--color-surface-subtle)',
+              padding: '16px',
+              borderRadius: 'var(--radius-lg)',
+              border: '1px solid var(--color-border)',
+              marginBottom: 18,
+              fontSize: 13,
+              color: 'var(--color-text-muted)',
+            }}
+          >
+            Pickup OTP will become available once your order status is marked <strong>Ready for Pickup</strong>.
+          </div>
+        )}
+
+        {/* Order and Shop Meta */}
         <div
           style={{
             backgroundColor: 'var(--color-light-sage)',
             padding: '12px 16px',
             borderRadius: 'var(--radius-md)',
-            marginBottom: 24,
+            marginBottom: 20,
             textAlign: 'left',
             display: 'flex',
             flexDirection: 'column',
             gap: 6,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-            <Store size={15} color="var(--color-primary)" />
-            <span style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>
-              {order.shopName || 'Partner Shop'}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Store size={15} color="var(--color-primary)" />
+              <span style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>
+                {order.shopName || otpData?.shopName || 'Partner Shop'}
+              </span>
+            </div>
+            <Badge variant={meta.badgeVariant}>{meta.label}</Badge>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--color-text-muted)' }}>
-            <Calendar size={15} color="var(--color-primary)" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--color-text-muted)' }}>
+            <span>Order Reference: <strong>{formatOrderId(order.id)}</strong></span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--color-text-muted)' }}>
+            <Calendar size={14} color="var(--color-primary)" />
             <span>Pickup Slot: {slotDisplay}</span>
           </div>
         </div>

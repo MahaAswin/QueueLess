@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Check, X, ChefHat, CheckCircle2, QrCode } from 'lucide-react';
+import { Check, X, ChefHat, CheckCircle2, KeyRound } from 'lucide-react';
 import type { OrderStatus } from '../../../types/order.types';
 import { Button } from '../../../components/ui/Button';
 
@@ -96,8 +96,8 @@ export const ShopOrderActions: React.FC<ShopOrderActionsProps> = ({
         onClick={(e) => e.stopPropagation()}
         style={{ textDecoration: 'none' }}
       >
-        <Button size={size} variant="outline" icon={<QrCode size={14} />}>
-          Verify QR
+        <Button size={size} variant="outline" icon={<KeyRound size={14} />}>
+          Verify OTP
         </Button>
       </Link>
     );

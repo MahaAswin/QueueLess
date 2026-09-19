@@ -77,4 +77,13 @@ public class ShopOrderController {
         OrderResponse response = orderService.markOrderReadyForPickup(orderId, authentication.getName());
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{orderId}/complete")
+    @PreAuthorize("hasRole('SHOP_OWNER')")
+    public ResponseEntity<OrderResponse> completeOrder(
+            @PathVariable UUID orderId,
+            Authentication authentication) {
+        OrderResponse response = orderService.completeOrder(orderId, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
 }

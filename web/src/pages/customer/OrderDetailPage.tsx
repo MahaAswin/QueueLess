@@ -46,7 +46,6 @@ export const OrderDetailPage: React.FC = () => {
 
   const {
     order,
-    qrData,
     loading,
     error,
     cancelling,
@@ -108,11 +107,10 @@ export const OrderDetailPage: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* QR Pickup Modal */}
+      {/* OTP Pickup Modal */}
       {showQRModal && (
         <OrderPickupPass
           order={order}
-          qrData={qrData}
           onClose={() => setShowQRModal(false)}
         />
       )}
