@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   Store,
@@ -10,10 +10,8 @@ import {
   ShoppingCart,
   Plus,
   Minus,
-  Check,
   Package,
   Zap,
-  ArrowRight,
   AlertCircle,
   Trash2,
   X,
@@ -33,6 +31,7 @@ import type { Product, ProductCategory } from '../../types/product.types';
 import type { Cart } from '../../types/cart.types';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
+import { CartNotification } from '../../components/ui/CartNotification';
 import { ErrorState } from '../../components/feedback/ErrorState';
 import { EmptyState } from '../../components/feedback/EmptyState';
 import { ShopDetailSkeleton } from './ShopDetailSkeleton';
@@ -122,7 +121,21 @@ export const ShopDetailsPage: React.FC = () => {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [addingId, setAddingId] = useState<string | null>(null);
 
-  // Toast Notification
+  // Latest Add-to-Cart Action (Single source of truth for green notification + Undo)
+  interface LatestCartAction {
+    actionId: number;
+    productId: string;
+    itemId?: string;
+    productName: string;
+    addedQuantity: number;
+    previousQuantity: number;
+  }
+  const [latestCartAction, setLatestCartAction] = useState<LatestCartAction | null>(null);
+  const [showCartNotification, setShowCartNotification] = useState(false);
+  const [isUndoing, setIsUndoing] = useState(false);
+  const actionCountRef = useRef(0);
+
+  // Error Toast Notification (for network errors / failures only)
   const [toastNotification, setToastNotification] = useState<{
     title: string;
     description: string;
@@ -135,6 +148,19 @@ export const ShopDetailsPage: React.FC = () => {
     pendingQty?: number;
     existingShopName?: string;
   }>({ show: false });
+
+  // Safe 5-second auto-dismiss for Add-to-Cart green notification
+  useEffect(() => {
+    if (!showCartNotification || !latestCartAction) return;
+
+    const timer = setTimeout(() => {
+      setShowCartNotification(false);
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [latestCartAction?.actionId, showCartNotification]);
 
   // Initial Data Fetch
   const loadData = useCallback(async () => {
@@ -181,23 +207,31 @@ export const ShopDetailsPage: React.FC = () => {
     });
   };
 
-  // Add Item to Cart
+  // Add Item to Cart (Triggers single green notification + sets up Undo)
   const handleAddToCart = async (product: Product, overrideQuantity?: number) => {
     const qty = overrideQuantity ?? (quantities[product.id] || 1);
     setAddingId(product.id);
+
+    // Record previous quantity for exact Undo reversal
+    const existingItem = cart?.items?.find((i) => i.productId === product.id);
+    const previousQuantity = existingItem ? existingItem.quantity : 0;
 
     try {
       const updatedCart = await cartService.addToCart(product.id, qty);
       setCart(updatedCart);
 
-      setToastNotification({
-        title: `Added to Basket!`,
-        description: `${qty}x "${product.name}" added to your express pickup order.`,
-      });
+      const addedCartItem = updatedCart.items?.find((i) => i.productId === product.id);
 
-      setTimeout(() => {
-        setToastNotification((curr) => (curr?.title === 'Added to Basket!' ? null : curr));
-      }, 4000);
+      actionCountRef.current += 1;
+      setLatestCartAction({
+        actionId: actionCountRef.current,
+        productId: product.id,
+        itemId: addedCartItem?.itemId || addedCartItem?.id || existingItem?.itemId || existingItem?.id,
+        productName: product.name,
+        addedQuantity: qty,
+        previousQuantity,
+      });
+      setShowCartNotification(true);
     } catch (err: any) {
       const message: string = err?.response?.data?.message || '';
 
@@ -226,6 +260,51 @@ export const ShopDetailsPage: React.FC = () => {
     }
   };
 
+  // Undo latest add-to-cart action
+  const handleUndo = async () => {
+    if (!latestCartAction || isUndoing) return;
+
+    setIsUndoing(true);
+    try {
+      const cartItem = cart?.items?.find(
+        (i) =>
+          i.productId === latestCartAction.productId ||
+          (latestCartAction.itemId && (i.itemId === latestCartAction.itemId || i.id === latestCartAction.itemId))
+      );
+
+      const targetItemId = cartItem?.itemId || cartItem?.id || latestCartAction.itemId;
+
+      if (!targetItemId) {
+        setShowCartNotification(false);
+        setLatestCartAction(null);
+        return;
+      }
+
+      let updatedCart: Cart;
+      if (latestCartAction.previousQuantity > 0) {
+        // Item was already present: revert back to previous quantity
+        updatedCart = await cartService.updateItemQuantity(targetItemId, latestCartAction.previousQuantity);
+      } else {
+        // Item was newly added: remove it from cart
+        updatedCart = await cartService.removeItem(targetItemId);
+      }
+
+      setCart(updatedCart);
+      setShowCartNotification(false);
+      setLatestCartAction(null);
+    } catch (err: any) {
+      setToastNotification({
+        title: 'Undo Failed',
+        description: err?.response?.data?.message || 'Could not reverse the last cart addition.',
+      });
+      setTimeout(() => {
+        setToastNotification(null);
+      }, 4000);
+    } finally {
+      setIsUndoing(false);
+    }
+  };
+
   // Resolve Cart Conflict: Clear previous shop's cart and add current item
   const handleClearAndAdd = async () => {
     if (!conflictModal.pendingProduct) return;
@@ -239,13 +318,18 @@ export const ShopDetailsPage: React.FC = () => {
       setCart(updatedCart);
       setConflictModal({ show: false });
 
-      setToastNotification({
-        title: 'Basket Started!',
-        description: `Your basket was reset and ${qty}x "${prod.name}" was added.`,
+      const addedCartItem = updatedCart.items?.find((i) => i.productId === prod.id);
+
+      actionCountRef.current += 1;
+      setLatestCartAction({
+        actionId: actionCountRef.current,
+        productId: prod.id,
+        itemId: addedCartItem?.itemId || addedCartItem?.id,
+        productName: prod.name,
+        addedQuantity: qty,
+        previousQuantity: 0,
       });
-      setTimeout(() => {
-        setToastNotification(null);
-      }, 4000);
+      setShowCartNotification(true);
     } catch (err: any) {
       alert(err?.response?.data?.message || 'Failed to update basket.');
     } finally {
@@ -291,7 +375,6 @@ export const ShopDetailsPage: React.FC = () => {
   // Is Cart populated for this specific shop?
   const hasItemsFromThisShop = useMemo(() => {
     if (!cart || !shop || !cart.items || cart.items.length === 0) return false;
-    // Compare either shopId or check if items belong to this shop
     if (cart.shopId && cart.shopId === shop.id) return true;
     return false;
   }, [cart, shop]);
@@ -746,80 +829,26 @@ export const ShopDetailsPage: React.FC = () => {
         )}
       </section>
 
-      {/* 5. STICKY CART SUMMARY BAR */}
-      {hasItemsFromThisShop && cart && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 20,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 'calc(100% - 40px)',
-            maxWidth: 820,
-            backgroundColor: 'var(--color-primary-deep)',
-            color: '#FFFFFF',
-            padding: '14px 24px',
-            borderRadius: 'var(--radius-xl)',
-            boxShadow: 'var(--shadow-xl)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            zIndex: 90,
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'rgba(255, 255, 255, 0.16)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#FFFFFF',
-              }}
-            >
-              <ShoppingCart size={22} />
-            </div>
-            <div>
-              <div style={{ fontSize: 14.5, fontWeight: 700 }}>
-                {cart.totalItemCount} {cart.totalItemCount === 1 ? 'item' : 'items'} in your basket
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--color-sage)', marginTop: 1 }}>
-                Subtotal: <strong style={{ color: '#FFFFFF', fontSize: 13.5 }}>₹{Number(cart.subtotal).toFixed(2)}</strong> &bull; {shopName}
-              </div>
-            </div>
-          </div>
-
-          <Link to="/customer/cart" style={{ textDecoration: 'none' }}>
-            <Button
-              variant="secondary"
-              size="md"
-              icon={<ArrowRight size={16} />}
-              style={{
-                backgroundColor: 'var(--color-primary-accent)',
-                color: 'var(--color-primary-deep)',
-                fontWeight: 700,
-                border: 'none',
-              }}
-            >
-              View Cart
-            </Button>
-          </Link>
-        </div>
+      {/* 5. ADD-TO-CART GREEN NOTIFICATION (with Undo, View Cart, Dismiss X, 5s Auto-dismiss) */}
+      {showCartNotification && cart && (
+        <CartNotification
+          cart={cart}
+          shopName={shopName}
+          onUndo={latestCartAction ? handleUndo : undefined}
+          onDismiss={() => setShowCartNotification(false)}
+          isUndoing={isUndoing}
+        />
       )}
 
-      {/* 6. TOAST NOTIFICATION */}
+      {/* 6. SYSTEM ERROR TOAST NOTIFICATION (Only for failures / error alerts) */}
       {toastNotification && (
         <div
+          role="alert"
           style={{
             position: 'fixed',
-            bottom: hasItemsFromThisShop ? 96 : 24,
+            bottom: showCartNotification ? 96 : 24,
             right: 24,
-            zIndex: 100,
+            zIndex: 110,
             backgroundColor: 'var(--color-surface)',
             color: 'var(--color-text-main)',
             padding: '14px 20px',
@@ -838,15 +867,15 @@ export const ShopDetailsPage: React.FC = () => {
               width: 32,
               height: 32,
               borderRadius: 'var(--radius-full)',
-              backgroundColor: 'var(--color-primary-subtle)',
-              color: 'var(--color-primary)',
+              backgroundColor: 'var(--color-error-bg, #FEE2E2)',
+              color: 'var(--color-error, #DC2626)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
             }}
           >
-            <Check size={18} strokeWidth={3} />
+            <AlertCircle size={18} />
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text-main)' }}>
@@ -858,11 +887,15 @@ export const ShopDetailsPage: React.FC = () => {
           </div>
           <button
             onClick={() => setToastNotification(null)}
+            aria-label="Dismiss error notification"
             style={{
               color: 'var(--color-text-light)',
               padding: 4,
               display: 'flex',
               alignItems: 'center',
+              cursor: 'pointer',
+              background: 'transparent',
+              border: 'none',
             }}
           >
             <X size={16} />

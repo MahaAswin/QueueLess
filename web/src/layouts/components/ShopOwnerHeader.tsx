@@ -3,26 +3,23 @@ import { Menu, Zap } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
 
 interface ShopOwnerHeaderProps {
-  onToggleMobileMenu: () => void;
+  onToggleMenu: () => void;
+  isExpanded?: boolean;
 }
 
 export const ShopOwnerHeader: React.FC<ShopOwnerHeaderProps> = ({
-  onToggleMobileMenu,
+  onToggleMenu,
+  isExpanded,
 }) => {
   return (
     <header className="app-header glass-header">
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <button
-          onClick={onToggleMobileMenu}
-          aria-label="Toggle navigation menu"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: 6,
-            color: 'var(--color-text-main)',
-            cursor: 'pointer',
-          }}
-          className="mobile-menu-btn"
+          onClick={onToggleMenu}
+          aria-label={isExpanded ? 'Collapse navigation rail' : 'Expand navigation rail'}
+          aria-expanded={isExpanded}
+          aria-controls="shop-owner-sidebar"
+          className="menu-toggle-btn mobile-menu-btn"
         >
           <Menu size={22} />
         </button>
