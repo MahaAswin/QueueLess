@@ -64,8 +64,9 @@ export const usePickupOtp = (orderId?: string, isEligible = false) => {
           countdownRef.current = null;
         }
       } else {
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        const totalSeconds = Math.max(0, Math.floor(diff / 1000));
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
         setTimeLeft(`${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`);
         setIsExpired(false);
       }

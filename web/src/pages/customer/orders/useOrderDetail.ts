@@ -15,6 +15,7 @@ export const useOrderDetail = (orderId?: string) => {
   const [error, setError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [reordering, setReordering] = useState(false);
+  const [proposalLoading, setProposalLoading] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
 
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -36,8 +37,8 @@ export const useOrderDetail = (orderId?: string) => {
         const orderData = await orderService.getCustomerOrderById(orderId);
         setOrder(orderData);
 
-        // If order is ready for pickup or confirmed, attempt to fetch real QR verification token
-        if (orderData.status === 'READY_FOR_PICKUP' || orderData.status === 'CONFIRMED') {
+        // If order is ready for pickup, attempt to fetch real QR verification token
+        if (orderData.status === 'READY_FOR_PICKUP') {
           try {
             const qr = await pickupService.getPickupQR(orderId);
             setQrData(qr);
@@ -87,6 +88,39 @@ export const useOrderDetail = (orderId?: string) => {
     };
   }, [order, fetchOrder]);
 
+  // Handle counter proposal acceptance
+  const handleAcceptProposal = async () => {
+    const slotId = order?.pickupSlot?.slotId || order?.pickupSlot?.id;
+    if (!slotId) return;
+
+    setProposalLoading(true);
+    try {
+      await pickupService.customerAcceptSlot(slotId);
+      await fetchOrder(false);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to accept the proposed pickup slot.');
+    } finally {
+      setProposalLoading(false);
+    }
+  };
+
+  // Handle counter proposal rejection
+  const handleRejectProposal = async () => {
+    const slotId = order?.pickupSlot?.slotId || order?.pickupSlot?.id;
+    if (!slotId) return;
+    if (!window.confirm('Are you sure you want to decline the proposed pickup time?')) return;
+
+    setProposalLoading(true);
+    try {
+      await pickupService.customerRejectSlot(slotId);
+      await fetchOrder(false);
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Failed to decline the proposed pickup slot.');
+    } finally {
+      setProposalLoading(false);
+    }
+  };
+
   // Cancel order
   const handleCancelOrder = async () => {
     if (!orderId) return;
@@ -129,8 +163,11 @@ export const useOrderDetail = (orderId?: string) => {
     error,
     cancelling,
     reordering,
+    proposalLoading,
     showQRModal,
     setShowQRModal,
+    handleAcceptProposal,
+    handleRejectProposal,
     handleCancelOrder,
     handleReorder,
     refetch: fetchOrder,

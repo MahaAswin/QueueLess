@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Check, X, MessageSquare, Clock, ExternalLink, QrCode } from 'lucide-react';
+import { Check, X, MessageSquare, Clock, ExternalLink, KeyRound } from 'lucide-react';
 import { formatOrderId, formatTimeLabel, formatDateShort } from '../../../utils/formatters';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
@@ -155,16 +155,20 @@ export const PickupSlotTable: React.FC<PickupSlotTableProps> = ({
                     </div>
                   ) : isConfirmed ? (
                     <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', alignItems: 'center' }}>
-                      <Link to="/shop-owner/qr-pickup">
+                      <Link to="/shop-owner/pickup-verification">
                         <Button
                           size="sm"
                           variant="outline"
-                          icon={<QrCode size={13} />}
+                          icon={<KeyRound size={13} />}
                         >
-                          Verify QR
+                          Verify OTP
                         </Button>
                       </Link>
                     </div>
+                  ) : slot.status === 'COUNTER_PROPOSED' ? (
+                    <span style={{ fontSize: 12, color: '#D97706', fontWeight: 600 }}>
+                      Awaiting customer confirmation
+                    </span>
                   ) : (
                     <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>
                       No actions needed

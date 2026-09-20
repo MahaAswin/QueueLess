@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { orderService } from '../../../services/orderService';
 import type { Order } from '../../../types/order.types';
 
@@ -7,29 +7,62 @@ export const useShopOrderDetail = (orderId?: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchOrderDetail = useCallback(async () => {
+  const fetchOrderDetail = useCallback(async (silent = false) => {
     if (!orderId) {
       setLoading(false);
       return;
     }
-    setLoading(true);
+    if (!silent) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const res = await orderService.getShopOrderById(orderId);
       setOrder(res);
     } catch (err: any) {
-      setError(
-        err?.response?.data?.message || 'Failed to load order details. You may not have access to this order.'
-      );
+      if (!silent) {
+        setError(
+          err?.response?.data?.message || 'Failed to load order details. You may not have access to this order.'
+        );
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [orderId]);
 
   useEffect(() => {
     fetchOrderDetail();
   }, [fetchOrderDetail]);
+
+  // Live polling for active orders so counter-proposal acceptances reflect automatically
+  useEffect(() => {
+    if (pollTimerRef.current) {
+      clearInterval(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+
+    if (
+      order &&
+      (order.status === 'PENDING' ||
+        order.status === 'CONFIRMED' ||
+        order.status === 'PREPARING')
+    ) {
+      pollTimerRef.current = setInterval(() => {
+        fetchOrderDetail(true);
+      }, 8000);
+    }
+
+    return () => {
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+    };
+  }, [order, fetchOrderDetail]);
 
   const handleConfirm = async () => {
     if (!orderId) return;

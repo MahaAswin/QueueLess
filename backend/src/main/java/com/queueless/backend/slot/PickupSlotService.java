@@ -58,13 +58,25 @@ public class PickupSlotService {
         validateSlotTime(request.getPickupDate(), request.getStartTime(), request.getEndTime(), order.getShop());
         validateShopWorkloadAndCapacity(order.getShop(), request.getPickupDate(), request.getStartTime(), request.getEndTime());
 
-        PickupSlot slot = PickupSlot.builder()
-                .order(order)
-                .pickupDate(request.getPickupDate())
-                .requestedStartTime(request.getStartTime())
-                .requestedEndTime(request.getEndTime())
-                .status(PickupSlotStatus.REQUESTED)
-                .build();
+        PickupSlot slot;
+        if (existingSlot.isPresent()) {
+            slot = existingSlot.get();
+            slot.setPickupDate(request.getPickupDate());
+            slot.setRequestedStartTime(request.getStartTime());
+            slot.setRequestedEndTime(request.getEndTime());
+            slot.setProposedDate(null);
+            slot.setProposedStartTime(null);
+            slot.setProposedEndTime(null);
+            slot.setStatus(PickupSlotStatus.REQUESTED);
+        } else {
+            slot = PickupSlot.builder()
+                    .order(order)
+                    .pickupDate(request.getPickupDate())
+                    .requestedStartTime(request.getStartTime())
+                    .requestedEndTime(request.getEndTime())
+                    .status(PickupSlotStatus.REQUESTED)
+                    .build();
+        }
 
         PickupSlot savedSlot = pickupSlotRepository.save(slot);
 

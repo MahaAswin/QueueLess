@@ -31,7 +31,7 @@ import { ShopOrdersPage } from '../pages/shop/ShopOrdersPage';
 import { ShopOrderDetailPage } from '../pages/shop/ShopOrderDetailPage';
 import { ShopProductsPage } from '../pages/shop/ShopProductsPage';
 import { ShopPickupSlotsPage } from '../pages/shop/ShopPickupSlotsPage';
-import { ShopQrScannerPage } from '../pages/shop/ShopQrScannerPage';
+import { ShopPickupVerificationPage } from '../pages/shop/ShopPickupVerificationPage';
 import { ShopComplaintsPage } from '../pages/shop/ShopComplaintsPage';
 import { ShopProfilePage } from '../pages/shop/ShopProfilePage';
 
@@ -101,7 +101,8 @@ export const AppRoutes: React.FC = () => {
           <Route path="orders/:id" element={<ShopOrderDetailPage />} />
           <Route path="products" element={<ShopProductsPage />} />
           <Route path="pickup-slots" element={<ShopPickupSlotsPage />} />
-          <Route path="qr-pickup" element={<ShopQrScannerPage />} />
+          <Route path="pickup-verification" element={<ShopPickupVerificationPage />} />
+          <Route path="qr-pickup" element={<Navigate to="/shop-owner/pickup-verification" replace />} />
           <Route path="complaints" element={<ShopComplaintsPage />} />
           <Route path="profile" element={<ShopProfilePage />} />
         </Route>

@@ -19,8 +19,8 @@ export const usePickupOtpVerification = (onOrderCompleted?: (orderId: string) =>
     setError(null);
   }, []);
 
-  // Verify OTP
-  const handleVerify = useCallback(
+  // Verify OTP and Complete Handover
+  const handleVerifyAndHandover = useCallback(
     async (e?: React.FormEvent) => {
       if (e) e.preventDefault();
 
@@ -37,41 +37,38 @@ export const usePickupOtpVerification = (onOrderCompleted?: (orderId: string) =>
       try {
         const response = await pickupOtpService.verifyPickupOtp(otp);
         setVerifiedOrder(response);
+
+        // Mark order as COLLECTED
+        await pickupOtpService.completeShopOrder(response.orderId);
+        setCompleteSuccess(true);
+        if (onOrderCompleted) {
+          onOrderCompleted(response.orderId);
+        }
       } catch (err: any) {
-        const msg =
-          err?.response?.data?.message ||
-          'Failed to verify OTP. It may be invalid, expired, or belong to another shop.';
+        const rawMsg = err?.response?.data?.message || err?.message || '';
+        let msg = 'Invalid pickup OTP.';
+        if (rawMsg.toLowerCase().includes('expired')) {
+          msg = 'Pickup OTP has expired. Ask the customer to generate a new OTP.';
+        } else if (rawMsg.toLowerCase().includes('not ready')) {
+          msg = 'Order is not ready for pickup.';
+        } else if (rawMsg.toLowerCase().includes('invalid') || rawMsg.toLowerCase().includes('digit') || rawMsg.toLowerCase().includes('not found')) {
+          msg = 'Invalid pickup OTP.';
+        } else if (rawMsg.toLowerCase().includes('authorized') || rawMsg.toLowerCase().includes('another shop')) {
+          msg = 'You are not authorized to verify this order.';
+        } else if (rawMsg.toLowerCase().includes('already been collected') || rawMsg.toLowerCase().includes('consumed')) {
+          msg = 'Order has already been collected.';
+        } else if (rawMsg) {
+          msg = rawMsg;
+        }
         setError(msg);
         setVerifiedOrder(null);
+        setCompleteSuccess(false);
       } finally {
         setLoading(false);
       }
     },
-    [otp]
+    [otp, onOrderCompleted]
   );
-
-  // Mark Order Completed explicitly
-  const handleComplete = useCallback(async () => {
-    if (!verifiedOrder?.orderId) return;
-
-    setCompleting(true);
-    setCompleteError(null);
-
-    try {
-      await pickupOtpService.completeShopOrder(verifiedOrder.orderId);
-      setCompleteSuccess(true);
-      if (onOrderCompleted) {
-        onOrderCompleted(verifiedOrder.orderId);
-      }
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        'Failed to complete the order. Please try again.';
-      setCompleteError(msg);
-    } finally {
-      setCompleting(false);
-    }
-  }, [verifiedOrder, onOrderCompleted]);
 
   const reset = useCallback(() => {
     setOtp('');
@@ -92,8 +89,9 @@ export const usePickupOtpVerification = (onOrderCompleted?: (orderId: string) =>
     completing,
     completeError,
     completeSuccess,
-    handleVerify,
-    handleComplete,
+    handleVerify: handleVerifyAndHandover,
+    handleComplete: handleVerifyAndHandover,
+    handleVerifyAndHandover,
     reset,
   };
 };

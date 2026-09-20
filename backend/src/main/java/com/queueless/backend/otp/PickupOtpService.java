@@ -53,7 +53,7 @@ public class PickupOtpService {
 
     private final SecureRandom secureRandom = new SecureRandom();
 
-    @Value("${queueless.otp.expiration-minutes:15}")
+    @Value("${queueless.otp.expiration-minutes:3}")
     private int defaultOtpExpirationMinutes;
 
     @Value("${queueless.otp.max-failed-attempts:5}")

@@ -1,12 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Check, X, ChefHat, CheckCircle2, KeyRound } from 'lucide-react';
+import { Check, X, ChefHat, CheckCircle2, KeyRound, Clock } from 'lucide-react';
 import type { OrderStatus } from '../../../types/order.types';
+import type { PickupSlotStatus } from '../../../types/slot.types';
 import { Button } from '../../../components/ui/Button';
 
 interface ShopOrderActionsProps {
   orderId?: string;
   status: OrderStatus;
+  slotStatus?: PickupSlotStatus | string;
   isLoading?: boolean;
   onConfirm: () => void;
   onReject: () => void;
@@ -17,6 +19,7 @@ interface ShopOrderActionsProps {
 
 export const ShopOrderActions: React.FC<ShopOrderActionsProps> = ({
   status,
+  slotStatus,
   isLoading = false,
   onConfirm,
   onReject,
@@ -73,6 +76,23 @@ export const ShopOrderActions: React.FC<ShopOrderActionsProps> = ({
   }
 
   if (status === 'PREPARING') {
+    const isSlotPendingCustomer = slotStatus === 'COUNTER_PROPOSED';
+
+    if (isSlotPendingCustomer) {
+      return (
+        <Button
+          size={size}
+          variant="outline"
+          disabled={true}
+          icon={<Clock size={14} color="#D97706" />}
+          title="Waiting for customer confirmation of the proposed pickup slot."
+          style={{ opacity: 0.75, cursor: 'not-allowed', color: '#B45309', borderColor: '#FCD34D', backgroundColor: '#FEF3C7' }}
+        >
+          Awaiting Slot Approval
+        </Button>
+      );
+    }
+
     return (
       <Button
         size={size}
@@ -92,7 +112,7 @@ export const ShopOrderActions: React.FC<ShopOrderActionsProps> = ({
   if (status === 'READY_FOR_PICKUP') {
     return (
       <Link
-        to="/shop-owner/qr-pickup"
+        to="/shop-owner/pickup-verification"
         onClick={(e) => e.stopPropagation()}
         style={{ textDecoration: 'none' }}
       >

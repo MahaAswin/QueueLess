@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Check, X, MessageSquare, ExternalLink, Calendar, QrCode } from 'lucide-react';
+import { Clock, Check, X, MessageSquare, ExternalLink, Calendar, KeyRound } from 'lucide-react';
 import { formatOrderId, formatTimeLabel, formatDateShort } from '../../../utils/formatters';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
@@ -149,11 +149,17 @@ export const PickupSlotCardList: React.FC<PickupSlotCardListProps> = ({
               </div>
             ) : isConfirmed ? (
               <div style={{ marginTop: 'auto', borderTop: '1px solid var(--color-border)', paddingTop: 10 }}>
-                <Link to="/shop-owner/qr-pickup" style={{ display: 'block' }}>
-                  <Button size="sm" variant="outline" icon={<QrCode size={14} />} style={{ width: '100%' }}>
-                    Verify Pickup QR
+                <Link to="/shop-owner/pickup-verification" style={{ display: 'block' }}>
+                  <Button size="sm" variant="outline" icon={<KeyRound size={14} />} style={{ width: '100%' }}>
+                    Verify Pickup OTP
                   </Button>
                 </Link>
+              </div>
+            ) : slot.status === 'COUNTER_PROPOSED' ? (
+              <div style={{ marginTop: 'auto', borderTop: '1px solid var(--color-border)', paddingTop: 10, textAlign: 'center' }}>
+                <span style={{ fontSize: 12, color: '#D97706', fontWeight: 600 }}>
+                  Awaiting customer confirmation
+                </span>
               </div>
             ) : null}
           </div>

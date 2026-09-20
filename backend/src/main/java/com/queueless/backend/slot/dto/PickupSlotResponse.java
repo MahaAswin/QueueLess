@@ -19,7 +19,12 @@ import java.util.UUID;
 public class PickupSlotResponse {
 
     private UUID slotId;
+    private UUID id;
     private UUID orderId;
+    private UUID shopId;
+    private String shopName;
+    private UUID customerId;
+    private String customerName;
     private LocalDate pickupDate;
     private LocalTime requestedStartTime;
     private LocalTime requestedEndTime;
@@ -48,9 +53,30 @@ public class PickupSlotResponse {
             finalEnd = slot.getProposedEndTime();
         }
 
+        UUID sId = null;
+        String sName = null;
+        UUID cId = null;
+        String cName = null;
+
+        if (slot.getOrder() != null) {
+            if (slot.getOrder().getShop() != null) {
+                sId = slot.getOrder().getShop().getId();
+                sName = slot.getOrder().getShop().getShopName();
+            }
+            if (slot.getOrder().getCustomer() != null) {
+                cId = slot.getOrder().getCustomer().getId();
+                cName = slot.getOrder().getCustomer().getFullName();
+            }
+        }
+
         return PickupSlotResponse.builder()
                 .slotId(slot.getId())
-                .orderId(slot.getOrder().getId())
+                .id(slot.getId())
+                .orderId(slot.getOrder() != null ? slot.getOrder().getId() : null)
+                .shopId(sId)
+                .shopName(sName)
+                .customerId(cId)
+                .customerName(cName)
                 .pickupDate(slot.getPickupDate())
                 .requestedStartTime(slot.getRequestedStartTime())
                 .requestedEndTime(slot.getRequestedEndTime())

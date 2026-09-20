@@ -5,7 +5,7 @@ import {
   Receipt,
   Package,
   Clock,
-  QrCode,
+  KeyRound,
   HelpCircle,
   Store,
   LogOut,
@@ -26,7 +26,7 @@ const STORE_OPERATIONS: ShopNavItem[] = [
   { label: 'Live Orders', path: '/shop-owner/orders', icon: Receipt },
   { label: 'Products & Stock', path: '/shop-owner/products', icon: Package },
   { label: 'Pickup Slots', path: '/shop-owner/pickup-slots', icon: Clock },
-  { label: 'Scan QR Token', path: '/shop-owner/qr-pickup', icon: QrCode },
+  { label: 'Pickup Verification', path: '/shop-owner/pickup-verification', icon: KeyRound },
 ];
 
 const STORE_SUPPORT: ShopNavItem[] = [

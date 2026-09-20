@@ -3,7 +3,12 @@ import { X, KeyRound, Store, Calendar, Clock, RefreshCw, AlertCircle } from 'luc
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import type { Order } from '../../../types/order.types';
-import { formatOrderId, getOrderStatusMeta } from '../../../utils/formatters';
+import {
+  formatOrderId,
+  formatSlotWindow,
+  formatSlotDate,
+  getOrderStatusMeta,
+} from '../../../utils/formatters';
 import { usePickupOtp } from './usePickupOtp';
 
 interface OrderPickupPassProps {
@@ -22,9 +27,8 @@ export const OrderPickupPass: React.FC<OrderPickupPassProps> = ({
   );
 
   const meta = getOrderStatusMeta(order.status);
-  const slotDisplay = order.pickupSlot
-    ? `${order.pickupSlot.startTime || ''} – ${order.pickupSlot.endTime || ''}`
-    : 'Ready upon merchant notification';
+  const slotDisplay = formatSlotWindow(order.pickupSlot);
+  const slotDate = formatSlotDate(order.pickupSlot);
 
   return (
     <div
@@ -242,7 +246,7 @@ export const OrderPickupPass: React.FC<OrderPickupPassProps> = ({
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--color-text-muted)' }}>
             <Calendar size={14} color="var(--color-primary)" />
-            <span>Pickup Slot: {slotDisplay}</span>
+            <span>Pickup Slot: {slotDisplay}{slotDate ? ` (${slotDate})` : ''}</span>
           </div>
         </div>
 

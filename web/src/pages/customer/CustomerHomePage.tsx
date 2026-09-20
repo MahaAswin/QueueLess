@@ -28,6 +28,7 @@ import type { Order, OrderStatus, CustomerExpenseSummary } from '../../types/ord
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { ExpenseSummarySection } from './components/ExpenseSummarySection';
+import { formatSlotWindow } from '../../utils/formatters';
 
 const CATEGORY_LABELS: Record<string, string> = {
   ALL: 'All Categories',
@@ -659,10 +660,10 @@ export const CustomerHomePage: React.FC = () => {
                 {activeOrder.pickupSlot && (
                   <div>
                     <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 600, textTransform: 'uppercase' }}>
-                      Reserved Pickup Slot
+                      {activeOrder.pickupSlot.status === 'COUNTER_PROPOSED' ? 'Proposed Pickup Slot' : 'Reserved Pickup Slot'}
                     </div>
-                    <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-primary)' }}>
-                      {activeOrder.pickupSlot.startTime} - {activeOrder.pickupSlot.endTime}
+                    <div style={{ fontSize: 13.5, fontWeight: 600, color: activeOrder.pickupSlot.status === 'COUNTER_PROPOSED' ? '#D97706' : 'var(--color-primary)' }}>
+                      {formatSlotWindow(activeOrder.pickupSlot)}
                     </div>
                   </div>
                 )}

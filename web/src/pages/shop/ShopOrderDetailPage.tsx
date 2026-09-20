@@ -8,6 +8,7 @@ import {
   Package,
   RefreshCw,
   AlertCircle,
+  Calendar,
 } from 'lucide-react';
 import { useShopOrderDetail } from './hooks/useShopOrderDetail';
 import { OrderTimeline } from '../customer/orders/OrderTimeline';
@@ -17,10 +18,14 @@ import {
   formatCurrency,
   formatOrderId,
   formatDateLong,
+  formatDateShort,
   formatTimeLabel,
+  formatSlotWindow,
+  formatSlotDate,
   getOrderStatusMeta,
 } from '../../utils/formatters';
 import { ShopOrderActions } from './components/ShopOrderActions';
+import { SLOT_STATUS_META } from '../../types/slot.types';
 
 export const ShopOrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -68,7 +73,7 @@ export const ShopOrderDetailPage: React.FC = () => {
           {error || 'The requested order could not be found or you do not have permission to access it.'}
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-          <Button variant="outline" size="md" onClick={refetch}>
+          <Button variant="outline" size="md" onClick={() => refetch()}>
             Retry
           </Button>
           <Button variant="primary" size="md" onClick={() => navigate('/shop-owner/orders')}>
@@ -80,13 +85,16 @@ export const ShopOrderDetailPage: React.FC = () => {
   }
 
   const meta = getOrderStatusMeta(order.status);
-  const slotDate = order.pickupSlot?.finalPickupDate || order.pickupSlot?.pickupDate;
-  const slotStart = order.pickupSlot?.finalStartTime || order.pickupSlot?.requestedStartTime;
-  const slotEnd = order.pickupSlot?.finalEndTime || order.pickupSlot?.requestedEndTime;
-  const slotFormatted =
-    slotStart && slotEnd
-      ? `${formatTimeLabel(slotStart)} – ${formatTimeLabel(slotEnd)}`
-      : 'Standard Pickup Window';
+  const isSlotCounterProposed = order.pickupSlot?.status === 'COUNTER_PROPOSED';
+  const isSlotConfirmed =
+    order.pickupSlot?.status === 'ACCEPTED' ||
+    order.pickupSlot?.status === 'CUSTOMER_ACCEPTED';
+  const slotStatusMeta = order.pickupSlot?.status
+    ? SLOT_STATUS_META[order.pickupSlot.status as keyof typeof SLOT_STATUS_META]
+    : null;
+
+  const slotFormatted = formatSlotWindow(order.pickupSlot);
+  const slotDate = formatSlotDate(order.pickupSlot);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -143,7 +151,7 @@ export const ShopOrderDetailPage: React.FC = () => {
           <Button
             variant="outline"
             size="md"
-            onClick={refetch}
+            onClick={() => refetch()}
             icon={<RefreshCw size={15} className={actionLoading ? 'spin' : ''} />}
           >
             Refresh
@@ -152,6 +160,7 @@ export const ShopOrderDetailPage: React.FC = () => {
           <ShopOrderActions
             orderId={order.id}
             status={order.status}
+            slotStatus={order.pickupSlot?.status}
             isLoading={actionLoading}
             onConfirm={handleConfirm}
             onReject={handleReject}
@@ -161,6 +170,57 @@ export const ShopOrderDetailPage: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Counter-Proposed Notice Banner */}
+      {isSlotCounterProposed && (
+        <div
+          className="card"
+          style={{
+            padding: '16px 20px',
+            backgroundColor: '#FEF3C7',
+            borderColor: '#F59E0B',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 14,
+            borderRadius: 'var(--radius-lg)',
+          }}
+        >
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: '#FDE68A',
+              color: '#B45309',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <Clock size={20} />
+          </div>
+
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <strong style={{ fontSize: 14.5, color: '#92400E' }}>
+                Waiting for customer confirmation of the proposed pickup slot.
+              </strong>
+              <Badge variant="warning">Awaiting Customer</Badge>
+            </div>
+            <p style={{ fontSize: 13, color: '#78350F', margin: '4px 0 0 0', lineHeight: 1.4 }}>
+              You proposed:{' '}
+              <strong>
+                {order.pickupSlot?.proposedStartTime && order.pickupSlot?.proposedEndTime
+                  ? `${formatTimeLabel(order.pickupSlot.proposedStartTime)} – ${formatTimeLabel(order.pickupSlot.proposedEndTime)}`
+                  : 'Alternative time'}
+              </strong>
+              {order.pickupSlot?.proposedDate ? ` on ${formatDateShort(order.pickupSlot.proposedDate)}` : ''}.
+              The customer must accept this slot before the order can be marked ready for pickup.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Progress Timeline Tracker */}
       <OrderTimeline status={order.status} updatedAt={order.updatedAt} />
@@ -343,15 +403,34 @@ export const ShopOrderDetailPage: React.FC = () => {
           <div
             className="card"
             style={{
-              backgroundColor: 'var(--color-light-sage)',
-              borderColor: 'var(--color-sage)',
+              backgroundColor: isSlotCounterProposed
+                ? '#FEF3C7'
+                : 'var(--color-light-sage)',
+              borderColor: isSlotCounterProposed
+                ? '#F59E0B'
+                : 'var(--color-sage)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <Clock size={18} color="var(--color-primary-deep)" />
-              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--color-primary-deep)' }}>
-                Pickup Slot Schedule
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Clock
+                  size={18}
+                  color={isSlotCounterProposed ? '#B45309' : 'var(--color-primary-deep)'}
+                />
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 800,
+                    color: isSlotCounterProposed ? '#92400E' : 'var(--color-primary-deep)',
+                  }}
+                >
+                  Pickup Slot Schedule
+                </div>
               </div>
+
+              {slotStatusMeta && (
+                <Badge variant={slotStatusMeta.variant}>{slotStatusMeta.label}</Badge>
+              )}
             </div>
 
             <div
@@ -364,20 +443,21 @@ export const ShopOrderDetailPage: React.FC = () => {
               }}
             >
               <div style={{ fontSize: 11, color: 'var(--color-text-light)', textTransform: 'uppercase', fontWeight: 700 }}>
-                SCHEDULED WINDOW
+                {isSlotConfirmed ? 'CONFIRMED WINDOW' : isSlotCounterProposed ? 'PROPOSED WINDOW' : 'SCHEDULED WINDOW'}
               </div>
               <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text-main)', marginTop: 4 }}>
                 {slotFormatted}
               </div>
               {slotDate && (
-                <div style={{ fontSize: 12.5, color: 'var(--color-text-muted)', marginTop: 4 }}>
-                  Date: <strong>{slotDate}</strong>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--color-text-muted)', marginTop: 4 }}>
+                  <Calendar size={13} />
+                  <span>Date: <strong>{slotDate}</strong></span>
                 </div>
               )}
             </div>
 
             {order.status === 'READY_FOR_PICKUP' && (
-              <Link to="/shop-owner/qr-pickup" style={{ textDecoration: 'none' }}>
+              <Link to="/shop-owner/pickup-verification" style={{ textDecoration: 'none' }}>
                 <Button
                   variant="primary"
                   size="md"

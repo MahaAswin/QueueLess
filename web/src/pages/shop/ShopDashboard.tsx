@@ -5,7 +5,7 @@ import {
   Clock,
   CheckCircle2,
   ChefHat,
-  QrCode,
+  KeyRound,
   RefreshCw,
   Plus,
 } from 'lucide-react';
@@ -117,9 +117,9 @@ export const ShopDashboard: React.FC = () => {
             Refresh
           </Button>
 
-          <Link to="/shop-owner/qr-pickup">
-            <Button variant="secondary" size="md" icon={<QrCode size={16} />}>
-              Scan QR Token
+          <Link to="/shop-owner/pickup-verification">
+            <Button variant="secondary" size="md" icon={<KeyRound size={16} />}>
+              Pickup Verification
             </Button>
           </Link>
 

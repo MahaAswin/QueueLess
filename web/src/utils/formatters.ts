@@ -72,6 +72,53 @@ export const formatTimeLabel = (timeStr?: string | null): string => {
   return `${hours}:${minutes} ${ampm}`;
 };
 
+/**
+ * Extracts and formats the relevant slot window from any slot entity / DTO
+ */
+export const formatSlotWindow = (
+  slot?: {
+    startTime?: string;
+    endTime?: string;
+    requestedStartTime?: string;
+    requestedEndTime?: string;
+    proposedStartTime?: string;
+    proposedEndTime?: string;
+    finalStartTime?: string;
+    finalEndTime?: string;
+  } | null
+): string => {
+  if (!slot) return 'Standard Pickup Window';
+  const start =
+    slot.finalStartTime ||
+    slot.proposedStartTime ||
+    slot.requestedStartTime ||
+    slot.startTime;
+  const end =
+    slot.finalEndTime ||
+    slot.proposedEndTime ||
+    slot.requestedEndTime ||
+    slot.endTime;
+  if (start && end) {
+    return `${formatTimeLabel(start)} – ${formatTimeLabel(end)}`;
+  }
+  return 'Standard Pickup Window';
+};
+
+/**
+ * Extracts and formats the relevant date from any slot entity / DTO
+ */
+export const formatSlotDate = (
+  slot?: {
+    pickupDate?: string;
+    proposedDate?: string;
+    finalPickupDate?: string;
+  } | null
+): string => {
+  if (!slot) return '';
+  const dateStr = slot.finalPickupDate || slot.proposedDate || slot.pickupDate;
+  return dateStr ? formatDateShort(dateStr) : '';
+};
+
 export interface OrderStatusMeta {
   label: string;
   badgeVariant: 'success' | 'warning' | 'error' | 'info' | 'neutral';

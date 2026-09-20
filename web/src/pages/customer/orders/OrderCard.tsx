@@ -4,7 +4,7 @@ import {
   Receipt,
   Store,
   Calendar,
-  QrCode,
+  KeyRound,
   ArrowRight,
   RotateCcw,
   Package,
@@ -16,6 +16,7 @@ import {
   formatCurrency,
   formatOrderId,
   formatDateLong,
+  formatSlotWindow,
   getOrderStatusMeta,
 } from '../../../utils/formatters';
 import { isOrderActive } from './useCustomerOrders';
@@ -40,6 +41,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
   const meta = getOrderStatusMeta(order.status);
   const active = isOrderActive(order.status);
   const isReady = order.status === 'READY_FOR_PICKUP';
+  const isCounterProposed = order.pickupSlot?.status === 'COUNTER_PROPOSED';
   const canCancel = order.status === 'PENDING' || order.status === 'CONFIRMED';
   const canReorder = order.status === 'COLLECTED' || order.status === 'COMPLETED' || order.status === 'CANCELLED' || order.status === 'REJECTED';
 
@@ -153,7 +155,8 @@ export const OrderCard: React.FC<OrderCardProps> = ({
         {/* Pickup Slot */}
         <div
           style={{
-            backgroundColor: 'var(--color-surface-subtle)',
+            backgroundColor: isCounterProposed ? '#FEF3C7' : 'var(--color-surface-subtle)',
+            border: isCounterProposed ? '1px solid #FCD34D' : 'none',
             padding: '8px 14px',
             borderRadius: 'var(--radius-md)',
             display: 'flex',
@@ -161,15 +164,46 @@ export const OrderCard: React.FC<OrderCardProps> = ({
             gap: 10,
           }}
         >
-          <Calendar size={16} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+          <Calendar
+            size={16}
+            color={isCounterProposed ? '#B45309' : 'var(--color-primary)'}
+            style={{ flexShrink: 0 }}
+          />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary-deep)' }}>
-              Scheduled Express Pickup
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: isCounterProposed ? '#92400E' : 'var(--color-primary-deep)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <span>{isCounterProposed ? 'New Proposed Slot' : 'Scheduled Express Pickup'}</span>
+              {isCounterProposed && (
+                <span
+                  style={{
+                    backgroundColor: '#F59E0B',
+                    color: '#FFFFFF',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    padding: '1px 5px',
+                    borderRadius: 4,
+                  }}
+                >
+                  Action Required
+                </span>
+              )}
             </div>
-            <div style={{ fontSize: 12.5, color: 'var(--color-text-main)', fontWeight: 600 }}>
-              {order.pickupSlot
-                ? `${order.pickupSlot.startTime || ''} – ${order.pickupSlot.endTime || ''}`
-                : 'Ready upon merchant notification'}
+            <div
+              style={{
+                fontSize: 12.5,
+                color: isCounterProposed ? '#78350F' : 'var(--color-text-main)',
+                fontWeight: 600,
+              }}
+            >
+              {order.pickupSlot ? formatSlotWindow(order.pickupSlot) : 'Standard Pickup Window'}
             </div>
           </div>
         </div>
@@ -208,15 +242,15 @@ export const OrderCard: React.FC<OrderCardProps> = ({
         }}
       >
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {/* Pickup Pass QR */}
-          {active && (
+          {/* Pickup OTP - only visible when READY_FOR_PICKUP */}
+          {isReady && (
             <Button
               variant="secondary"
               size="sm"
-              icon={<QrCode size={14} />}
+              icon={<KeyRound size={14} />}
               onClick={() => onOpenQR(order)}
             >
-              Pickup Pass
+              Show Pickup OTP
             </Button>
           )}
 

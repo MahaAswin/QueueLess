@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Check, X, ChefHat, CheckCircle2, QrCode, ArrowRight } from 'lucide-react';
+import { Check, X, ChefHat, CheckCircle2, KeyRound, ArrowRight } from 'lucide-react';
 import type { Order } from '../../../types/order.types';
 import { formatCurrency, formatOrderId, formatTimeLabel, getOrderStatusMeta } from '../../../utils/formatters';
 import { Badge } from '../../../components/ui/Badge';
@@ -204,9 +204,9 @@ export const RecentOrdersWidget: React.FC<RecentOrdersWidgetProps> = ({
                       )}
 
                       {order.status === 'READY_FOR_PICKUP' && (
-                        <Link to="/shop-owner/qr-pickup">
-                          <Button size="sm" variant="outline" icon={<QrCode size={14} />}>
-                            Verify QR
+                        <Link to="/shop-owner/pickup-verification">
+                          <Button size="sm" variant="outline" icon={<KeyRound size={14} />}>
+                            Verify OTP
                           </Button>
                         </Link>
                       )}

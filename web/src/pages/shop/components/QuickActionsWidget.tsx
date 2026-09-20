@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Receipt, Package, Clock, QrCode, Store, HelpCircle } from 'lucide-react';
+import { Receipt, Package, Clock, KeyRound, Store, HelpCircle } from 'lucide-react';
 
 export const QuickActionsWidget: React.FC = () => {
   const actions = [
@@ -29,10 +29,10 @@ export const QuickActionsWidget: React.FC = () => {
       bg: '#FEF3C7',
     },
     {
-      label: 'Scan QR Token',
-      desc: 'Verify express counter pickup',
-      to: '/shop-owner/qr-pickup',
-      icon: <QrCode size={20} />,
+      label: 'Pickup Verification',
+      desc: 'Verify customer 6-digit OTP',
+      to: '/shop-owner/pickup-verification',
+      icon: <KeyRound size={20} />,
       color: 'var(--color-primary-deep)',
       bg: 'var(--color-sage)',
     },
