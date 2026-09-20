@@ -89,4 +89,21 @@ export const shopService = {
       count: rawData?.count || shops.length,
     };
   },
+
+  async uploadShopImage(shopId: string, file: File): Promise<Shop> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('image', file);
+    const response = await apiClient.post<Shop>(`/api/shops/${shopId}/image`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return normalizeShop(response.data);
+  },
+
+  async removeShopImage(shopId: string): Promise<Shop> {
+    const response = await apiClient.delete<Shop>(`/api/shops/${shopId}/image`);
+    return normalizeShop(response.data);
+  },
 };

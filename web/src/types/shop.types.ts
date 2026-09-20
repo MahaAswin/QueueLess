@@ -90,6 +90,7 @@ export interface CreateShopPayload {
   longitude: number;
   openingTime: string;
   closingTime: string;
+  imageUrl?: string;
 }
 
 export interface UpdateShopPayload {
@@ -104,6 +105,7 @@ export interface UpdateShopPayload {
   longitude?: number;
   openingTime?: string;
   closingTime?: string;
+  imageUrl?: string;
   status?: ShopStatus;
 }
 

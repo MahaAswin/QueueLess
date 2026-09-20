@@ -25,6 +25,9 @@ public class ShopService {
     private final ShopRepository shopRepository;
     private final UserRepository userRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${queueless.upload.dir:uploads}")
+    private String uploadDir;
+
     @Transactional
     public ShopResponse createShop(CreateShopRequest request, String currentUserEmail) {
         User user = getUserByEmail(currentUserEmail);
@@ -39,6 +42,7 @@ public class ShopService {
                 .owner(user)
                 .shopName(request.getShopName())
                 .description(request.getDescription())
+                .imageUrl(request.getImageUrl())
                 .category(request.getCategory())
                 .phone(request.getPhone())
                 .address(request.getAddress())
@@ -76,6 +80,9 @@ public class ShopService {
         if (request.getDescription() != null) {
             shop.setDescription(request.getDescription());
         }
+        if (request.getImageUrl() != null) {
+            shop.setImageUrl(request.getImageUrl().isBlank() ? null : request.getImageUrl());
+        }
         if (request.getCategory() != null) {
             shop.setCategory(request.getCategory());
         }
@@ -109,6 +116,72 @@ public class ShopService {
 
         Shop updatedShop = shopRepository.save(shop);
         return ShopResponse.fromEntity(updatedShop);
+    }
+
+    @Transactional
+    public ShopResponse uploadShopImage(UUID shopId, org.springframework.web.multipart.MultipartFile file, String currentUserEmail) {
+        Shop shop = getShopEntityById(shopId);
+
+        if (!shop.getOwner().getEmail().equalsIgnoreCase(currentUserEmail)) {
+            throw new AccessDeniedException("You are not authorized to modify this shop");
+        }
+
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Uploaded file cannot be empty");
+        }
+
+        // 5MB limit
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("File size exceeds the 5MB maximum limit");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || (!contentType.equalsIgnoreCase("image/jpeg")
+                && !contentType.equalsIgnoreCase("image/jpg")
+                && !contentType.equalsIgnoreCase("image/png")
+                && !contentType.equalsIgnoreCase("image/webp"))) {
+            throw new IllegalArgumentException("Unsupported image format. Allowed formats: JPG, JPEG, PNG, WEBP");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        String ext = "jpg";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            ext = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+        } else if (contentType.contains("/")) {
+            ext = contentType.substring(contentType.indexOf("/") + 1).toLowerCase();
+        }
+
+        try {
+            java.nio.file.Path targetDir = java.nio.file.Paths.get(uploadDir, "shops").toAbsolutePath().normalize();
+            java.io.File dirFile = targetDir.toFile();
+            if (!dirFile.exists()) {
+                dirFile.mkdirs();
+            }
+
+            String fileName = "shop_" + shop.getId().toString().replace("-", "") + "_" + System.currentTimeMillis() + "." + ext;
+            java.nio.file.Path targetFile = targetDir.resolve(fileName);
+            file.transferTo(targetFile.toFile());
+
+            String imageUrl = "/api/uploads/shops/" + fileName;
+            shop.setImageUrl(imageUrl);
+            Shop saved = shopRepository.save(shop);
+            return ShopResponse.fromEntity(saved);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Failed to store uploaded shop image", e);
+        }
+    }
+
+    @Transactional
+    public ShopResponse removeShopImage(UUID shopId, String currentUserEmail) {
+        Shop shop = getShopEntityById(shopId);
+
+        if (!shop.getOwner().getEmail().equalsIgnoreCase(currentUserEmail)) {
+            throw new AccessDeniedException("You are not authorized to modify this shop");
+        }
+
+        shop.setImageUrl(null);
+        Shop saved = shopRepository.save(shop);
+        return ShopResponse.fromEntity(saved);
     }
 
     @Transactional(readOnly = true)

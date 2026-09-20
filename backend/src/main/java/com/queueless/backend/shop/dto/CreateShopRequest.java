@@ -25,6 +25,8 @@ public class CreateShopRequest {
 
     private String description;
 
+    private String imageUrl;
+
     @NotNull(message = "Shop category is required")
     private ShopCategory category;
 

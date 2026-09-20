@@ -24,6 +24,7 @@ public class NearbyShopResponse {
     private String shopName;
     private String name;
     private String description;
+    private String imageUrl;
     private ShopCategory category;
     private String phone;
     private String address;
@@ -56,6 +57,7 @@ public class NearbyShopResponse {
                 .shopName(displayName)
                 .name(displayName)
                 .description(shop.getDescription())
+                .imageUrl(shop.getImageUrl())
                 .category(shop.getCategory())
                 .phone(shop.getPhone())
                 .address(shop.getAddress())

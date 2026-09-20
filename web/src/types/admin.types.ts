@@ -137,6 +137,7 @@ export interface AdminShop {
   closingTime?: string;
   status: ShopStatus;
   validComplaintCount?: number;
+  imageUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }

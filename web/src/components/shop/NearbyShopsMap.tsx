@@ -3,6 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { NearbyShop } from '../../types/shop.types';
 import { CATEGORY_META } from './ShopCard';
+import { getShopImage } from '../../utils/shopImageUtils';
 
 interface NearbyShopsMapProps {
   userLocation: { latitude: number; longitude: number };
@@ -191,17 +192,35 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
         zIndexOffset: isSelected ? 500 : 100,
       });
 
+      const shopImg = getShopImage(shop);
+      const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${shop.latitude},${shop.longitude}`;
+
       // Interactive Popup Content
       const popupHtml = `
-        <div style="font-family: inherit; min-width: 220px; padding: 4px;">
+        <div style="font-family: inherit; min-width: 230px; max-width: 260px; padding: 2px;">
+          <div style="
+            width: 100%;
+            height: 95px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            background: #E8F5EE;
+          ">
+            <img
+              src="${shopImg}"
+              alt="${shopName}"
+              style="width: 100%; height: 100%; object-fit: cover;"
+            />
+          </div>
+
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
             <span style="
-              font-size: 11px;
+              font-size: 10.5px;
               font-weight: 700;
               text-transform: uppercase;
               color: #127C4E;
               background: #E8F5EE;
-              padding: 2px 8px;
+              padding: 2px 7px;
               border-radius: 12px;
             ">
               ${categoryMeta.label}
@@ -213,35 +232,55 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
             }
           </div>
 
-          <h4 style="margin: 0 0 4px 0; font-size: 15px; font-weight: 800; color: #1A2E26;">
+          <h4 style="margin: 0 0 3px 0; font-size: 14.5px; font-weight: 800; color: #1A2E26; line-height: 1.25;">
             ${shopName}
           </h4>
 
-          <div style="font-size: 12px; color: #64748B; margin-bottom: 8px;">
+          <div style="font-size: 11.5px; color: #64748B; margin-bottom: 6px;">
             ${distance ? `<strong>${distance} away</strong> • ` : ''}
             <span>Avg wait: ${shop.averageWaitMinutes || 5} min</span>
           </div>
 
-          <div style="font-size: 11.5px; color: #64748B; margin-bottom: 12px; line-height: 1.3;">
+          <div style="font-size: 11px; color: #64748B; margin-bottom: 10px; line-height: 1.3;">
             ${shop.address}, ${shop.city}
           </div>
 
-          <a href="/customer/shops/${shop.id}" style="text-decoration: none; display: block;">
-            <button style="
-              width: 100%;
-              background: #127C4E;
-              color: #FFFFFF;
-              border: none;
-              border-radius: 8px;
-              padding: 8px 12px;
-              font-size: 12.5px;
-              font-weight: 700;
-              cursor: pointer;
-              transition: background 0.15s ease;
-            ">
-              View Shop & Order →
-            </button>
-          </a>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <a href="${navUrl}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+              <button style="
+                width: 100%;
+                background: #F1F5F9;
+                color: #0F172A;
+                border: 1px solid #CBD5E1;
+                border-radius: 6px;
+                padding: 6px 8px;
+                font-size: 11.5px;
+                font-weight: 700;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+              ">
+                <span>🧭</span> Navigate
+              </button>
+            </a>
+            <a href="/customer/shops/${shop.id}" style="text-decoration: none;">
+              <button style="
+                width: 100%;
+                background: #127C4E;
+                color: #FFFFFF;
+                border: none;
+                border-radius: 6px;
+                padding: 6px 8px;
+                font-size: 11.5px;
+                font-weight: 700;
+                cursor: pointer;
+              ">
+                View Shop →
+              </button>
+            </a>
+          </div>
         </div>
       `;
 

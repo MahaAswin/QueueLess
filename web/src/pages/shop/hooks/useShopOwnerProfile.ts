@@ -31,6 +31,8 @@ export const useShopOwnerProfile = () => {
   const [openingTime, setOpeningTime] = useState('09:00');
   const [closingTime, setClosingTime] = useState('21:00');
   const [status, setStatus] = useState<ShopStatus>('ACTIVE');
+  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Load Shops on mount
   const loadShops = useCallback(async () => {
@@ -95,12 +97,49 @@ export const useShopOwnerProfile = () => {
     setOpeningTime(shop.openingTime ? shop.openingTime.slice(0, 5) : '09:00');
     setClosingTime(shop.closingTime ? shop.closingTime.slice(0, 5) : '21:00');
     setStatus(shop.status || 'ACTIVE');
+    setImageUrl(shop.imageUrl);
   }, []);
 
   useEffect(() => {
     populateForm(selectedShop);
     setSuccessMsg(null);
   }, [selectedShop, populateForm]);
+
+  // Handle Shop Image Upload
+  const handleUploadImage = async (file: File) => {
+    if (!selectedShop) return;
+    setUploadingImage(true);
+    setError(null);
+    setSuccessMsg(null);
+    try {
+      const updated = await shopService.uploadShopImage(selectedShop.id, file);
+      setShops((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+      setImageUrl(updated.imageUrl);
+      setSuccessMsg('Shop image uploaded and updated successfully!');
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || 'Failed to upload shop image.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // Handle Shop Image Removal
+  const handleRemoveImage = async () => {
+    if (!selectedShop) return;
+    setUploadingImage(true);
+    setError(null);
+    setSuccessMsg(null);
+    try {
+      const updated = await shopService.removeShopImage(selectedShop.id);
+      setShops((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+      setImageUrl(undefined);
+      setSuccessMsg('Custom shop image removed. Default category illustration is now active.');
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || 'Failed to remove shop image.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   // Dirty state tracking
   const isDirty = useMemo(() => {
@@ -239,6 +278,7 @@ export const useShopOwnerProfile = () => {
     selectedShop,
     loading,
     saving,
+    uploadingImage,
     error,
     successMsg,
     setSuccessMsg,
@@ -266,7 +306,10 @@ export const useShopOwnerProfile = () => {
       setClosingTime,
       status,
       setStatus,
+      imageUrl,
     },
+    handleUploadImage,
+    handleRemoveImage,
     saveChanges,
     resetForm,
     createNewShop,

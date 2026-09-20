@@ -17,10 +17,13 @@ export const ShopProfilePage: React.FC = () => {
     setSelectedShopId,
     loading,
     saving,
+    uploadingImage,
     error,
     successMsg,
     isDirty,
     formState,
+    handleUploadImage,
+    handleRemoveImage,
     saveChanges,
     resetForm,
     createNewShop,
@@ -230,6 +233,10 @@ export const ShopProfilePage: React.FC = () => {
               onLatitudeChange={formState.setLatitude}
               longitude={formState.longitude}
               onLongitudeChange={formState.setLongitude}
+              imageUrl={formState.imageUrl}
+              onUploadImage={handleUploadImage}
+              onRemoveImage={handleRemoveImage}
+              uploadingImage={uploadingImage}
               disabled={saving}
             />
 

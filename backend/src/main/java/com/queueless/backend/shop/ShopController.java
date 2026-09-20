@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,6 +45,30 @@ public class ShopController {
             @Valid @RequestBody UpdateShopRequest request,
             Authentication authentication) {
         ShopResponse response = shopService.updateShop(id, request, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/{id}/image", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('SHOP_OWNER')")
+    public ResponseEntity<ShopResponse> uploadShopImage(
+            @PathVariable UUID id,
+            @RequestParam(value = "file", required = false) org.springframework.web.multipart.MultipartFile file,
+            @RequestParam(value = "image", required = false) org.springframework.web.multipart.MultipartFile image,
+            Authentication authentication) {
+        org.springframework.web.multipart.MultipartFile uploadFile = file != null ? file : image;
+        if (uploadFile == null || uploadFile.isEmpty()) {
+            throw new IllegalArgumentException("Image file is required for upload");
+        }
+        ShopResponse response = shopService.uploadShopImage(id, uploadFile, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}/image")
+    @PreAuthorize("hasRole('SHOP_OWNER')")
+    public ResponseEntity<ShopResponse> removeShopImage(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        ShopResponse response = shopService.removeShopImage(id, authentication.getName());
         return ResponseEntity.ok(response);
     }
 

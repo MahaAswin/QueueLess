@@ -244,6 +244,26 @@ public class GlobalExceptionHandler {
 
 
 
+    @ExceptionHandler({
+            org.springframework.web.multipart.support.MissingServletRequestPartException.class,
+            org.springframework.web.multipart.MaxUploadSizeExceededException.class,
+            org.springframework.web.multipart.MultipartException.class
+    })
+    public ResponseEntity<ErrorResponse> handleMultipartException(
+            Exception ex, HttpServletRequest request) {
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
+                .message(ex instanceof org.springframework.web.multipart.MaxUploadSizeExceededException
+                        ? "File size exceeds the maximum allowed upload limit (5MB)"
+                        : ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex, HttpServletRequest request) {

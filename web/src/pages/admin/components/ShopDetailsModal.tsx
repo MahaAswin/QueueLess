@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Store,
   MapPin,
   User,
   AlertTriangle,
@@ -8,12 +7,14 @@ import {
   XCircle,
   ShieldCheck,
   X,
+  Navigation,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { formatDateShort } from '../../../utils/formatters';
 import { SHOP_CATEGORY_LABELS, SHOP_STATUS_META } from '../../../types/shop.types';
 import type { AdminShop } from '../../../types/admin.types';
+import { getShopImage, getCategoryDefaultImage } from '../../../utils/shopImageUtils';
 
 interface ShopDetailsModalProps {
   shop: AdminShop | null;
@@ -36,6 +37,7 @@ export const ShopDetailsModal: React.FC<ShopDetailsModalProps> = ({
     label: shop.status,
     variant: 'neutral',
   };
+  const [imgSrc, setImgSrc] = useState<string>(getShopImage(shop));
 
   return (
     <div
@@ -80,29 +82,21 @@ export const ShopDetailsModal: React.FC<ShopDetailsModalProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div
               style={{
-                width: 46,
-                height: 46,
+                width: 54,
+                height: 54,
                 borderRadius: 'var(--radius-md)',
-                backgroundColor:
-                  shop.status === 'PENDING'
-                    ? '#FEF3C7'
-                    : shop.status === 'SUSPENDED'
-                    ? '#FEE2E2'
-                    : 'var(--color-primary-bg)',
-                color:
-                  shop.status === 'PENDING'
-                    ? '#B45309'
-                    : shop.status === 'SUSPENDED'
-                    ? '#B91C1C'
-                    : 'var(--color-primary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: 20,
+                overflow: 'hidden',
+                backgroundColor: 'var(--color-surface-subtle)',
+                border: '1px solid var(--color-border)',
+                flexShrink: 0,
               }}
             >
-              <Store size={22} />
+              <img
+                src={imgSrc}
+                alt={shop.shopName || shop.name}
+                onError={() => setImgSrc(getCategoryDefaultImage(shop.category))}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             </div>
             <div>
               <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
@@ -257,11 +251,30 @@ export const ShopDetailsModal: React.FC<ShopDetailsModalProps> = ({
               </div>
 
               {shop.latitude !== undefined && shop.longitude !== undefined && (
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}>Coordinates:</span>
-                  <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontFamily: 'var(--mono)' }}>
-                    {shop.latitude.toFixed(6)}, {shop.longitude.toFixed(6)}
+                <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}>Coordinates:</span>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-muted)', fontFamily: 'var(--mono)' }}>
+                      {shop.latitude.toFixed(6)}, {shop.longitude.toFixed(6)}
+                    </div>
                   </div>
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${shop.latitude},${shop.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: 'var(--color-primary)',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    <Navigation size={13} />
+                    <span>View on Maps</span>
+                  </a>
                 </div>
               )}
             </div>

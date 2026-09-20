@@ -21,6 +21,7 @@ public class UpdateShopRequest {
 
     private String shopName;
     private String description;
+    private String imageUrl;
     private ShopCategory category;
 
     @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Invalid phone number format")

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Store,
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import type { Shop, ShopCategory } from '../../types/shop.types';
 import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
+import { getShopImage, getCategoryDefaultImage, openShopNavigation } from '../../utils/shopImageUtils';
 
 interface ShopCardProps {
   shop: Shop & {
@@ -93,6 +93,7 @@ export const formatOperatingHours = (open?: string, close?: string): string | nu
 };
 
 export const ShopCard: React.FC<ShopCardProps> = ({ shop, isSelected = false, onSelect }) => {
+  const [imgSrc, setImgSrc] = useState<string>(getShopImage(shop));
   const shopName = shop.shopName || shop.name || 'Partner Outlet';
   const categoryInfo = CATEGORY_META[shop.category] || CATEGORY_META.OTHER;
   const hoursText = formatOperatingHours(shop.openingTime, shop.closingTime);
@@ -106,13 +107,13 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, isSelected = false, on
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              fontSize: 12,
-              fontWeight: 600,
+              fontSize: 11.5,
+              fontWeight: 700,
               color: 'var(--color-primary-deep)',
-              backgroundColor: 'var(--color-primary-subtle)',
-              padding: '3px 10px',
+              backgroundColor: 'rgba(255, 255, 255, 0.92)',
+              padding: '3px 9px',
               borderRadius: 'var(--radius-full)',
-              border: '1px solid rgba(18, 124, 78, 0.2)',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
             }}
           >
             <span
@@ -121,10 +122,9 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, isSelected = false, on
                 height: 7,
                 borderRadius: '50%',
                 backgroundColor: 'var(--color-success)',
-                boxShadow: '0 0 0 2px var(--color-success-bg)',
               }}
             />
-            <span>Open for Pickup</span>
+            <span>Open</span>
           </div>
         );
       case 'PENDING':
@@ -134,12 +134,13 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, isSelected = false, on
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              fontSize: 12,
-              fontWeight: 600,
+              fontSize: 11.5,
+              fontWeight: 700,
               color: 'var(--color-warning)',
-              backgroundColor: 'var(--color-warning-bg)',
-              padding: '3px 10px',
+              backgroundColor: 'rgba(255, 255, 255, 0.92)',
+              padding: '3px 9px',
               borderRadius: 'var(--radius-full)',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
             }}
           >
             <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: 'var(--color-warning)' }} />
@@ -153,12 +154,13 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, isSelected = false, on
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              fontSize: 12,
-              fontWeight: 600,
+              fontSize: 11.5,
+              fontWeight: 700,
               color: 'var(--color-error)',
-              backgroundColor: 'var(--color-error-bg)',
-              padding: '3px 10px',
+              backgroundColor: 'rgba(255, 255, 255, 0.92)',
+              padding: '3px 9px',
               borderRadius: 'var(--radius-full)',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
             }}
           >
             <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: 'var(--color-error)' }} />
@@ -172,23 +174,30 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, isSelected = false, on
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              fontSize: 12,
-              fontWeight: 600,
+              fontSize: 11.5,
+              fontWeight: 700,
               color: 'var(--color-text-muted)',
-              backgroundColor: 'var(--color-surface-subtle)',
-              padding: '3px 10px',
+              backgroundColor: 'rgba(255, 255, 255, 0.92)',
+              padding: '3px 9px',
               borderRadius: 'var(--radius-full)',
-              border: '1px solid var(--color-border)',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
             }}
           >
             <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: 'var(--color-text-light)' }} />
-            <span>Currently Closed</span>
+            <span>Closed</span>
           </div>
         );
     }
   };
 
   const distanceLabel = shop.distanceFormatted || (shop.distanceMeters ? `${Math.round(shop.distanceMeters)} m` : null);
+
+  const handleNavigateClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (shop.latitude && shop.longitude) {
+      openShopNavigation(shop.latitude, shop.longitude);
+    }
+  };
 
   return (
     <div
@@ -200,7 +209,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, isSelected = false, on
         flexDirection: 'column',
         justifyContent: 'space-between',
         borderRadius: 'var(--radius-xl)',
-        padding: '24px',
+        padding: 0,
         backgroundColor: 'var(--color-surface)',
         border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
         boxShadow: isSelected ? '0 0 0 3px rgba(18, 124, 78, 0.15), var(--shadow-sm)' : 'var(--shadow-xs)',
@@ -210,224 +219,249 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop, isSelected = false, on
         transition: 'all 0.2s ease',
       }}
     >
-      {/* Top Banner Accent with subtle glow */}
+      {/* Top Banner Shop Image */}
       <div
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 3,
-          background: 'linear-gradient(90deg, var(--color-primary-deep) 0%, var(--color-primary-accent) 100%)',
+          position: 'relative',
+          width: '100%',
+          height: 140,
+          backgroundColor: categoryInfo.bgColor,
+          overflow: 'hidden',
         }}
-      />
+      >
+        <img
+          src={imgSrc}
+          alt={shopName}
+          onError={() => setImgSrc(getCategoryDefaultImage(shop.category))}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            transition: 'transform 0.3s ease',
+          }}
+        />
 
-      <div>
-        {/* Card Header: Category & Status */}
+        {/* Gradient overlay for contrast */}
         <div
           style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.65) 100%)',
+          }}
+        />
+
+        {/* Top Badges: Category & Status */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 10,
+            left: 10,
+            right: 10,
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: 16,
-            gap: 10,
-          }}
-        >
-          {/* Shop Icon / Category Avatar */}
-          <div
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: 'var(--radius-lg)',
-              backgroundColor: categoryInfo.bgColor,
-              color: categoryInfo.color,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: 'var(--shadow-xs)',
-              border: `1px solid ${categoryInfo.color}20`,
-            }}
-          >
-            {shop.imageUrl ? (
-              <img
-                src={shop.imageUrl}
-                alt={shopName}
-                style={{ width: '100%', height: '100%', borderRadius: 'inherit', objectFit: 'cover' }}
-              />
-            ) : (
-              <Store size={26} />
-            )}
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-            {getStatusBadge()}
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              {distanceLabel && (
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    fontSize: 11.5,
-                    fontWeight: 700,
-                    color: 'var(--color-primary-deep)',
-                    backgroundColor: 'var(--color-light-sage)',
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-full)',
-                    border: '1px solid rgba(18, 124, 78, 0.2)',
-                  }}
-                >
-                  <Navigation size={11} color="var(--color-primary)" />
-                  <span>{distanceLabel} away</span>
-                </div>
-              )}
-              <Badge variant="neutral" icon={categoryInfo.icon}>
-                {categoryInfo.label}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Shop Name */}
-        <h3
-          id={`shop-name-${shop.id}`}
-          style={{
-            fontSize: 18.5,
-            fontWeight: 800,
-            color: 'var(--color-text-main)',
-            marginBottom: 6,
-            lineHeight: 1.3,
-            fontFamily: 'var(--font-heading)',
-          }}
-        >
-          {shopName}
-        </h3>
-
-        {/* Shop Description */}
-        <p
-          style={{
-            color: 'var(--color-text-muted)',
-            fontSize: 13,
-            marginBottom: 16,
-            lineHeight: 1.5,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-            minHeight: '2.8em',
-          }}
-        >
-          {shop.description || 'Verified QueueLess advance ordering partner with express counter pickup.'}
-        </p>
-
-        {/* QueueLess Differentiating Queue Highlight */}
-        <div
-          style={{
-            display: 'flex',
             alignItems: 'center',
-            gap: 8,
-            backgroundColor: 'var(--color-light-sage)',
-            borderRadius: 'var(--radius-md)',
-            padding: '8px 12px',
-            marginBottom: 16,
-            border: '1px solid rgba(221, 238, 228, 0.9)',
           }}
         >
           <div
             style={{
-              width: 22,
-              height: 22,
-              borderRadius: 'var(--radius-full)',
-              backgroundColor: 'var(--color-primary-deep)',
-              color: '#FFFFFF',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
+              gap: 5,
+              fontSize: 11.5,
+              fontWeight: 700,
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              color: categoryInfo.color,
+              padding: '3px 10px',
+              borderRadius: 'var(--radius-full)',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
             }}
           >
-            <Zap size={12} fill="#FFFFFF" />
+            {categoryInfo.icon}
+            <span>{categoryInfo.label}</span>
           </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-primary-deep)' }}>
-            Zero-Wait Express Counter
-          </div>
-          <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 'auto' }}>
-            Average wait: {shop.averageWaitMinutes || 5} min
-          </span>
+
+          {getStatusBadge()}
         </div>
 
-        {/* Location, Phone, Operating Hours Info */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 7,
-            fontSize: 12.5,
-            color: 'var(--color-text-muted)',
-            marginBottom: 18,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <MapPin size={14} style={{ color: 'var(--color-primary)', flexShrink: 0 }} />
-            <span
+        {/* Bottom Image Overlay: Distance badge */}
+        {distanceLabel && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 8,
+              right: 10,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 11.5,
+              fontWeight: 700,
+              color: '#FFFFFF',
+              backgroundColor: 'rgba(13, 92, 58, 0.9)',
+              padding: '3px 8px',
+              borderRadius: 'var(--radius-full)',
+              backdropFilter: 'blur(4px)',
+            }}
+          >
+            <Navigation size={11} color="#FFFFFF" />
+            <span>{distanceLabel} away</span>
+          </div>
+        )}
+      </div>
+
+      {/* Card Content Area */}
+      <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+        <div>
+          {/* Shop Name */}
+          <h3
+            id={`shop-name-${shop.id}`}
+            style={{
+              fontSize: 18,
+              fontWeight: 800,
+              color: 'var(--color-text-main)',
+              marginBottom: 6,
+              lineHeight: 1.3,
+              fontFamily: 'var(--font-heading)',
+            }}
+          >
+            {shopName}
+          </h3>
+
+          {/* Shop Description */}
+          <p
+            style={{
+              color: 'var(--color-text-muted)',
+              fontSize: 12.5,
+              marginBottom: 12,
+              lineHeight: 1.45,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              minHeight: '2.6em',
+            }}
+          >
+            {shop.description || 'Verified QueueLess advance ordering partner with express counter pickup.'}
+          </p>
+
+          {/* QueueLess Differentiating Queue Highlight */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: 'var(--color-light-sage)',
+              borderRadius: 'var(--radius-md)',
+              padding: '6px 10px',
+              marginBottom: 12,
+              border: '1px solid rgba(221, 238, 228, 0.9)',
+            }}
+          >
+            <div
               style={{
-                textOverflow: 'ellipsis',
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                fontWeight: 500,
+                width: 20,
+                height: 20,
+                borderRadius: 'var(--radius-full)',
+                backgroundColor: 'var(--color-primary-deep)',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
               }}
-              title={`${shop.address}, ${shop.city}`}
             >
-              {shop.address}, {shop.city}
+              <Zap size={11} fill="#FFFFFF" />
+            </div>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-primary-deep)' }}>
+              Zero-Wait Express Counter
+            </div>
+            <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 'auto' }}>
+              Avg wait: {shop.averageWaitMinutes || 5}m
             </span>
           </div>
 
-          {hoursText && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--color-text-muted)' }}>
-              <Clock size={14} style={{ color: 'var(--color-text-light)', flexShrink: 0 }} />
-              <span style={{ fontSize: 12 }}>{hoursText}</span>
+          {/* Location, Phone, Operating Hours Info */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+              fontSize: 12,
+              color: 'var(--color-text-muted)',
+              marginBottom: 14,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <MapPin size={13} style={{ color: 'var(--color-primary)', flexShrink: 0 }} />
+              <span
+                style={{
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  fontWeight: 500,
+                }}
+                title={`${shop.address}, ${shop.city}`}
+              >
+                {shop.address}, {shop.city}
+              </span>
             </div>
-          )}
 
-          {shop.phone && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--color-text-light)' }}>
-              <Phone size={14} style={{ flexShrink: 0 }} />
-              <span style={{ fontSize: 12 }}>{shop.phone}</span>
-            </div>
-          )}
+            {hoursText && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-text-muted)' }}>
+                <Clock size={13} style={{ color: 'var(--color-text-light)', flexShrink: 0 }} />
+                <span>{hoursText}</span>
+              </div>
+            )}
+
+            {shop.phone && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-text-light)' }}>
+                <Phone size={13} style={{ flexShrink: 0 }} />
+                <span>{shop.phone}</span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Card Footer CTA */}
-      <div
-        style={{
-          paddingTop: 16,
-          borderTop: '1px solid var(--color-border-subtle)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <span
+        {/* Card Footer CTA */}
+        <div
           style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: 'var(--color-primary)',
+            paddingTop: 12,
+            borderTop: '1px solid var(--color-border-subtle)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
           }}
         >
-          Express Ordering
-        </span>
+          {shop.latitude && shop.longitude ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleNavigateClick}
+              icon={<Navigation size={13} />}
+              style={{ fontSize: 12, padding: '6px 10px', gap: 4 }}
+              title="Open turn-by-turn directions in Google Maps"
+            >
+              Directions
+            </Button>
+          ) : (
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--color-primary)' }}>
+              Express Ordering
+            </span>
+          )}
 
-        <Link to={`/customer/shops/${shop.id}`} style={{ textDecoration: 'none' }}>
-          <Button
-            id={`view-shop-btn-${shop.id}`}
-            variant="primary"
-            size="sm"
-            icon={<ArrowRight size={14} />}
-          >
-            View Shop
-          </Button>
-        </Link>
+          <Link to={`/customer/shops/${shop.id}`} style={{ textDecoration: 'none' }} onClick={(e) => e.stopPropagation()}>
+            <Button
+              id={`view-shop-btn-${shop.id}`}
+              variant="primary"
+              size="sm"
+              icon={<ArrowRight size={13} />}
+              style={{ fontSize: 12, padding: '6px 12px' }}
+            >
+              View Shop
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -24,6 +24,7 @@ public class ShopResponse {
     private UserResponse owner;
     private String shopName;
     private String description;
+    private String imageUrl;
     private ShopCategory category;
     private String phone;
     private String address;
@@ -47,6 +48,7 @@ public class ShopResponse {
                 .owner(UserResponse.fromEntity(shop.getOwner()))
                 .shopName(shop.getShopName())
                 .description(shop.getDescription())
+                .imageUrl(shop.getImageUrl())
                 .category(shop.getCategory())
                 .phone(shop.getPhone())
                 .address(shop.getAddress())

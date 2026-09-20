@@ -15,6 +15,7 @@ import { Button } from '../../../components/ui/Button';
 import { Badge } from '../../../components/ui/Badge';
 import { SHOP_CATEGORY_LABELS, SHOP_STATUS_META } from '../../../types/shop.types';
 import type { AdminShop } from '../../../types/admin.types';
+import { getShopImage } from '../../../utils/shopImageUtils';
 
 interface ShopsTableProps {
   shops: AdminShop[];
@@ -91,30 +92,20 @@ export const ShopsTable: React.FC<ShopsTableProps> = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div
                         style={{
-                          width: 38,
-                          height: 38,
+                          width: 40,
+                          height: 40,
                           borderRadius: 'var(--radius-md)',
-                          backgroundColor:
-                            shop.status === 'PENDING'
-                              ? '#FEF3C7'
-                              : shop.status === 'SUSPENDED'
-                              ? '#FEE2E2'
-                              : 'var(--color-primary-bg)',
-                          color:
-                            shop.status === 'PENDING'
-                              ? '#B45309'
-                              : shop.status === 'SUSPENDED'
-                              ? '#B91C1C'
-                              : 'var(--color-primary)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: 700,
-                          fontSize: 14,
+                          overflow: 'hidden',
+                          backgroundColor: 'var(--color-surface-subtle)',
+                          border: '1px solid var(--color-border)',
                           flexShrink: 0,
                         }}
                       >
-                        <Store size={18} />
+                        <img
+                          src={getShopImage(shop)}
+                          alt={shop.shopName || shop.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
                       </div>
                       <div style={{ minWidth: 0 }}>
                         <div
