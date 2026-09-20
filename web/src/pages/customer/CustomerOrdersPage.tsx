@@ -10,6 +10,7 @@ import {
 import { useCustomerOrders, type OrderFilterTab } from './orders/useCustomerOrders';
 import { OrderCard } from './orders/OrderCard';
 import { OrderPickupPass } from './orders/OrderPickupPass';
+import { RemoveOrderModal } from './orders/RemoveOrderModal';
 import { OrdersListSkeleton } from './orders/OrdersListSkeleton';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/feedback/EmptyState';
@@ -48,6 +49,14 @@ export const CustomerOrdersPage: React.FC = () => {
     reorderingId,
     selectedOrderForQR,
     setSelectedOrderForQR,
+    orderToRemove,
+    setOrderToRemove,
+    removingId,
+    actionError,
+    setActionError,
+    toastMessage,
+    setToastMessage,
+    handleRemoveOrder,
     handleCancelOrder,
     handleReorder,
     refetch,
@@ -68,6 +77,61 @@ export const CustomerOrdersPage: React.FC = () => {
           order={selectedOrderForQR}
           onClose={() => setSelectedOrderForQR(null)}
         />
+      )}
+
+      {/* Remove Order Confirmation Modal */}
+      {orderToRemove && (
+        <RemoveOrderModal
+          order={orderToRemove}
+          isOpen={Boolean(orderToRemove)}
+          onClose={() => setOrderToRemove(null)}
+          onConfirm={handleRemoveOrder}
+          loading={removingId === orderToRemove.id}
+        />
+      )}
+
+      {/* Floating Success Toast */}
+      {toastMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            zIndex: 110,
+            backgroundColor: 'var(--color-surface)',
+            color: 'var(--color-text-main)',
+            padding: '12px 18px',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: 'var(--shadow-lg)',
+            border: '1px solid var(--color-success)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            animation: 'fadeIn 0.2s ease-out',
+          }}
+        >
+          <CheckCircle2 size={18} color="var(--color-success)" style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 13.5, fontWeight: 600 }}>{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            aria-label="Close"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--color-text-muted)',
+              cursor: 'pointer',
+              padding: 2,
+              marginLeft: 4,
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <X size={15} />
+          </button>
+        </div>
       )}
 
       {/* Header */}
@@ -120,6 +184,40 @@ export const CustomerOrdersPage: React.FC = () => {
           </Button>
         </Link>
       </div>
+
+      {/* Action Error Banner */}
+      {actionError && (
+        <div
+          className="card"
+          style={{
+            padding: '14px 18px',
+            backgroundColor: '#FEE2E2',
+            border: '1px solid #FCA5A5',
+            borderRadius: 'var(--radius-md)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+          }}
+        >
+          <span style={{ fontSize: 13.5, fontWeight: 600, color: '#DC2626' }}>
+            {actionError}
+          </span>
+          <button
+            type="button"
+            onClick={() => setActionError(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#DC2626',
+              cursor: 'pointer',
+              padding: 4,
+            }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {/* Order Placed Success Banner */}
       {successBanner && (
@@ -228,6 +326,7 @@ export const CustomerOrdersPage: React.FC = () => {
               onCancel={handleCancelOrder}
               onReorder={handleReorder}
               onOpenQR={(ord) => setSelectedOrderForQR(ord)}
+              onRemove={(ord) => setOrderToRemove(ord)}
             />
           ))}
         </div>

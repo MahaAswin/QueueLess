@@ -75,6 +75,10 @@ public class Order {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "hidden_for_customer", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Builder.Default
+    private boolean hiddenForCustomer = false;
+
     @PrePersist
     protected void onCreate() {
         Instant now = Instant.now();

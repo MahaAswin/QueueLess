@@ -25,6 +25,10 @@ export const orderService = {
     return response.data;
   },
 
+  async removeCustomerOrder(orderId: string): Promise<void> {
+    await apiClient.delete(`/api/orders/${orderId}`);
+  },
+
   async getCustomerExpenseSummary(): Promise<CustomerExpenseSummary> {
     const response = await apiClient.get<CustomerExpenseSummary>('/api/customer/summary/expenses');
     return response.data;

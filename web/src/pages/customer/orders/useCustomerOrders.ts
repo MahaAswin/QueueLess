@@ -27,6 +27,19 @@ export const useCustomerOrders = () => {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [reorderingId, setReorderingId] = useState<string | null>(null);
   const [selectedOrderForQR, setSelectedOrderForQR] = useState<Order | null>(null);
+  const [orderToRemove, setOrderToRemove] = useState<Order | null>(null);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Auto-dismiss toast after 4 seconds
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -44,6 +57,26 @@ export const useCustomerOrders = () => {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  // Remove order from customer history (soft delete)
+  const handleRemoveOrder = async () => {
+    if (!orderToRemove) return;
+
+    const orderId = orderToRemove.id;
+    setRemovingId(orderId);
+    setActionError(null);
+    try {
+      await orderService.removeCustomerOrder(orderId);
+      // Immediately remove order card from UI state and update counts
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      setOrderToRemove(null);
+      setToastMessage('Order removed from your history.');
+    } catch (err: any) {
+      setActionError(err?.response?.data?.message || 'Failed to remove order from history.');
+    } finally {
+      setRemovingId(null);
+    }
+  };
 
   // Cancel order
   const handleCancelOrder = async (orderId: string) => {
@@ -113,8 +146,16 @@ export const useCustomerOrders = () => {
     reorderingId,
     selectedOrderForQR,
     setSelectedOrderForQR,
+    orderToRemove,
+    setOrderToRemove,
+    removingId,
+    actionError,
+    setActionError,
+    handleRemoveOrder,
     handleCancelOrder,
     handleReorder,
+    toastMessage,
+    setToastMessage,
     refetch: fetchOrders,
   };
 };

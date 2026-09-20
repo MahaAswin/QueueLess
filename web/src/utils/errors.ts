@@ -22,6 +22,11 @@ const SENSITIVE_ERROR_PATTERNS = [
 export const sanitizeErrorMessage = (message: string, fallback: string): string => {
   if (!message || typeof message !== 'string') return fallback;
 
+  // In development mode, display real backend errors directly for faster debugging
+  if (import.meta.env.DEV) {
+    return message.trim();
+  }
+
   // Check if message contains any sensitive technical or SQL pattern
   const isTechnical = SENSITIVE_ERROR_PATTERNS.some((pattern) => pattern.test(message));
   if (isTechnical) {
@@ -79,6 +84,9 @@ export const getApiErrorMessage = (
     }
 
     if (status >= 500) {
+      if (import.meta.env.DEV && rawMessage) {
+        return rawMessage;
+      }
       return 'A server error occurred. Our team has been notified. Please try again later.';
     }
 

@@ -147,7 +147,7 @@ public class OrderService {
     public OrderPageResponse getCustomerOrders(String currentUserEmail, int page, int size) {
         User customer = getCustomerUser(currentUserEmail);
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Order> orderPage = orderRepository.findByCustomer(customer, pageRequest);
+        Page<Order> orderPage = orderRepository.findByCustomerAndHiddenForCustomerFalse(customer, pageRequest);
 
         List<OrderResponse> content = orderPage.getContent().stream()
                 .map(this::toOrderResponse)
@@ -166,7 +166,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<OrderResponse> getCustomerOrders(String currentUserEmail) {
         User customer = getCustomerUser(currentUserEmail);
-        return orderRepository.findByCustomerOrderByCreatedAtDesc(customer).stream()
+        return orderRepository.findByCustomerAndHiddenForCustomerFalseOrderByCreatedAtDesc(customer).stream()
                 .map(this::toOrderResponse)
                 .collect(Collectors.toList());
     }
@@ -180,7 +180,30 @@ public class OrderService {
             throw new AccessDeniedException("You are not authorized to view this order");
         }
 
+        if (order.isHiddenForCustomer()) {
+            throw new com.queueless.backend.common.OrderNotFoundException("Order not found");
+        }
+
         return toOrderResponse(order);
+    }
+
+    @Transactional
+    public void hideOrderForCustomer(UUID orderId, String currentUserEmail) {
+        User customer = getCustomerUser(currentUserEmail);
+        Order order = getOrderEntityById(orderId);
+
+        if (!order.getCustomer().getId().equals(customer.getId())) {
+            throw new AccessDeniedException("You are not authorized to remove this order");
+        }
+
+        if (order.getStatus() != OrderStatus.COLLECTED &&
+            order.getStatus() != OrderStatus.CANCELLED &&
+            order.getStatus() != OrderStatus.REJECTED) {
+            throw new IllegalStateException("Active orders cannot be removed from history. Current status: " + order.getStatus());
+        }
+
+        order.setHiddenForCustomer(true);
+        orderRepository.save(order);
     }
 
     @Transactional

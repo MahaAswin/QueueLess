@@ -20,6 +20,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecific
 
     List<Order> findByCustomerOrderByCreatedAtDesc(User customer);
 
+    List<Order> findByCustomerAndHiddenForCustomerFalseOrderByCreatedAtDesc(User customer);
+
     List<Order> findByShopOrderByCreatedAtDesc(Shop shop);
 
     List<Order> findByShopIdOrderByCreatedAtDesc(UUID shopId);
@@ -27,6 +29,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecific
     List<Order> findByCustomerIdOrderByCreatedAtDesc(UUID customerId);
 
     Page<Order> findByCustomer(User customer, Pageable pageable);
+
+    Page<Order> findByCustomerAndHiddenForCustomerFalse(User customer, Pageable pageable);
 
     Page<Order> findByShopIn(List<Shop> shops, Pageable pageable);
 

@@ -1,5 +1,6 @@
 package com.queueless.backend.order;
 
+import com.queueless.backend.order.dto.CustomerExpenseSummaryResponse;
 import com.queueless.backend.order.dto.OrderPageResponse;
 import com.queueless.backend.order.dto.OrderResponse;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,21 +42,21 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/summary/expenses")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<CustomerExpenseSummaryResponse> getCustomerExpenseSummary(
+            Authentication authentication) {
+        CustomerExpenseSummaryResponse response =
+                orderService.getCustomerExpenseSummary(authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{orderId}")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<OrderResponse> getCustomerOrderById(
             @PathVariable UUID orderId,
             Authentication authentication) {
         OrderResponse response = orderService.getCustomerOrderById(orderId, authentication.getName());
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/summary/expenses")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<com.queueless.backend.order.dto.CustomerExpenseSummaryResponse> getCustomerExpenseSummary(
-            Authentication authentication) {
-        com.queueless.backend.order.dto.CustomerExpenseSummaryResponse response =
-                orderService.getCustomerExpenseSummary(authentication.getName());
         return ResponseEntity.ok(response);
     }
 
@@ -65,5 +67,14 @@ public class OrderController {
             Authentication authentication) {
         OrderResponse response = orderService.cancelOrder(orderId, authentication.getName());
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{orderId}")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<Void> removeCustomerOrder(
+            @PathVariable UUID orderId,
+            Authentication authentication) {
+        orderService.hideOrderForCustomer(orderId, authentication.getName());
+        return ResponseEntity.noContent().build();
     }
 }

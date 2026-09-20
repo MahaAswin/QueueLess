@@ -8,6 +8,7 @@ import {
   ArrowRight,
   RotateCcw,
   Package,
+  Trash2,
 } from 'lucide-react';
 import type { Order } from '../../../types/order.types';
 import { Badge } from '../../../components/ui/Badge';
@@ -28,6 +29,7 @@ interface OrderCardProps {
   onCancel: (orderId: string) => void;
   onReorder: (order: Order) => void;
   onOpenQR: (order: Order) => void;
+  onRemove?: (order: Order) => void;
 }
 
 export const OrderCard: React.FC<OrderCardProps> = ({
@@ -37,6 +39,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
   onCancel,
   onReorder,
   onOpenQR,
+  onRemove,
 }) => {
   const meta = getOrderStatusMeta(order.status);
   const active = isOrderActive(order.status);
@@ -44,6 +47,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
   const isCounterProposed = order.pickupSlot?.status === 'COUNTER_PROPOSED';
   const canCancel = order.status === 'PENDING' || order.status === 'CONFIRMED';
   const canReorder = order.status === 'COLLECTED' || order.status === 'COMPLETED' || order.status === 'CANCELLED' || order.status === 'REJECTED';
+  const canRemove = order.status === 'COLLECTED' || order.status === 'COMPLETED' || order.status === 'CANCELLED' || order.status === 'REJECTED';
 
   const totalItemsCount = order.items?.reduce((acc, i) => acc + i.quantity, 0) || order.items?.length || 0;
 
@@ -276,6 +280,23 @@ export const OrderCard: React.FC<OrderCardProps> = ({
               onClick={() => onReorder(order)}
             >
               Reorder
+            </Button>
+          )}
+
+          {/* Remove Order from history */}
+          {canRemove && onRemove && (
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<Trash2 size={13} />}
+              onClick={() => onRemove(order)}
+              style={{
+                color: 'var(--color-error)',
+                borderColor: 'var(--color-border)',
+              }}
+              title="Remove this order from order history"
+            >
+              Remove
             </Button>
           )}
         </div>
