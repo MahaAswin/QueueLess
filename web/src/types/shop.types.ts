@@ -106,3 +106,33 @@ export interface UpdateShopPayload {
   closingTime?: string;
   status?: ShopStatus;
 }
+
+export interface NearbyShop extends Shop {
+  distanceMeters: number;
+  distanceFormatted?: string;
+  isOpen?: boolean;
+  averageWaitMinutes?: number;
+}
+
+export interface NearbyShopsResponse {
+  shops: NearbyShop[];
+  radiusMeters: number;
+  count: number;
+  userLatitude: number;
+  userLongitude: number;
+}
+
+export interface RadiusOption {
+  value: number;
+  label: string;
+}
+
+export const RADIUS_OPTIONS: RadiusOption[] = [
+  { value: 50, label: '50 m' },
+  { value: 100, label: '100 m' },
+  { value: 500, label: '500 m' },
+  { value: 1000, label: '1 km' },
+  { value: 2000, label: '2 km' },
+  { value: 5000, label: '5 km' },
+];
+

@@ -57,4 +57,36 @@ export const shopService = {
     const response = await apiClient.put<Shop>(`/api/shops/${id}`, body);
     return normalizeShop(response.data);
   },
+
+  async getNearbyShops(
+    latitude: number,
+    longitude: number,
+    radiusMeters: number = 500,
+    category?: ShopCategory
+  ): Promise<{ shops: (Shop & { distanceMeters: number; distanceFormatted?: string; isOpen?: boolean; averageWaitMinutes?: number })[]; radiusMeters: number; count: number }> {
+    const params: Record<string, any> = {
+      latitude,
+      longitude,
+      radius: radiusMeters,
+    };
+    if (category && category !== ('ALL' as any)) {
+      params.category = category;
+    }
+    const response = await apiClient.get<any>('/api/shops/nearby', { params });
+    const rawData = response.data;
+    const shops = Array.isArray(rawData?.shops)
+      ? rawData.shops.map((s: any) => ({
+          ...normalizeShop(s),
+          distanceMeters: s.distanceMeters,
+          distanceFormatted: s.distanceFormatted,
+          isOpen: s.isOpen,
+          averageWaitMinutes: s.averageWaitMinutes,
+        }))
+      : [];
+    return {
+      shops,
+      radiusMeters: rawData?.radiusMeters || radiusMeters,
+      count: rawData?.count || shops.length,
+    };
+  },
 };

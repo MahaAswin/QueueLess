@@ -13,13 +13,21 @@ import {
   Cake,
   BookOpen,
   Beef,
+  Navigation,
 } from 'lucide-react';
 import type { Shop, ShopCategory } from '../../types/shop.types';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 
 interface ShopCardProps {
-  shop: Shop;
+  shop: Shop & {
+    distanceMeters?: number;
+    distanceFormatted?: string;
+    isOpen?: boolean;
+    averageWaitMinutes?: number;
+  };
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 export const CATEGORY_META: Record<
@@ -84,7 +92,7 @@ export const formatOperatingHours = (open?: string, close?: string): string | nu
   return `${formatTime(open)} – ${formatTime(close)}`;
 };
 
-export const ShopCard: React.FC<ShopCardProps> = ({ shop }) => {
+export const ShopCard: React.FC<ShopCardProps> = ({ shop, isSelected = false, onSelect }) => {
   const shopName = shop.shopName || shop.name || 'Partner Outlet';
   const categoryInfo = CATEGORY_META[shop.category] || CATEGORY_META.OTHER;
   const hoursText = formatOperatingHours(shop.openingTime, shop.closingTime);
@@ -180,10 +188,13 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop }) => {
     }
   };
 
+  const distanceLabel = shop.distanceFormatted || (shop.distanceMeters ? `${Math.round(shop.distanceMeters)} m` : null);
+
   return (
     <div
       id={`shop-card-${shop.id}`}
       className="card interactive-card"
+      onClick={onSelect}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -191,9 +202,12 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop }) => {
         borderRadius: 'var(--radius-xl)',
         padding: '24px',
         backgroundColor: 'var(--color-surface)',
-        border: '1px solid var(--color-border)',
+        border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+        boxShadow: isSelected ? '0 0 0 3px rgba(18, 124, 78, 0.15), var(--shadow-sm)' : 'var(--shadow-xs)',
         position: 'relative',
         overflow: 'hidden',
+        cursor: onSelect ? 'pointer' : 'default',
+        transition: 'all 0.2s ease',
       }}
     >
       {/* Top Banner Accent with subtle glow */}
@@ -247,9 +261,30 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop }) => {
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
             {getStatusBadge()}
-            <Badge variant="neutral" icon={categoryInfo.icon}>
-              {categoryInfo.label}
-            </Badge>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              {distanceLabel && (
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    color: 'var(--color-primary-deep)',
+                    backgroundColor: 'var(--color-light-sage)',
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-full)',
+                    border: '1px solid rgba(18, 124, 78, 0.2)',
+                  }}
+                >
+                  <Navigation size={11} color="var(--color-primary)" />
+                  <span>{distanceLabel} away</span>
+                </div>
+              )}
+              <Badge variant="neutral" icon={categoryInfo.icon}>
+                {categoryInfo.label}
+              </Badge>
+            </div>
           </div>
         </div>
 
@@ -317,7 +352,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({ shop }) => {
             Zero-Wait Express Counter
           </div>
           <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 'auto' }}>
-            No Line
+            Average wait: {shop.averageWaitMinutes || 5} min
           </span>
         </div>
 

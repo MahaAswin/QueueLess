@@ -149,6 +149,84 @@ public class ShopService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public com.queueless.backend.shop.dto.NearbyShopsResponse getNearbyShops(
+            double latitude,
+            double longitude,
+            double radiusMeters,
+            ShopCategory category) {
+
+        if (latitude < -90.0 || latitude > 90.0) {
+            throw new IllegalArgumentException("Latitude must be between -90 and 90 degrees");
+        }
+        if (longitude < -180.0 || longitude > 180.0) {
+            throw new IllegalArgumentException("Longitude must be between -180 and 180 degrees");
+        }
+        if (radiusMeters <= 0) {
+            throw new IllegalArgumentException("Radius must be greater than 0 meters");
+        }
+
+        List<Shop> activeShops = category != null
+                ? shopRepository.findByStatusAndCategory(ShopStatus.ACTIVE, category)
+                : shopRepository.findByStatus(ShopStatus.ACTIVE);
+
+        List<com.queueless.backend.shop.dto.NearbyShopResponse> nearbyShops = activeShops.stream()
+                .filter(s -> s.getLatitude() != null && s.getLongitude() != null)
+                .map(shop -> {
+                    double distance = calculateHaversineDistanceMeters(
+                            latitude, longitude,
+                            shop.getLatitude(), shop.getLongitude()
+                    );
+                    boolean isOpen = isShopCurrentlyOpen(shop);
+                    int avgWait = calculateAverageWaitMinutes(shop);
+                    return com.queueless.backend.shop.dto.NearbyShopResponse.fromEntity(shop, distance, isOpen, avgWait);
+                })
+                .filter(resp -> resp.getDistanceMeters() <= radiusMeters)
+                .sorted(java.util.Comparator.comparingDouble(com.queueless.backend.shop.dto.NearbyShopResponse::getDistanceMeters))
+                .collect(Collectors.toList());
+
+        return com.queueless.backend.shop.dto.NearbyShopsResponse.builder()
+                .shops(nearbyShops)
+                .radiusMeters(radiusMeters)
+                .count(nearbyShops.size())
+                .userLatitude(latitude)
+                .userLongitude(longitude)
+                .build();
+    }
+
+    /**
+     * Calculates geodesic distance in meters using Haversine formula.
+     */
+    public static double calculateHaversineDistanceMeters(double lat1, double lon1, double lat2, double lon2) {
+        final double EARTH_RADIUS = 6371000.0; // in meters
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(dLat / 2.0) * Math.sin(dLat / 2.0)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2.0) * Math.sin(dLon / 2.0);
+
+        double c = 2.0 * Math.atan2(Math.sqrt(a), Math.sqrt(1.0 - a));
+        return EARTH_RADIUS * c;
+    }
+
+    private boolean isShopCurrentlyOpen(Shop shop) {
+        if (shop.getOpeningTime() == null || shop.getClosingTime() == null) {
+            return true;
+        }
+        LocalTime now = LocalTime.now();
+        if (shop.getOpeningTime().isBefore(shop.getClosingTime())) {
+            return !now.isBefore(shop.getOpeningTime()) && now.isBefore(shop.getClosingTime());
+        } else {
+            return !now.isBefore(shop.getOpeningTime()) || now.isBefore(shop.getClosingTime());
+        }
+    }
+
+    private int calculateAverageWaitMinutes(Shop shop) {
+        // Average queue pickup estimation
+        return 5;
+    }
+
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));

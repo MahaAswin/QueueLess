@@ -77,4 +77,14 @@ public class ShopController {
         List<ShopResponse> response = shopService.filterByCategory(category);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/nearby")
+    public ResponseEntity<com.queueless.backend.shop.dto.NearbyShopsResponse> getNearbyShops(
+            @RequestParam double latitude,
+            @RequestParam double longitude,
+            @RequestParam(defaultValue = "500") double radius,
+            @RequestParam(required = false) ShopCategory category) {
+        com.queueless.backend.shop.dto.NearbyShopsResponse response = shopService.getNearbyShops(latitude, longitude, radius, category);
+        return ResponseEntity.ok(response);
+    }
 }
