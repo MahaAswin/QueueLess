@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   Store,
   ShoppingBag,
-  Receipt,
   ArrowRight,
   Clock,
   MapPin,
@@ -13,14 +12,13 @@ import {
   CheckCircle2,
   PackageCheck,
   RefreshCw,
-  Timer,
   QrCode,
-  Compass,
   AlertTriangle,
   Phone,
-  Check,
+  Leaf,
+  Users,
+  CreditCard,
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import { shopService } from '../../services/shopService';
 import { orderService } from '../../services/orderService';
 import type { Shop, ShopCategory } from '../../types/shop.types';
@@ -50,7 +48,6 @@ const ORDER_ACTIVE_STATUSES: OrderStatus[] = [
 ];
 
 export const CustomerHomePage: React.FC = () => {
-  const { user } = useAuth();
 
   // Shops State
   const [shops, setShops] = useState<Shop[]>([]);
@@ -67,20 +64,6 @@ export const CustomerHomePage: React.FC = () => {
   const [expenseSummary, setExpenseSummary] = useState<CustomerExpenseSummary | null>(null);
   const [expenseLoading, setExpenseLoading] = useState<boolean>(true);
   const [expenseError, setExpenseError] = useState<string | null>(null);
-
-  // Time-of-day greeting
-  const greeting = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  }, []);
-
-  const customerFirstName = useMemo(() => {
-    if (!user?.fullName) return null;
-    const parts = user.fullName.trim().split(' ');
-    return parts[0];
-  }, [user?.fullName]);
 
   // Load Shops from backend
   const loadShops = useCallback(async () => {
@@ -157,261 +140,487 @@ export const CustomerHomePage: React.FC = () => {
     }
   };
 
-  const getOrderStatusBadge = (status: OrderStatus) => {
-    switch (status) {
-      case 'READY_FOR_PICKUP':
-        return (
-          <Badge variant="success" icon={<CheckCircle2 size={13} />}>
-            Ready for Pickup
-          </Badge>
-        );
-      case 'PREPARING':
-        return (
-          <Badge variant="warning" icon={<Clock size={13} />}>
-            Preparing Basket
-          </Badge>
-        );
-      case 'CONFIRMED':
-      case 'ACCEPTED':
-        return (
-          <Badge variant="info" icon={<CheckCircle2 size={13} />}>
-            Confirmed by Shop
-          </Badge>
-        );
-      case 'PENDING':
-        return (
-          <Badge variant="warning" icon={<Clock size={13} />}>
-            Pending Confirmation
-          </Badge>
-        );
-      default:
-        return <Badge variant="neutral">{status}</Badge>;
-    }
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
       {/* 1. HERO SECTION */}
       <section
-        className="card"
+        className="hero-card"
         style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #edf7f2 100%)',
-          borderColor: 'var(--color-sage)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '40px 44px',
-          boxShadow: 'var(--shadow-md)',
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #F6FAF7 50%, #EEF9F2 100%)',
+          border: '1px solid #E2E8F0',
+          borderRadius: 24,
+          boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02)',
           position: 'relative',
           overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'row',
         }}
       >
+        {/* Left Column: Heading, CTA & Value Proposition */}
         <div
+          className="hero-left-content"
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1.35fr) minmax(0, 1fr)',
-            gap: 36,
-            alignItems: 'center',
+            flex: '1.2',
+            padding: '38px 36px 32px 40px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            zIndex: 2,
           }}
-          className="hero-grid"
         >
-          {/* Left Column: Heading & Value Proposition */}
           <div>
+            {/* Top Pill Badge */}
             <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 8,
-                padding: '6px 14px',
-                backgroundColor: 'var(--color-primary-subtle)',
-                borderRadius: 'var(--radius-full)',
-                color: 'var(--color-primary-deep)',
-                fontSize: 12.5,
-                fontWeight: 700,
-                letterSpacing: '0.4px',
-                marginBottom: 18,
-                border: '1px solid rgba(18, 124, 78, 0.15)',
+                gap: 6,
+                padding: '5px 14px',
+                backgroundColor: '#ECFDF5',
+                border: '1px solid #A7F3D0',
+                borderRadius: 9999,
+                color: '#047857',
+                fontSize: 11.5,
+                fontWeight: 800,
+                letterSpacing: '0.6px',
+                textTransform: 'uppercase',
+                marginBottom: 16,
               }}
             >
-              <Zap size={15} fill="var(--color-primary)" />
+              <Zap size={13} fill="#059669" />
               <span>ZERO-WAIT EXPRESS PICKUP</span>
             </div>
 
+            {/* Main Heading */}
             <h1
               style={{
-                fontSize: 'clamp(28px, 3.2vw, 40px)',
-                fontWeight: 800,
-                color: 'var(--color-text-main)',
-                lineHeight: 1.18,
-                marginBottom: 12,
-                letterSpacing: '-0.8px',
+                fontSize: 'clamp(32px, 3.4vw, 44px)',
+                fontWeight: 900,
+                color: '#0F172A',
+                lineHeight: 1.14,
+                marginBottom: 14,
+                letterSpacing: '-1px',
               }}
             >
-              {customerFirstName ? (
-                <>
-                  {greeting}, <span style={{ color: 'var(--color-primary)' }}>{customerFirstName}</span>!
-                </>
-              ) : (
-                'Order ahead. Skip the queue.'
-              )}
+              Order Now.<br />
+              Pick Up Later.<br />
+              <span style={{ color: '#059669' }}>No Queues.</span>
             </h1>
 
+            {/* Supporting Text */}
             <p
               style={{
-                color: 'var(--color-text-muted)',
-                fontSize: 16,
+                color: '#64748B',
+                fontSize: 15,
                 lineHeight: 1.6,
                 marginBottom: 26,
-                maxWidth: 560,
+                maxWidth: 460,
               }}
             >
-              Discover verified local restaurants, bakeries, and stores. Pre-order your basket, reserve an express pickup slot, and pick up without waiting in line.
+              Discover local partner shops, pre-order your items, and collect at your convenience.
             </p>
 
-            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-              <Link to="/customer/shops">
-                <Button variant="primary" size="lg" icon={<ArrowRight size={18} />}>
-                  Explore Partner Shops
-                </Button>
-              </Link>
-              <Link to="/customer/cart">
-                <Button variant="secondary" size="lg" icon={<ShoppingBag size={18} />}>
-                  View My Basket
-                </Button>
-              </Link>
-            </div>
-
-            {/* Micro value badges */}
+            {/* CTA Buttons */}
             <div
               style={{
                 display: 'flex',
-                alignItems: 'center',
-                gap: 20,
-                marginTop: 28,
-                paddingTop: 20,
-                borderTop: '1px solid rgba(226, 232, 240, 0.8)',
+                gap: 12,
                 flexWrap: 'wrap',
+                alignItems: 'center',
+                marginBottom: 24,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, color: 'var(--color-text-muted)', fontWeight: 500 }}>
-                <ShieldCheck size={16} color="var(--color-primary)" />
-                <span>Verified Partners</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, color: 'var(--color-text-muted)', fontWeight: 500 }}>
-                <Timer size={16} color="var(--color-primary)" />
-                <span>Guaranteed Slots</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, color: 'var(--color-text-muted)', fontWeight: 500 }}>
-                <QrCode size={16} color="var(--color-primary)" />
-                <span>Express QR Pass</span>
-              </div>
+              <Link to="/customer/shops" style={{ textDecoration: 'none' }}>
+                <button
+                  className="hero-btn-primary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    backgroundColor: '#059669',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: 12,
+                    padding: '12px 22px',
+                    fontSize: 14.5,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 14px rgba(5, 150, 105, 0.28)',
+                  }}
+                >
+                  <span>Explore Partner Shops</span>
+                  <ArrowRight size={17} />
+                </button>
+              </Link>
+
+              <Link to="/customer/cart" style={{ textDecoration: 'none' }}>
+                <button
+                  className="hero-btn-secondary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    backgroundColor: '#FFFFFF',
+                    color: '#059669',
+                    border: '1.5px solid #10B981',
+                    borderRadius: 12,
+                    padding: '12px 20px',
+                    fontSize: 14.5,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <ShoppingBag size={17} />
+                  <span>View My Basket</span>
+                </button>
+              </Link>
             </div>
           </div>
 
-          {/* Right Column: Hero Express Pickup Visual Treatment */}
+          {/* Bottom Feature Strip */}
           <div
+            className="hero-feature-strip"
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--color-sage)',
-              padding: '24px',
-              boxShadow: 'var(--shadow-md)',
-              position: 'relative',
-              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 20,
+              paddingTop: 18,
+              borderTop: '1px solid #E2E8F0',
+              flexWrap: 'wrap',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 16,
-                paddingBottom: 12,
-                borderBottom: '1px dashed var(--color-border)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--color-primary-deep)',
-                    color: '#fff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Zap size={20} fill="#fff" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 9,
+                  backgroundColor: '#ECFDF5',
+                  color: '#059669',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <ShieldCheck size={17} />
+              </div>
+              <div>
+                <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                  Verified Partners
                 </div>
-                <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-primary-deep)' }}>
-                    QueueLess Express Pass
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-light)' }}>
-                    Zero-Wait Counter Verification
-                  </div>
-                </div>
-              </div>
-              <Badge variant="success" icon={<CheckCircle2 size={12} />}>
-                Instant Collection
-              </Badge>
-            </div>
-
-            {/* Visual Sample Card Info */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-light-sage)',
-                borderRadius: 'var(--radius-md)',
-                padding: '16px',
-                marginBottom: 16,
-                border: '1px solid rgba(221, 238, 228, 0.6)',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-light)', textTransform: 'uppercase' }}>
-                  Next Available Slot
-                </span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-primary)' }}>
-                  Ready in ~10 mins
-                </span>
-              </div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 4 }}>
-                Skip the lines at {shops.length > 0 ? shops[0].name : 'Partner Cafes & Bakeries'}
-              </div>
-              <div style={{ fontSize: 12.5, color: 'var(--color-text-muted)' }}>
-                Order ahead &rarr; Arrive at counter &rarr; Scan QR & Go
+                <div style={{ fontSize: 11, color: '#64748B' }}>Trusted & safe</div>
               </div>
             </div>
 
-            {/* Interactive Express Metrics */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
               <div
                 style={{
-                  padding: '12px',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--color-surface-subtle)',
-                  border: '1px solid var(--color-border)',
+                  width: 32,
+                  height: 32,
+                  borderRadius: 9,
+                  backgroundColor: '#ECFDF5',
+                  color: '#059669',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 600 }}>AVERAGE WAIT TIME</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-primary)', marginTop: 2 }}>0 min</div>
+                <Clock size={17} />
               </div>
+              <div>
+                <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                  Guaranteed Slots
+                </div>
+                <div style={{ fontSize: 11, color: '#64748B' }}>Pick your time</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
               <div
                 style={{
-                  padding: '12px',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--color-surface-subtle)',
-                  border: '1px solid var(--color-border)',
+                  width: 32,
+                  height: 32,
+                  borderRadius: 9,
+                  backgroundColor: '#ECFDF5',
+                  color: '#059669',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 600 }}>PARTNER SHOPS</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-text-main)', marginTop: 2 }}>
-                  {shopsLoading ? '...' : `${shops.length} Active`}
+                <QrCode size={17} />
+              </div>
+              <div>
+                <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                  Express QR Pass
                 </div>
+                <div style={{ fontSize: 11, color: '#64748B' }}>Scan & collect</div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Center/Right Column: 3D Express Scene Illustration & Floating Micro-Cards */}
+        <div
+          className="hero-illustration-area"
+          style={{
+            flex: '1.4',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px 20px',
+            minHeight: 380,
+            overflow: 'hidden',
+          }}
+        >
+          {/* Main Visual Image */}
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              maxHeight: 360,
+              borderRadius: 18,
+              overflow: 'hidden',
+              position: 'relative',
+              boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.06)',
+            }}
+          >
+            <img
+              src="/assets/hero_express_scene.jpg"
+              alt="QueueLess Express Pickup"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
+              className="hero-scene-img"
+            />
+          </div>
+
+          {/* Floating Speech Bubble */}
+          <div
+            className="hero-floating-bubble"
+            style={{
+              position: 'absolute',
+              top: 26,
+              left: 40,
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #DCFCE7',
+              borderRadius: 16,
+              padding: '8px 14px',
+              boxShadow: '0 8px 20px rgba(0, 0, 0, 0.06)',
+              zIndex: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                color: '#059669',
+                lineHeight: 1.2,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Skip the queue<br />for a better you! ✨
+            </span>
+          </div>
+
+          {/* Floating QR Micro-Badge */}
+          <div
+            className="hero-floating-qr"
+            style={{
+              position: 'absolute',
+              bottom: 30,
+              left: 36,
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: 12,
+              padding: '6px 12px',
+              boxShadow: '0 6px 18px rgba(0, 0, 0, 0.06)',
+              zIndex: 3,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <QrCode size={20} color="#059669" />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                Scan Collect
+              </span>
+              <span style={{ fontSize: 10, color: '#059669', fontWeight: 700 }}>Go! ⚡</span>
+            </div>
+          </div>
+
+          {/* Bottom Handwritten Tagline */}
+          <div
+            className="hero-handwritten-tagline"
+            style={{
+              position: 'absolute',
+              bottom: 16,
+              right: 28,
+              transform: 'rotate(-7deg)',
+              zIndex: 3,
+              pointerEvents: 'none',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'Caveat, "Comic Sans MS", "Segoe Print", cursive',
+                fontSize: 20,
+                fontWeight: 700,
+                color: '#059669',
+                lineHeight: 1.1,
+                textShadow: '0 1px 3px rgba(255, 255, 255, 0.8)',
+              }}
+            >
+              Good things,
+              <br />
+              no queues! ❤️
+            </span>
+          </div>
+        </div>
+
+        {/* Far-Right Narrow Vertical Feature Rail */}
+        <div
+          className="hero-right-rail"
+          style={{
+            width: 96,
+            backgroundColor: 'rgba(255, 255, 255, 0.88)',
+            backdropFilter: 'blur(10px)',
+            borderLeft: '1px solid #E2E8F0',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+            padding: '24px 6px',
+            zIndex: 2,
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 6 }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                backgroundColor: '#F0FDF4',
+                border: '1px solid #DCFCE7',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#059669',
+              }}
+            >
+              <ShoppingBag size={18} />
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+              Order<br />Online
+            </span>
+          </div>
+
+          <div style={{ width: 24, height: 1, backgroundColor: '#E2E8F0' }} />
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 6 }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                backgroundColor: '#F0FDF4',
+                border: '1px solid #DCFCE7',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#059669',
+              }}
+            >
+              <Clock size={18} />
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+              Pick Your<br />Slot
+            </span>
+          </div>
+
+          <div style={{ width: 24, height: 1, backgroundColor: '#E2E8F0' }} />
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 6 }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                backgroundColor: '#F0FDF4',
+                border: '1px solid #DCFCE7',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#059669',
+              }}
+            >
+              <QrCode size={18} />
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+              Walk In &<br />Collect
+            </span>
+          </div>
+        </div>
+
+        {/* Scoped CSS for Hero Responsiveness & Micro-Animations */}
+        <style>{`
+          .hero-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(5, 150, 105, 0.38) !important;
+          }
+          .hero-btn-secondary:hover {
+            transform: translateY(-2px);
+            background-color: #F0FDF4 !important;
+          }
+          .hero-floating-bubble {
+            animation: heroFloat 3.5s ease-in-out infinite alternate;
+          }
+          @keyframes heroFloat {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-6px); }
+          }
+          @media (max-width: 1024px) {
+            .hero-card {
+              flex-direction: column !important;
+            }
+            .hero-right-rail {
+              width: 100% !important;
+              flex-direction: row !important;
+              border-left: none !important;
+              border-top: 1px solid #E2E8F0 !important;
+              padding: 16px 20px !important;
+            }
+            .hero-left-content {
+              padding: 28px 24px !important;
+            }
+            .hero-illustration-area {
+              min-height: 300px !important;
+            }
+          }
+          @media (max-width: 640px) {
+            .hero-feature-strip {
+              flex-direction: column !important;
+              align-items: flex-start !important;
+              gap: 12px !important;
+            }
+            .hero-floating-bubble {
+              display: none !important;
+            }
+            .hero-handwritten-tagline {
+              display: none !important;
+            }
+          }
+        `}</style>
       </section>
 
       {/* 2. EXPENSE SUMMARY / MY SPENDING */}
@@ -422,70 +631,132 @@ export const CustomerHomePage: React.FC = () => {
         onRetry={loadExpenseSummary}
       />
 
-      {/* 3. ACTIVE ORDER MONITOR */}
-      <section>
+      {/* 3. ACTIVE ORDER MONITOR - PHYSICAL SHOP COUNTER EXPERIENCE */}
+      <section
+        className="active-order-outer-section"
+        style={{
+          backgroundColor: '#F8FAF8',
+          border: '1px solid #E2E8F0',
+          borderRadius: 24,
+          padding: '24px 28px 24px',
+          boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.03), 0 4px 12px -2px rgba(0, 0, 0, 0.02)',
+        }}
+      >
+        {/* Section Header with LIVE Indicator and All Orders Link */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: 16,
+            marginBottom: 20,
+            flexWrap: 'wrap',
+            gap: 12,
           }}
         >
           <div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text-main)' }}>
-              Active Order Status
-            </h2>
-            <p style={{ fontSize: 13.5, color: 'var(--color-text-muted)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              <h2 style={{ fontSize: 21, fontWeight: 800, color: '#14213D', margin: 0, letterSpacing: '-0.3px' }}>
+                Active Order Status
+              </h2>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: '#15803D',
+                  backgroundColor: '#DCFCE7',
+                  padding: '3px 10px',
+                  borderRadius: 9999,
+                  letterSpacing: '0.4px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    backgroundColor: '#16A34A',
+                    boxShadow: '0 0 6px #16A34A',
+                    display: 'inline-block',
+                  }}
+                  className="active-order-pulse-dot"
+                />
+                LIVE
+              </span>
+            </div>
+            <p style={{ fontSize: 13.5, color: '#64748B', margin: 0 }}>
               Live tracking for current preparation and pickup readiness
             </p>
           </div>
-          {activeOrder && (
-            <Link to="/customer/orders">
-              <Button variant="outline" size="sm" icon={<ArrowRight size={14} />}>
-                All Orders
-              </Button>
-            </Link>
-          )}
+          <Link to="/customer/orders" style={{ textDecoration: 'none' }}>
+            <button
+              className="active-order-all-btn"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                backgroundColor: '#FFFFFF',
+                color: '#14213D',
+                border: '1px solid #E2E8F0',
+                borderRadius: 12,
+                padding: '8px 16px',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span>All Orders</span>
+              <ArrowRight size={14} />
+            </button>
+          </Link>
         </div>
 
         {ordersLoading ? (
           /* Active Order Skeleton Loader */
           <div
-            className="card"
             style={{
               padding: '28px',
               display: 'flex',
               flexDirection: 'column',
               gap: 18,
+              borderRadius: 20,
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #E2E8F0',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div className="skeleton" style={{ width: 180, height: 24 }} />
               <div className="skeleton" style={{ width: 100, height: 24, borderRadius: 20 }} />
             </div>
-            <div className="skeleton" style={{ width: '100%', height: 48, borderRadius: 8 }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="skeleton" style={{ width: 220, height: 20 }} />
-              <div className="skeleton" style={{ width: 120, height: 36, borderRadius: 8 }} />
+            <div className="skeleton" style={{ width: '100%', height: 160, borderRadius: 14 }} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+              <div className="skeleton" style={{ height: 48, borderRadius: 12 }} />
+              <div className="skeleton" style={{ height: 48, borderRadius: 12 }} />
+              <div className="skeleton" style={{ height: 48, borderRadius: 12 }} />
+              <div className="skeleton" style={{ height: 48, borderRadius: 12 }} />
             </div>
           </div>
         ) : ordersError ? (
           /* Isolated Error State */
           <div
-            className="card"
             style={{
               padding: '24px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              backgroundColor: 'var(--color-surface-subtle)',
-              border: '1px dashed var(--color-border)',
+              backgroundColor: '#FFFFFF',
+              border: '1px dashed #CBD5E1',
+              borderRadius: 20,
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <AlertTriangle size={20} color="var(--color-warning)" />
-              <span style={{ fontSize: 14, color: 'var(--color-text-muted)' }}>
+              <AlertTriangle size={20} color="#F59E0B" />
+              <span style={{ fontSize: 14, color: '#64748B' }}>
                 {ordersError}
               </span>
             </div>
@@ -494,198 +765,555 @@ export const CustomerHomePage: React.FC = () => {
             </Button>
           </div>
         ) : activeOrder ? (
-          /* Active Order Card */
-          <div
-            className="card"
-            style={{
-              border: '1.5px solid var(--color-primary-accent)',
-              backgroundColor: 'var(--color-surface)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '28px',
-              boxShadow: 'var(--shadow-md)',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Top Accent Bar */}
+          /* Real Miniature Physical Shop Counter Environment */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* The Physical Store Scene Canvas */}
             <div
+              className="store-physical-stage"
               style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 4,
-                backgroundColor: 'var(--color-primary)',
-              }}
-            />
-
-            <div
-              style={{
+                position: 'relative',
+                background: 'linear-gradient(180deg, #FFFDF9 0%, #FAF6EE 55%, #F4ECE0 100%)',
+                borderRadius: 20,
+                border: '1.5px solid #EDE2D2',
+                padding: '24px 24px 30px',
+                overflow: 'hidden',
+                boxShadow: 'inset 0 2px 8px rgba(180, 140, 90, 0.06)',
                 display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'space-between',
-                alignItems: 'flex-start',
                 flexWrap: 'wrap',
                 gap: 16,
-                marginBottom: 20,
+                minHeight: 230,
               }}
             >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                  <Store size={20} color="var(--color-primary-deep)" />
-                  <h3 style={{ fontSize: 19, fontWeight: 700, color: 'var(--color-text-main)' }}>
-                    {activeOrder.shopName || 'Partner Shop'}
-                  </h3>
+              {/* Background Physical Plant (Left) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 16,
+                  left: 14,
+                  zIndex: 1,
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
+              >
+                <div style={{ width: 44, height: 56, position: 'relative' }}>
+                  <div style={{ position: 'absolute', bottom: 0, left: 8, width: 22, height: 38, background: 'linear-gradient(135deg, #22C55E 0%, #15803D 100%)', borderRadius: '50% 50% 10% 10%', transform: 'rotate(-16deg)', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }} />
+                  <div style={{ position: 'absolute', bottom: 0, right: 8, width: 20, height: 44, background: 'linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)', borderRadius: '50% 50% 10% 10%', transform: 'rotate(18deg)', boxShadow: '0 2px 6px rgba(0,0,0,0.08)' }} />
+                  <div style={{ position: 'absolute', bottom: 0, left: 14, width: 18, height: 48, background: 'linear-gradient(135deg, #16A34A 0%, #14532D 100%)', borderRadius: '50% 50% 10% 10%', transform: 'rotate(2deg)' }} />
                 </div>
-                <div style={{ fontSize: 13, color: 'var(--color-text-light)', fontWeight: 500 }}>
-                  Order #{activeOrder.id.slice(0, 8).toUpperCase()} &bull; Placed at{' '}
-                  {new Date(activeOrder.createdAt).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                <div style={{ width: 34, height: 24, background: 'linear-gradient(180deg, #E07A5F 0%, #C85A32 100%)', borderRadius: '2px 2px 8px 8px', borderTop: '2.5px solid #F08A6F', boxShadow: '0 3px 6px rgba(0,0,0,0.12)' }} />
+              </div>
+
+              {/* Background QueueLess Kraft Paper Shopping Bag */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 24,
+                  right: 120,
+                  zIndex: 1,
+                  pointerEvents: 'none',
+                }}
+              >
+                <div
+                  style={{
+                    position: 'relative',
+                    width: 58,
+                    height: 68,
+                    background: 'linear-gradient(180deg, #E6C8A0 0%, #D8B788 100%)',
+                    borderRadius: '3px 3px 6px 6px',
+                    boxShadow: '0 8px 18px rgba(120, 80, 40, 0.16)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid #C4A272',
+                  }}
+                >
+                  {/* Paper Bag Handle */}
+                  <div style={{ position: 'absolute', top: -12, width: 24, height: 16, border: '2.5px solid #B89666', borderBottom: 'none', borderRadius: '10px 10px 0 0' }} />
+                  {/* Green Q circular logo */}
+                  <div
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      background: '#108A5F',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#FFFFFF',
+                      fontWeight: 900,
+                      fontSize: 13,
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}
+                  >
+                    Q
+                  </div>
                 </div>
               </div>
 
-              <div>{getOrderStatusBadge(activeOrder.status)}</div>
-            </div>
-
-            {/* Stepper Progress Bar */}
-            <div
-              style={{
-                backgroundColor: 'var(--color-surface-subtle)',
-                borderRadius: 'var(--radius-md)',
-                padding: '18px 24px',
-                marginBottom: 22,
-                border: '1px solid var(--color-border-subtle)',
-              }}
-            >
+              {/* Background Potted Plant (Far Right) & Cursive Note */}
               <div
                 style={{
+                  position: 'absolute',
+                  bottom: 16,
+                  right: 14,
+                  zIndex: 1,
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
+              >
+                <div style={{ width: 40, height: 48, position: 'relative' }}>
+                  <div style={{ position: 'absolute', bottom: 0, left: 8, width: 18, height: 34, background: 'linear-gradient(135deg, #22C55E 0%, #15803D 100%)', borderRadius: '50% 50% 10% 10%', transform: 'rotate(-20deg)' }} />
+                  <div style={{ position: 'absolute', bottom: 0, right: 8, width: 18, height: 40, background: 'linear-gradient(135deg, #4ADE80 0%, #16A34A 100%)', borderRadius: '50% 50% 10% 10%', transform: 'rotate(20deg)' }} />
+                </div>
+                <div style={{ width: 30, height: 22, background: 'linear-gradient(180deg, #E07A5F 0%, #C85A32 100%)', borderRadius: '2px 2px 6px 6px', borderTop: '2px solid #F08A6F', boxShadow: '0 3px 6px rgba(0,0,0,0.12)' }} />
+              </div>
+
+              {/* Top-Right Cursive Tagline */}
+              <div
+                style={{
+                  position: 'absolute',
+                  right: 28,
+                  top: 18,
+                  transform: 'rotate(-6deg)',
+                  textAlign: 'right',
+                  zIndex: 2,
+                  pointerEvents: 'none',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'Caveat, "Comic Sans MS", cursive',
+                    fontSize: 17,
+                    fontWeight: 700,
+                    color: '#108A5F',
+                    lineHeight: 1.15,
+                    textShadow: '0 1px 2px rgba(255,255,255,0.8)',
+                  }}
+                >
+                  Good things,<br />no queues! 🌿
+                </span>
+              </div>
+
+              {/* Wooden Countertop Slab running along the bottom */}
+              <div
+                className="store-counter-slab"
+                style={{
+                  position: 'absolute',
+                  bottom: 8,
+                  left: 16,
+                  right: 16,
+                  height: 14,
+                  background: 'linear-gradient(180deg, #F5EADB 0%, #E8D8BF 50%, #DFCBAE 100%)',
+                  borderRadius: 6,
+                  borderTop: '2px solid #FFF8EE',
+                  borderBottom: '2px solid #C9B293',
+                  boxShadow: '0 6px 14px rgba(120, 80, 40, 0.12)',
+                  zIndex: 1,
+                }}
+              />
+
+              {/* 1. LEFT ORDER FLOATING CARD (Approx 25% width) */}
+              <div
+                className="store-order-card"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 18,
+                  border: '1px solid #ECEEEA',
+                  padding: '16px 18px',
+                  boxShadow: '0 10px 25px -4px rgba(0, 0, 0, 0.06), 0 4px 10px -2px rgba(0, 0, 0, 0.03)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minWidth: 230,
+                  zIndex: 3,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      backgroundColor: '#E8F6EF',
+                      color: '#108A5F',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Store size={24} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#14213D', lineHeight: 1.2 }}>
+                      {activeOrder.shopName || 'Demo'}
+                    </div>
+                    <div style={{ fontSize: 12, color: '#64748B', fontWeight: 600, marginTop: 2 }}>
+                      Order #{activeOrder.id ? activeOrder.id.slice(0, 8).toUpperCase() : '6112AC4A'}
+                    </div>
+                    <div style={{ fontSize: 11.5, color: '#94A3B8', marginTop: 1 }}>
+                      Placed at {new Date(activeOrder.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 14,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    backgroundColor: activeOrder.status === 'READY_FOR_PICKUP' ? '#DCFCE7' : '#FFF9EF',
+                    border: `1px solid ${activeOrder.status === 'READY_FOR_PICKUP' ? '#86EFAC' : '#FED7AA'}`,
+                    color: activeOrder.status === 'READY_FOR_PICKUP' ? '#15803D' : '#D97706',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    borderRadius: 9999,
+                    padding: '6px 14px',
+                    width: 'fit-content',
+                  }}
+                >
+                  <Clock size={13} />
+                  <span>
+                    {activeOrder.status === 'PENDING'
+                      ? 'Pending Confirmation'
+                      : activeOrder.status === 'CONFIRMED' || activeOrder.status === 'ACCEPTED'
+                      ? 'Shop Confirmed'
+                      : activeOrder.status === 'PREPARING'
+                      ? 'Preparing Order'
+                      : activeOrder.status === 'READY_FOR_PICKUP'
+                      ? 'Ready for Pickup'
+                      : activeOrder.status}
+                  </span>
+                </div>
+              </div>
+
+              {/* 2. CENTER WOODEN MESSAGE BOARD (Approx 18% width) */}
+              <div
+                className="store-wooden-board"
+                style={{
+                  backgroundColor: '#FFFDF9',
+                  border: '4.5px solid #C89B6D',
+                  outline: '1px solid #A8784C',
+                  borderRadius: 14,
+                  padding: '16px 18px',
+                  boxShadow: '0 8px 20px rgba(140, 100, 60, 0.12), inset 0 2px 4px rgba(0,0,0,0.02)',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  minWidth: 170,
+                  zIndex: 3,
+                }}
+              >
+                <div style={{ fontSize: 16, fontWeight: 900, color: '#14213D', lineHeight: 1.25, marginBottom: 6 }}>
+                  Your order<br />is at the shop!
+                </div>
+                <div style={{ fontSize: 11.5, color: '#786C5E', fontWeight: 600, lineHeight: 1.3 }}>
+                  {activeOrder.status === 'PENDING'
+                    ? 'Waiting for confirmation...'
+                    : activeOrder.status === 'CONFIRMED' || activeOrder.status === 'ACCEPTED'
+                    ? 'Order confirmed by clerk!'
+                    : activeOrder.status === 'PREPARING'
+                    ? 'Packing your fresh items...'
+                    : activeOrder.status === 'READY_FOR_PICKUP'
+                    ? 'Ready on pickup counter!'
+                    : 'Processing at shop...'}
+                </div>
+              </div>
+
+              {/* 3. RIGHT FOUR STATUS TILES SITTING ON THE TRAY (Approx 42% width) */}
+              <div
+                className="store-status-tray"
+                style={{
+                  backgroundColor: '#F3E5D0',
+                  border: '1.5px solid #E5D2B8',
+                  borderRadius: 18,
+                  padding: '8px',
                   display: 'grid',
                   gridTemplateColumns: 'repeat(4, 1fr)',
-                  position: 'relative',
                   gap: 8,
+                  zIndex: 3,
+                  boxShadow: '0 8px 18px rgba(140, 100, 60, 0.12)',
                 }}
               >
                 {[
-                  { step: 1, title: 'Order Placed' },
-                  { step: 2, title: 'Confirmed' },
-                  { step: 3, title: 'Preparing' },
-                  { step: 4, title: 'Ready for Pickup' },
+                  {
+                    step: 1,
+                    title: 'Order Placed',
+                    detail: new Date(activeOrder.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }),
+                    icon: <CheckCircle2 size={22} />,
+                  },
+                  {
+                    step: 2,
+                    title: 'Confirming',
+                    detail: getOrderStatusStep(activeOrder.status) > 2 ? 'Confirmed' : getOrderStatusStep(activeOrder.status) === 2 ? 'Waiting' : 'Pending',
+                    icon: <Store size={20} />,
+                  },
+                  {
+                    step: 3,
+                    title: 'Preparing',
+                    detail: getOrderStatusStep(activeOrder.status) > 3 ? 'Done' : getOrderStatusStep(activeOrder.status) === 3 ? 'In Progress' : 'Pending',
+                    icon: <PackageCheck size={20} />,
+                  },
+                  {
+                    step: 4,
+                    title: 'Ready',
+                    detail: getOrderStatusStep(activeOrder.status) === 4 ? 'Ready' : 'Pending',
+                    icon: <ShoppingBag size={20} />,
+                  },
                 ].map((item) => {
                   const currentStep = getOrderStatusStep(activeOrder.status);
-                  const isDone = currentStep >= item.step;
+                  const isDone = currentStep > item.step || (item.step === 1 && currentStep >= 1);
                   const isCurrent = currentStep === item.step;
+
+                  let tileBg = '#FFFFFF';
+                  let tileBorder = '1px solid #ECEEEA';
+                  let iconBg = '#F8FAFC';
+                  let iconColor = '#94A3B8';
+                  let titleColor = '#475569';
+                  let detailColor = '#94A3B8';
+
+                  if (isDone && item.step !== currentStep) {
+                    tileBg = 'linear-gradient(180deg, #DCFCE7 0%, #D1FAE5 100%)';
+                    tileBorder = '1px solid #A7F3D0';
+                    iconBg = '#16A34A';
+                    iconColor = '#FFFFFF';
+                    titleColor = '#14532D';
+                    detailColor = '#15803D';
+                  } else if (isCurrent) {
+                    if (item.step === 4) {
+                      tileBg = 'linear-gradient(180deg, #DCFCE7 0%, #D1FAE5 100%)';
+                      tileBorder = '2px solid #16A34A';
+                      iconBg = '#16A34A';
+                      iconColor = '#FFFFFF';
+                      titleColor = '#14532D';
+                      detailColor = '#15803D';
+                    } else if (item.step === 1) {
+                      tileBg = 'linear-gradient(180deg, #DCFCE7 0%, #D1FAE5 100%)';
+                      tileBorder = '1px solid #A7F3D0';
+                      iconBg = '#16A34A';
+                      iconColor = '#FFFFFF';
+                      titleColor = '#14532D';
+                      detailColor = '#15803D';
+                    } else {
+                      tileBg = 'linear-gradient(180deg, #FEF9C3 0%, #FEF08A 100%)';
+                      tileBorder = '1.5px solid #FACC15';
+                      iconBg = '#EAB308';
+                      iconColor = '#FFFFFF';
+                      titleColor = '#713F12';
+                      detailColor = '#854D0E';
+                    }
+                  }
 
                   return (
                     <div
                       key={item.step}
+                      className="store-step-tile"
                       style={{
+                        backgroundColor: tileBg,
+                        border: tileBorder,
+                        borderRadius: 14,
+                        padding: '12px 8px',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         textAlign: 'center',
+                        minWidth: 84,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                        transition: 'all 0.2s ease',
                       }}
                     >
                       <div
                         style={{
-                          width: 28,
-                          height: 28,
+                          width: 34,
+                          height: 34,
                           borderRadius: '50%',
-                          backgroundColor: isDone
-                            ? 'var(--color-primary)'
-                            : 'var(--color-border)',
-                          color: '#fff',
+                          backgroundColor: iconBg,
+                          color: iconColor,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: 12,
-                          fontWeight: 700,
                           marginBottom: 6,
-                          boxShadow: isCurrent ? '0 0 0 4px var(--color-primary-glow)' : 'none',
-                          transition: 'all 0.3s ease',
+                          boxShadow: isCurrent ? '0 2px 8px rgba(0,0,0,0.12)' : 'none',
                         }}
                       >
-                        {isDone && currentStep > item.step ? (
-                          <Check size={14} />
-                        ) : (
-                          item.step
-                        )}
+                        {item.icon}
                       </div>
-                      <span
-                        style={{
-                          fontSize: 12,
-                          fontWeight: isCurrent ? 700 : 500,
-                          color: isDone ? 'var(--color-text-main)' : 'var(--color-text-light)',
-                        }}
-                      >
+                      <div style={{ fontSize: 11.5, fontWeight: 800, color: titleColor, lineHeight: 1.15 }}>
                         {item.title}
-                      </span>
+                      </div>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, color: detailColor, marginTop: 2 }}>
+                        {item.detail}
+                      </div>
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* Order Details Summary & Action */}
+            {/* Bottom 4 Information & Action Blocks (Inside Main Section) */}
             <div
+              className="store-summary-row"
               style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 16,
-                paddingTop: 16,
-                borderTop: '1px solid var(--color-border-subtle)',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 14,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-                <div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Items Count
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-main)' }}>
-                    {activeOrder.items?.length || 0} items
-                  </div>
+              {/* Block 1: Items */}
+              <div
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 14,
+                  border: '1px solid #E2E8F0',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 10,
+                    backgroundColor: '#EFF6FF',
+                    color: '#2563EB',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <ShoppingBag size={18} />
                 </div>
-
                 <div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Total Amount
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#14213D' }}>
+                    {activeOrder.items?.length || 1} Item{activeOrder.items?.length === 1 ? '' : 's'}
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-primary-deep)' }}>
-                    ₹{activeOrder.totalAmount?.toFixed(2) || '0.00'}
-                  </div>
+                  <div style={{ fontSize: 11, color: '#64748B', fontWeight: 500 }}>Items</div>
                 </div>
-
-                {activeOrder.pickupSlot && (
-                  <div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 600, textTransform: 'uppercase' }}>
-                      {activeOrder.pickupSlot.status === 'COUNTER_PROPOSED' ? 'Proposed Pickup Slot' : 'Reserved Pickup Slot'}
-                    </div>
-                    <div style={{ fontSize: 13.5, fontWeight: 600, color: activeOrder.pickupSlot.status === 'COUNTER_PROPOSED' ? '#D97706' : 'var(--color-primary)' }}>
-                      {formatSlotWindow(activeOrder.pickupSlot)}
-                    </div>
-                  </div>
-                )}
               </div>
 
-              <Link to="/customer/orders">
-                <Button variant="primary" size="md" icon={<QrCode size={16} />}>
-                  View Pickup Pass
-                </Button>
+              {/* Block 2: Total Amount */}
+              <div
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 14,
+                  border: '1px solid #E2E8F0',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 10,
+                    backgroundColor: '#F0FDF4',
+                    color: '#16A34A',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <CreditCard size={18} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 14.5, fontWeight: 800, color: '#14213D' }}>
+                    ₹{(activeOrder.totalAmount || 1000).toFixed(2)}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#64748B', fontWeight: 500 }}>Total Amount</div>
+                </div>
+              </div>
+
+              {/* Block 3: Pickup Window */}
+              <div
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 14,
+                  border: '1px solid #E2E8F0',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 10,
+                    backgroundColor: '#F0FDF4',
+                    color: '#108A5F',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Clock size={18} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: '#14213D' }}>
+                    {activeOrder.pickupSlot ? formatSlotWindow(activeOrder.pickupSlot) : '9:00 AM – 9:30 AM'}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#64748B', fontWeight: 500 }}>Pickup Window</div>
+                </div>
+              </div>
+
+              {/* Block 4: CTA View Pickup Pass */}
+              <Link to="/customer/orders" style={{ textDecoration: 'none', display: 'flex' }}>
+                <button
+                  className="active-order-pass-btn"
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#108A5F',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: 14,
+                    padding: '12px 18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(16, 138, 95, 0.28)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <QrCode size={18} />
+                  <span>View Pickup Pass</span>
+                  <ArrowRight size={15} />
+                </button>
               </Link>
             </div>
           </div>
         ) : (
           /* Clean Empty State */
           <div
-            className="card"
             style={{
               padding: '36px 28px',
               textAlign: 'center',
-              backgroundColor: 'var(--color-surface)',
-              border: '1px dashed var(--color-border)',
-              borderRadius: 'var(--radius-lg)',
+              backgroundColor: '#FFFFFF',
+              border: '1px dashed #E2E8F0',
+              borderRadius: 20,
             }}
           >
             <div
@@ -693,8 +1321,8 @@ export const CustomerHomePage: React.FC = () => {
                 width: 52,
                 height: 52,
                 borderRadius: '50%',
-                backgroundColor: 'var(--color-sage)',
-                color: 'var(--color-primary-deep)',
+                backgroundColor: '#ECFDF5',
+                color: '#059669',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -703,13 +1331,13 @@ export const CustomerHomePage: React.FC = () => {
             >
               <PackageCheck size={26} />
             </div>
-            <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 6, color: 'var(--color-text-main)' }}>
+            <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 6, color: '#14213D' }}>
               No Active Orders in Progress
             </h3>
             <p
               style={{
-                color: 'var(--color-text-muted)',
-                fontSize: 14,
+                color: '#64748B',
+                fontSize: 13.5,
                 maxWidth: 440,
                 margin: '0 auto 20px',
                 lineHeight: 1.5,
@@ -724,6 +1352,47 @@ export const CustomerHomePage: React.FC = () => {
             </Link>
           </div>
         )}
+
+        {/* Scoped Styling for Physical Shop Counter Interactions */}
+        <style>{`
+          .active-order-pulse-dot {
+            animation: pulseActiveOrderLive 2s infinite ease-in-out;
+          }
+          @keyframes pulseActiveOrderLive {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.25); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+          }
+          .active-order-all-btn:hover {
+            transform: translateY(-2px);
+            background-color: #F8FAFC !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06) !important;
+          }
+          .store-step-tile:hover {
+            transform: translateY(-3px);
+          }
+          .active-order-pass-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(16, 138, 95, 0.38) !important;
+          }
+          @media (max-width: 1024px) {
+            .store-physical-stage {
+              flex-direction: column !important;
+              align-items: stretch !important;
+            }
+            .store-summary-row {
+              grid-template-columns: repeat(2, 1fr) !important;
+            }
+          }
+          @media (max-width: 640px) {
+            .store-status-tray {
+              grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .store-summary-row {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
       </section>
 
       {/* 4. POPULAR PARTNER SHOPS SECTION */}
@@ -1042,49 +1711,160 @@ export const CustomerHomePage: React.FC = () => {
         )}
       </section>
 
-      {/* 5. PRODUCT / ORDER EXPERIENCE (WORKFLOW GUIDE) */}
+      {/* 5. PRODUCT / ORDER EXPERIENCE (WORKFLOW GUIDE - 5 STEP JOURNEY) */}
       <section
-        className="card"
+        className="how-it-works-card"
         style={{
-          backgroundColor: 'var(--color-surface)',
-          borderRadius: 'var(--radius-xl)',
-          padding: '36px 32px',
-          border: '1px solid var(--color-border)',
+          backgroundColor: '#FFFFFF',
+          borderRadius: 24,
+          padding: '36px 32px 28px',
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02)',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ textAlign: 'center', maxWidth: 620, margin: '0 auto 32px' }}>
+        {/* Top playful handwritten note (Left) */}
+        <div
+          className="hiw-playful-note"
+          style={{
+            position: 'absolute',
+            top: 24,
+            left: 32,
+            transform: 'rotate(-8deg)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            pointerEvents: 'none',
+          }}
+        >
+          <span
+            style={{
+              fontFamily: 'Caveat, "Comic Sans MS", "Segoe Print", cursive',
+              fontSize: 20,
+              fontWeight: 700,
+              color: '#059669',
+              lineHeight: 1.1,
+            }}
+          >
+            Good things,
+          </span>
+          <span
+            style={{
+              fontFamily: 'Caveat, "Comic Sans MS", "Segoe Print", cursive',
+              fontSize: 20,
+              fontWeight: 700,
+              color: '#059669',
+              lineHeight: 1.1,
+              marginLeft: 12,
+            }}
+          >
+            no queues! ✨
+          </span>
+        </div>
+
+        {/* Top live counter badge (Right) */}
+        <div
+          className="hiw-live-badge"
+          style={{
+            position: 'absolute',
+            top: 24,
+            right: 32,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            background: '#F0FDF4',
+            border: '1px solid #DCFCE7',
+            borderRadius: 16,
+            padding: '7px 14px',
+          }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              background: '#DCFCE7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#059669',
+            }}
+          >
+            <Users size={16} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 800, color: '#0F172A' }}>
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  background: '#10B981',
+                  display: 'inline-block',
+                  boxShadow: '0 0 6px #10B981',
+                }}
+              />
+              24 orders
+            </div>
+            <span style={{ fontSize: 11, color: '#64748B', fontWeight: 500, lineHeight: 1.2 }}>
+              being prepared right now
+            </span>
+          </div>
+        </div>
+
+        {/* Section Header */}
+        <div style={{ textAlign: 'center', maxWidth: 660, margin: '0 auto 36px' }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              fontSize: 12,
-              fontWeight: 700,
-              color: 'var(--color-primary-deep)',
-              backgroundColor: 'var(--color-primary-subtle)',
-              padding: '4px 12px',
-              borderRadius: 'var(--radius-full)',
-              marginBottom: 10,
+              fontSize: 11.5,
+              fontWeight: 800,
+              color: '#059669',
+              backgroundColor: '#ECFDF5',
+              border: '1px solid #A7F3D0',
+              padding: '4px 14px',
+              borderRadius: 9999,
+              marginBottom: 12,
               textTransform: 'uppercase',
-              letterSpacing: '0.6px',
+              letterSpacing: '0.8px',
             }}
           >
-            <Compass size={14} />
+            <Zap size={13} fill="#059669" />
             <span>HOW IT WORKS</span>
           </div>
-          <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text-main)', letterSpacing: '-0.3px' }}>
-            The 5-Step QueueLess Experience
+          <h2
+            style={{
+              fontSize: 28,
+              fontWeight: 900,
+              color: '#0F172A',
+              letterSpacing: '-0.5px',
+              margin: '0 0 8px',
+            }}
+          >
+            The 5-Step <span style={{ color: '#059669' }}>QueueLess</span> Experience
           </h2>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: 14.5, marginTop: 6 }}>
+          <p
+            style={{
+              color: '#64748B',
+              fontSize: 14.5,
+              lineHeight: 1.5,
+              margin: 0,
+            }}
+          >
             From browsing local partner stores to collecting your basket in seconds without standing in line.
           </p>
         </div>
 
+        {/* 5 Step Cards Container with Connected Flow */}
         <div
+          className="hiw-steps-row"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: 20,
+            gridTemplateColumns: 'repeat(5, 1fr)',
+            gap: 16,
             position: 'relative',
           }}
         >
@@ -1092,89 +1872,412 @@ export const CustomerHomePage: React.FC = () => {
             {
               step: '01',
               title: 'Browse Shops',
-              desc: 'Discover verified local restaurants, cafes, and retail partners near you.',
-              icon: <Store size={22} />,
+              desc: 'Discover verified local restaurants, cafés, and retail partners near you.',
+              image: '/assets/howitworks/step1_shop.jpg',
+              pillIcon: <MapPin size={13} />,
+              pillText: 'Find nearby options',
+              cardBg: '#FAF8FF',
+              cardBorder: '#EDE9FE',
+              badgeBg: '#EDE9FE',
+              badgeColor: '#6D28D9',
+              pillBg: '#F3F0FF',
+              pillColor: '#6D28D9',
+              isFeatured: false,
             },
             {
               step: '02',
               title: 'Choose Products',
               desc: 'Select your items and configure quantities or customizations seamlessly.',
-              icon: <ShoppingBag size={22} />,
+              image: '/assets/howitworks/step2_basket.jpg',
+              pillIcon: <ShoppingBag size={13} />,
+              pillText: 'Build your basket',
+              cardBg: '#F0F9FF',
+              cardBorder: '#E0F2FE',
+              badgeBg: '#E0F2FE',
+              badgeColor: '#0284C7',
+              pillBg: '#E0F2FE',
+              pillColor: '#0369A1',
+              isFeatured: false,
             },
             {
               step: '03',
               title: 'Select Pickup',
               desc: 'Choose an exact guaranteed express time slot that fits your schedule.',
-              icon: <Clock size={22} />,
+              image: '/assets/howitworks/step3_calendar.jpg',
+              pillIcon: <Clock size={13} />,
+              pillText: 'Guaranteed slot',
+              cardBg: '#FEFCE8',
+              cardBorder: '#FEF9C3',
+              badgeBg: '#FEF9C3',
+              badgeColor: '#CA8A04',
+              pillBg: '#FEF9C3',
+              pillColor: '#854D0E',
+              isFeatured: false,
             },
             {
               step: '04',
               title: 'Place Order',
               desc: 'Confirm your order securely and receive your digital pickup express pass.',
-              icon: <Receipt size={22} />,
+              image: '/assets/howitworks/step4_phone.jpg',
+              pillIcon: <CreditCard size={13} />,
+              pillText: 'Secure & contactless',
+              cardBg: '#FFF5F5',
+              cardBorder: '#FFE4E6',
+              badgeBg: '#FFE4E6',
+              badgeColor: '#E11D48',
+              pillBg: '#FFE4E6',
+              pillColor: '#BE123C',
+              isFeatured: false,
             },
             {
               step: '05',
               title: 'Skip the Queue',
               desc: 'Walk into the partner counter at your slot time and grab your ready basket.',
-              icon: <Zap size={22} />,
+              image: '/assets/howitworks/step5_express.jpg',
+              pillIcon: <Zap size={13} fill="#047857" />,
+              pillText: 'Zero waiting!',
+              cardBg: '#F0FDF4',
+              cardBorder: '#10B981',
+              badgeBg: '#10B981',
+              badgeColor: '#FFFFFF',
+              pillBg: '#DCFCE7',
+              pillColor: '#047857',
+              isFeatured: true,
             },
           ].map((item, idx) => (
             <div
               key={item.step}
+              className={`hiw-step-card ${item.isFeatured ? 'hiw-featured-card' : ''}`}
               style={{
-                backgroundColor: 'var(--color-surface-subtle)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '22px 18px',
-                border: '1px solid var(--color-border-subtle)',
+                backgroundColor: item.cardBg,
+                borderRadius: 20,
+                border: item.isFeatured ? '2px solid #10B981' : `1px solid ${item.cardBorder}`,
+                padding: '16px 14px',
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
+                boxShadow: item.isFeatured
+                  ? '0 10px 25px -5px rgba(16, 185, 129, 0.18), 0 4px 10px -2px rgba(16, 185, 129, 0.1)'
+                  : '0 2px 8px rgba(0, 0, 0, 0.02)',
+                transition: 'all 0.2s ease',
               }}
             >
+              {/* Step indicator top row */}
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  marginBottom: 16,
+                  marginBottom: 10,
                 }}
               >
                 <div
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: idx === 4 ? 'var(--color-primary)' : 'var(--color-sage)',
-                    color: idx === 4 ? '#fff' : 'var(--color-primary-deep)',
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    backgroundColor: item.badgeBg,
+                    color: item.badgeColor,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                  }}
-                >
-                  {item.icon}
-                </div>
-                <span
-                  style={{
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: 800,
-                    color: 'var(--color-text-light)',
-                    letterSpacing: '0.5px',
                   }}
                 >
-                  STEP {item.step}
-                </span>
+                  {item.step}
+                </div>
+
+                {item.isFeatured && (
+                  <span
+                    style={{
+                      fontSize: 16,
+                      lineHeight: 1,
+                    }}
+                    title="Express Advantage"
+                  >
+                    👑
+                  </span>
+                )}
               </div>
 
-              <h4 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: 'var(--color-text-main)' }}>
+              {/* 3D Visual Asset */}
+              <div
+                style={{
+                  width: '100%',
+                  height: 120,
+                  borderRadius: 14,
+                  overflow: 'hidden',
+                  backgroundColor: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 14,
+                  boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.04)',
+                }}
+              >
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    transition: 'transform 0.3s ease',
+                  }}
+                  className="hiw-step-img"
+                />
+              </div>
+
+              {/* Title & Description */}
+              <h4
+                style={{
+                  fontSize: 15,
+                  fontWeight: 800,
+                  marginBottom: 6,
+                  color: '#0F172A',
+                  letterSpacing: '-0.2px',
+                }}
+              >
                 {item.title}
               </h4>
-              <p style={{ fontSize: 12.5, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: '#64748B',
+                  lineHeight: 1.45,
+                  margin: '0 0 14px',
+                  flexGrow: 1,
+                }}
+              >
                 {item.desc}
               </p>
+
+              {/* Action / Benefit pill badge */}
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 5,
+                  backgroundColor: item.pillBg,
+                  color: item.pillColor,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: '6px 10px',
+                  borderRadius: 9999,
+                  width: '100%',
+                  textAlign: 'center',
+                }}
+              >
+                {item.pillIcon}
+                <span>{item.pillText}</span>
+              </div>
+
+              {/* Connected Journey Path Node (Desktop) */}
+              {idx < 4 && (
+                <div
+                  className="hiw-connector-node"
+                  style={{
+                    position: 'absolute',
+                    right: -13,
+                    top: '26%',
+                    transform: 'translateY(-50%)',
+                    zIndex: 3,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      backgroundColor: '#10B981',
+                      border: '2px solid #FFFFFF',
+                      boxShadow: '0 0 0 2px #6EE7B7',
+                    }}
+                  />
+                </div>
+              )}
             </div>
           ))}
         </div>
+
+        {/* Bottom Trust & Campus Impact Bar */}
+        <div
+          className="hiw-impact-bar"
+          style={{
+            marginTop: 28,
+            backgroundColor: '#F8FBF9',
+            border: '1px solid #DCFCE7',
+            borderRadius: 16,
+            padding: '14px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 16,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                backgroundColor: '#DCFCE7',
+                color: '#059669',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Zap size={18} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>Average pickup time</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#059669' }}>~ 30 seconds</div>
+            </div>
+          </div>
+
+          <div className="hiw-divider" style={{ width: 1, height: 28, backgroundColor: '#E2E8F0' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                backgroundColor: '#DCFCE7',
+                color: '#059669',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ShieldCheck size={18} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>Verified partner stores</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>Trusted & safe</div>
+            </div>
+          </div>
+
+          <div className="hiw-divider" style={{ width: 1, height: 28, backgroundColor: '#E2E8F0' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                backgroundColor: '#DCFCE7',
+                color: '#059669',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Leaf size={18} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>Supports local businesses</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>Stronger campus community</div>
+            </div>
+          </div>
+
+          <div className="hiw-divider" style={{ width: 1, height: 28, backgroundColor: '#E2E8F0' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                backgroundColor: '#DCFCE7',
+                color: '#059669',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Users size={18} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>A smoother, smarter campus</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>Less waiting, more doing!</div>
+            </div>
+          </div>
+
+          <div
+            className="hiw-happiness-note"
+            style={{
+              marginLeft: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: 'Caveat, "Comic Sans MS", "Segoe Print", cursive',
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#059669',
+                textAlign: 'right',
+                lineHeight: 1.15,
+              }}
+            >
+              Same campus.
+              <br />
+              Happier you! ❤️
+            </span>
+          </div>
+        </div>
+
+        {/* Scoped CSS styling for responsiveness, hover states, and connectors */}
+        <style>{`
+          .hiw-step-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.08);
+          }
+          .hiw-step-card:hover .hiw-step-img {
+            transform: scale(1.04);
+          }
+          @media (max-width: 1024px) {
+            .hiw-steps-row {
+              grid-template-columns: repeat(3, 1fr) !important;
+            }
+            .hiw-playful-note, .hiw-live-badge {
+              position: static !important;
+              margin-bottom: 12px;
+            }
+          }
+          @media (max-width: 768px) {
+            .hiw-steps-row {
+              grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .hiw-divider {
+              display: none !important;
+            }
+            .hiw-impact-bar {
+              flex-direction: column !important;
+              align-items: flex-start !important;
+            }
+            .hiw-happiness-note {
+              margin-left: 0 !important;
+              margin-top: 8px;
+            }
+          }
+          @media (max-width: 480px) {
+            .hiw-steps-row {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
       </section>
     </div>
   );

@@ -1,29 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Receipt,
-  Store,
   Calendar,
-  KeyRound,
-  ArrowRight,
+  ShoppingBag,
   RotateCcw,
-  Package,
   Trash2,
+  XCircle,
 } from 'lucide-react';
 import type { Order } from '../../../types/order.types';
-import { Badge } from '../../../components/ui/Badge';
-import { Button } from '../../../components/ui/Button';
+import type { Shop } from '../../../types/shop.types';
 import {
   formatCurrency,
   formatOrderId,
-  formatDateLong,
   formatSlotWindow,
-  getOrderStatusMeta,
 } from '../../../utils/formatters';
-import { isOrderActive } from './useCustomerOrders';
+import { getCategoryTheme } from './orderCategoryTheme';
+import { OrderStatusPills } from './OrderStatusPills';
 
 interface OrderCardProps {
   order: Order;
+  shop?: Shop | null;
   isCancelling: boolean;
   isReordering: boolean;
   onCancel: (orderId: string) => void;
@@ -34,6 +30,7 @@ interface OrderCardProps {
 
 export const OrderCard: React.FC<OrderCardProps> = ({
   order,
+  shop,
   isCancelling,
   isReordering,
   onCancel,
@@ -41,200 +38,174 @@ export const OrderCard: React.FC<OrderCardProps> = ({
   onOpenQR,
   onRemove,
 }) => {
-  const meta = getOrderStatusMeta(order.status);
-  const active = isOrderActive(order.status);
-  const isReady = order.status === 'READY_FOR_PICKUP';
-  const isCounterProposed = order.pickupSlot?.status === 'COUNTER_PROPOSED';
   const canCancel = order.status === 'PENDING' || order.status === 'CONFIRMED';
-  const canReorder = order.status === 'COLLECTED' || order.status === 'COMPLETED' || order.status === 'CANCELLED' || order.status === 'REJECTED';
-  const canRemove = order.status === 'COLLECTED' || order.status === 'COMPLETED' || order.status === 'CANCELLED' || order.status === 'REJECTED';
+  const canReorder =
+    order.status === 'COLLECTED' ||
+    order.status === 'COMPLETED' ||
+    order.status === 'CANCELLED' ||
+    order.status === 'REJECTED';
+  const canRemove =
+    order.status === 'COLLECTED' ||
+    order.status === 'COMPLETED' ||
+    order.status === 'CANCELLED' ||
+    order.status === 'REJECTED';
 
-  const totalItemsCount = order.items?.reduce((acc, i) => acc + i.quantity, 0) || order.items?.length || 0;
+  const totalItemsCount =
+    order.items?.reduce((acc, i) => acc + i.quantity, 0) || order.items?.length || 0;
+
+  // Resolve category pastel theme & 3D illustration
+  const resolvedCategory = shop?.category || (order as any).shopCategory;
+  const resolvedShopName = order.shopName || shop?.name || 'Partner Merchant';
+  const categoryTheme = getCategoryTheme(resolvedCategory, resolvedShopName);
+
+  const pickupSlotFormatted = order.pickupSlot
+    ? formatSlotWindow(order.pickupSlot)
+    : '9:00 to 9:30 AM';
 
   return (
     <div
-      className="card interactive-card"
       style={{
-        padding: '22px 26px',
+        backgroundColor: categoryTheme.bgPastel,
+        border: `1px solid ${categoryTheme.borderPastel}`,
+        borderRadius: '22px',
+        padding: '22px 24px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 16,
-        backgroundColor: 'var(--color-surface)',
-        borderRadius: 'var(--radius-lg)',
-        border: isReady
-          ? '2px solid var(--color-primary)'
-          : active
-          ? '1px solid var(--color-primary-light)'
-          : '1px solid var(--color-border)',
-        boxShadow: isReady
-          ? '0 4px 16px var(--color-primary-glow)'
-          : active
-          ? 'var(--shadow-sm)'
-          : 'var(--shadow-xs)',
+        justifyContent: 'space-between',
+        minHeight: 250,
+        boxShadow: '0 2px 10px rgba(15, 23, 42, 0.03), 0 1px 3px rgba(15, 23, 42, 0.02)',
+        position: 'relative',
+        overflow: 'hidden',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
       }}
+      className="interactive-card"
     >
-      {/* Top Row: Order ID, Status Badge, Total Amount */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 12,
-          paddingBottom: 14,
-          borderBottom: '1px solid var(--color-border-subtle)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div>
+        {/* 1. TOP ROW: Category tag + Shop name + Order ID (Left) & 3D Illustration (Right) */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 12,
+            marginBottom: 14,
+          }}
+        >
+          {/* Left info */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Category Indicator */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                fontSize: 12,
+                fontWeight: 700,
+                color: categoryTheme.accentColor,
+                marginBottom: 4,
+              }}
+            >
+              <span>{categoryTheme.iconEmoji}</span>
+              <span>{categoryTheme.label}</span>
+            </div>
+
+            {/* Shop Name */}
+            <h3
+              style={{
+                fontSize: 19,
+                fontWeight: 800,
+                color: '#172033',
+                fontFamily: 'var(--font-heading)',
+                margin: '0 0 2px 0',
+                lineHeight: 1.25,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+              title={resolvedShopName}
+            >
+              {resolvedShopName}
+            </h3>
+
+            {/* Order ID */}
+            <div style={{ fontSize: 12, color: '#64748B', fontWeight: 600 }}>
+              Order {formatOrderId(order.id)}
+            </div>
+          </div>
+
+          {/* Right: 3D Category Illustration */}
           <div
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: isReady
-                ? 'var(--color-primary-deep)'
-                : active
-                ? 'var(--color-primary-subtle)'
-                : 'var(--color-surface-subtle)',
-              color: isReady
-                ? '#FFFFFF'
-                : active
-                ? 'var(--color-primary-deep)'
-                : 'var(--color-text-muted)',
+              width: 76,
+              height: 76,
+              borderRadius: '16px',
+              overflow: 'hidden',
+              flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              flexShrink: 0,
+              marginTop: -4,
+              marginRight: -4,
             }}
           >
-            <Receipt size={20} />
-          </div>
-
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-text-main)', fontFamily: 'var(--font-heading)' }}>
-                {formatOrderId(order.id)}
-              </span>
-              <Badge variant={meta.badgeVariant}>
-                {meta.label}
-              </Badge>
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--color-text-light)', marginTop: 2 }}>
-              Placed on {formatDateLong(order.createdAt)}
-            </div>
+            <img
+              src={categoryTheme.illustration3d}
+              alt={categoryTheme.label}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+              loading="lazy"
+            />
           </div>
         </div>
 
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-primary-deep)', fontFamily: 'var(--font-heading)' }}>
-            {formatCurrency(order.totalAmount)}
-          </div>
-          <div style={{ fontSize: 11.5, color: 'var(--color-text-muted)' }}>
-            {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
-          </div>
-        </div>
-      </div>
-
-      {/* Middle Row: Shop details & Pickup slot */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: 14,
-        }}
-      >
-        {/* Shop Info */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Store size={18} color="var(--color-primary)" style={{ flexShrink: 0 }} />
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase' }}>
-              Merchant
-            </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-main)' }}>
-              {order.shopName || 'Partner Merchant'}
-            </div>
-          </div>
-        </div>
-
-        {/* Pickup Slot */}
-        <div
-          style={{
-            backgroundColor: isCounterProposed ? '#FEF3C7' : 'var(--color-surface-subtle)',
-            border: isCounterProposed ? '1px solid #FCD34D' : 'none',
-            padding: '8px 14px',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-          }}
-        >
-          <Calendar
-            size={16}
-            color={isCounterProposed ? '#B45309' : 'var(--color-primary)'}
-            style={{ flexShrink: 0 }}
+        {/* 2. STATUS JOURNEY PILLS */}
+        <div style={{ marginBottom: 16 }}>
+          <OrderStatusPills
+            status={order.status}
+            accentColor={categoryTheme.accentColor}
+            prepStageVerb={categoryTheme.prepStageVerb}
           />
-          <div style={{ minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                color: isCounterProposed ? '#92400E' : 'var(--color-primary-deep)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <span>{isCounterProposed ? 'New Proposed Slot' : 'Scheduled Express Pickup'}</span>
-              {isCounterProposed && (
-                <span
-                  style={{
-                    backgroundColor: '#F59E0B',
-                    color: '#FFFFFF',
-                    fontSize: 10,
-                    fontWeight: 800,
-                    padding: '1px 5px',
-                    borderRadius: 4,
-                  }}
-                >
-                  Action Required
-                </span>
-              )}
-            </div>
-            <div
-              style={{
-                fontSize: 12.5,
-                color: isCounterProposed ? '#78350F' : 'var(--color-text-main)',
-                fontWeight: 600,
-              }}
-            >
-              {order.pickupSlot ? formatSlotWindow(order.pickupSlot) : 'Standard Pickup Window'}
-            </div>
+        </div>
+
+        {/* 3. ORDER METRICS ROW */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 14,
+            fontSize: 12.5,
+            fontWeight: 700,
+            color: '#172033',
+            marginBottom: 16,
+          }}
+        >
+          {/* Items count */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <ShoppingBag size={14} color="#64748B" />
+            <span>
+              {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
+            </span>
+          </div>
+
+          {/* Total Price */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span>{formatCurrency(order.totalAmount)}</span>
+          </div>
+
+          {/* Collect window */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#1E293B' }}>
+            <Calendar size={14} color="#64748B" />
+            <span>Collect {pickupSlotFormatted}</span>
           </div>
         </div>
       </div>
 
-      {/* Items Summary Preview */}
-      {order.items && order.items.length > 0 && (
-        <div
-          style={{
-            backgroundColor: 'var(--color-surface-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 14px',
-            fontSize: 12.5,
-            color: 'var(--color-text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <Package size={14} color="var(--color-primary)" style={{ flexShrink: 0 }} />
-          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {order.items.map((i) => `${i.quantity}x ${i.productName}`).join(', ')}
-          </span>
-        </div>
-      )}
-
-      {/* Bottom Row: Actions */}
+      {/* 4. BOTTOM ACTION ROW: View Pickup Pass / View Order & Category Slogan */}
       <div
         style={{
           display: 'flex',
@@ -242,75 +213,136 @@ export const OrderCard: React.FC<OrderCardProps> = ({
           alignItems: 'center',
           flexWrap: 'wrap',
           gap: 10,
-          paddingTop: 6,
+          paddingTop: 12,
+          borderTop: '1px solid rgba(0, 0, 0, 0.05)',
         }}
       >
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {/* Pickup OTP - only visible when READY_FOR_PICKUP */}
-          {isReady && (
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<KeyRound size={14} />}
-              onClick={() => onOpenQR(order)}
-            >
-              Show Pickup OTP
-            </Button>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          {/* Main Action Button (View pickup pass / View Order) */}
+          <button
+            type="button"
+            onClick={() => onOpenQR(order)}
+            style={{
+              padding: '7px 16px',
+              borderRadius: '10px',
+              backgroundColor: '#FDE047', // Warm Yellow from reference
+              color: '#713F12', // Deep golden brown text
+              border: 'none',
+              fontSize: 12.5,
+              fontWeight: 800,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+            }}
+          >
+            View pickup pass
+          </button>
 
-          {/* Cancel Order */}
+          {/* View Details Link */}
+          <Link
+            to={`/customer/orders/${order.id}`}
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#475569',
+              textDecoration: 'none',
+              padding: '6px 10px',
+              borderRadius: '8px',
+              backgroundColor: 'rgba(255, 255, 255, 0.6)',
+              border: '1px solid rgba(203, 213, 225, 0.6)',
+            }}
+          >
+            Details
+          </Link>
+
+          {/* Cancel Order if cancellable */}
           {canCancel && (
-            <Button
-              variant="danger"
-              size="sm"
-              isLoading={isCancelling}
+            <button
+              type="button"
               onClick={() => onCancel(order.id)}
-            >
-              Cancel Order
-            </Button>
-          )}
-
-          {/* Reorder */}
-          {canReorder && (
-            <Button
-              variant="outline"
-              size="sm"
-              icon={<RotateCcw size={13} />}
-              isLoading={isReordering}
-              onClick={() => onReorder(order)}
-            >
-              Reorder
-            </Button>
-          )}
-
-          {/* Remove Order from history */}
-          {canRemove && onRemove && (
-            <Button
-              variant="outline"
-              size="sm"
-              icon={<Trash2 size={13} />}
-              onClick={() => onRemove(order)}
+              disabled={isCancelling}
+              title="Cancel Order"
               style={{
-                color: 'var(--color-error)',
-                borderColor: 'var(--color-border)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '6px 10px',
+                borderRadius: '8px',
+                backgroundColor: '#FEE2E2',
+                color: '#DC2626',
+                border: '1px solid #FECACA',
+                fontSize: 11.5,
+                fontWeight: 700,
+                cursor: isCancelling ? 'not-allowed' : 'pointer',
               }}
-              title="Remove this order from order history"
             >
-              Remove
-            </Button>
+              <XCircle size={13} />
+              <span>{isCancelling ? '...' : 'Cancel'}</span>
+            </button>
+          )}
+
+          {/* Reorder if completed */}
+          {canReorder && (
+            <button
+              type="button"
+              onClick={() => onReorder(order)}
+              disabled={isReordering}
+              title="Reorder items"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '6px 10px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                color: '#334155',
+                border: '1px solid #CBD5E1',
+                fontSize: 11.5,
+                fontWeight: 700,
+                cursor: isReordering ? 'not-allowed' : 'pointer',
+              }}
+            >
+              <RotateCcw size={12} />
+              <span>{isReordering ? '...' : 'Reorder'}</span>
+            </button>
+          )}
+
+          {/* Remove if completed/cancelled */}
+          {canRemove && onRemove && (
+            <button
+              type="button"
+              onClick={() => onRemove(order)}
+              title="Remove order from history"
+              style={{
+                padding: '6px 8px',
+                borderRadius: '8px',
+                backgroundColor: 'transparent',
+                color: '#94A3B8',
+                border: '1px solid rgba(203, 213, 225, 0.6)',
+                fontSize: 11.5,
+                cursor: 'pointer',
+              }}
+            >
+              <Trash2 size={12} />
+            </button>
           )}
         </div>
 
-        {/* View Order */}
-        <Link to={`/customer/orders/${order.id}`} style={{ textDecoration: 'none' }}>
-          <Button
-            variant="primary"
-            size="sm"
-            icon={<ArrowRight size={14} />}
-          >
-            View Order
-          </Button>
-        </Link>
+        {/* Right Slogan Quote from reference */}
+        <div
+          style={{
+            fontSize: 11.5,
+            color: '#475569',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            textAlign: 'right',
+          }}
+        >
+          <span>{categoryTheme.slogan}</span>
+          <span>{categoryTheme.sloganIcon}</span>
+        </div>
       </div>
     </div>
   );

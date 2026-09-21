@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { orderService } from '../../../services/orderService';
 import { cartService } from '../../../services/cartService';
+import { shopService } from '../../../services/shopService';
 import type { Order, OrderStatus } from '../../../types/order.types';
+import type { Shop } from '../../../types/shop.types';
 
 export type OrderFilterTab = 'ALL' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
 
@@ -21,6 +23,7 @@ export const isOrderCancelled = (status: OrderStatus): boolean => {
 export const useCustomerOrders = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [shopsMap, setShopsMap] = useState<Record<string, Shop>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<OrderFilterTab>('ALL');
@@ -45,8 +48,24 @@ export const useCustomerOrders = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await orderService.getCustomerOrders(0, 50);
-      setOrders(response?.content || []);
+      const [ordersResponse, shopsList] = await Promise.allSettled([
+        orderService.getCustomerOrders(0, 50),
+        shopService.getActiveShops(),
+      ]);
+
+      if (ordersResponse.status === 'fulfilled') {
+        setOrders(ordersResponse.value?.content || []);
+      } else {
+        throw ordersResponse.reason;
+      }
+
+      if (shopsList.status === 'fulfilled' && Array.isArray(shopsList.value)) {
+        const map: Record<string, Shop> = {};
+        shopsList.value.forEach((s) => {
+          if (s.id) map[s.id] = s;
+        });
+        setShopsMap(map);
+      }
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to load your orders. Please try again.');
     } finally {
@@ -136,6 +155,7 @@ export const useCustomerOrders = () => {
 
   return {
     orders,
+    shopsMap,
     filteredOrders,
     counts,
     loading,
