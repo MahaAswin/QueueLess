@@ -33,6 +33,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { CartNotification } from '../../components/ui/CartNotification';
 import { ErrorState } from '../../components/feedback/ErrorState';
+import { getShopImage } from '../../utils/shopImageUtils';
 import { EmptyState } from '../../components/feedback/EmptyState';
 import { ShopDetailSkeleton } from './ShopDetailSkeleton';
 
@@ -512,7 +513,7 @@ export const ShopDetailsPage: React.FC = () => {
             >
               {shop.imageUrl ? (
                 <img
-                  src={shop.imageUrl}
+                  src={getShopImage(shop)}
                   alt={shopName}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />

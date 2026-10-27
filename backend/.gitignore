@@ -40,3 +40,8 @@ build/
 application-local.properties
 *.log
 .DS_Store
+
+### Uploads ###
+uploads/*
+!uploads/shops/shop_6d077f57c95f455cb87b260f2a4ea317_1789919519929.jpg
+

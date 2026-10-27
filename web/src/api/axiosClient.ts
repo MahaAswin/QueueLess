@@ -2,7 +2,8 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { tokenStorage } from '../utils/storage';
 import type { AuthResponse } from '../types/auth.types';
 
-const BASE_URL = import.meta.env.VITE_API_URL || '';
+const rawBaseUrl = (import.meta.env.VITE_API_URL || '').trim();
+const BASE_URL = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

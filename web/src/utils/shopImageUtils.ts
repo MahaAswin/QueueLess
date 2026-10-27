@@ -138,7 +138,14 @@ export const getShopImage = (shop?: Partial<Shop> | null): string => {
     return CATEGORY_DEFAULT_IMAGES.OTHER;
   }
   if (shop.imageUrl && typeof shop.imageUrl === 'string' && shop.imageUrl.trim().length > 0) {
-    return shop.imageUrl.trim();
+    const trimmed = shop.imageUrl.trim();
+    if (trimmed.startsWith('/api/uploads') || trimmed.startsWith('uploads/')) {
+      const rawBaseUrl = (import.meta.env.VITE_API_URL || '').trim();
+      const baseUrl = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+      const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+      return `${baseUrl}${path}`;
+    }
+    return trimmed;
   }
   return getCategoryDefaultImage(shop.category);
 };

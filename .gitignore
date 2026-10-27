@@ -46,3 +46,9 @@ application-local.properties
 .DS_Store
 Thumbs.db
 ehthumbs.db
+
+# User uploads & runtime storage
+uploads/*
+backend/uploads/*
+!backend/uploads/shops/shop_6d077f57c95f455cb87b260f2a4ea317_1789919519929.jpg
+
