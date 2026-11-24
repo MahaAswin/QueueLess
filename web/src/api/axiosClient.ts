@@ -7,7 +7,7 @@ const BASE_URL = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
-  timeout: 15000,
+  timeout: 60000, // 60 seconds to accommodate Render free tier cold starts
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',

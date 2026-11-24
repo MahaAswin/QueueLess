@@ -38,7 +38,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final CustomUserDetailsService userDetailsService;
 
-    @Value("${queueless.cors.allowed-origins:http://localhost:3000,http://localhost:5173,http://localhost:8080}")
+    @Value("${queueless.cors.allowed-origins:https://queueless-rho-snowy.vercel.app,http://localhost:3000,http://localhost:5173,http://localhost:8080}")
     private String allowedOrigins;
 
     @Bean
@@ -86,6 +86,7 @@ public class SecurityConfig {
 
         if (origins.isEmpty()) {
             origins = List.of(
+                    "https://queueless-rho-snowy.vercel.app",
                     "http://localhost:3000",
                     "http://localhost:5173",
                     "http://localhost:8080"

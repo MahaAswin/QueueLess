@@ -6,6 +6,7 @@ import type { Role } from '../../types/auth.types';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { getRoleHomeRoute } from '../../utils/auth';
+import { getApiErrorMessage } from '../../utils/errors';
 
 export const RegisterPage: React.FC = () => {
   const { register } = useAuth();
@@ -39,9 +40,8 @@ export const RegisterPage: React.FC = () => {
       });
 
       navigate(getRoleHomeRoute(user.role), { replace: true });
-    } catch (err: any) {
-      const message = err.response?.data?.message || err.message || 'Registration failed. Please verify your details.';
-      setErrorMsg(message);
+    } catch (err: unknown) {
+      setErrorMsg(getApiErrorMessage(err, 'Registration failed. Please verify your details and try again.'));
     } finally {
       setIsSubmitting(false);
     }

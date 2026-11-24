@@ -49,7 +49,7 @@ export const getApiErrorMessage = (
     // Network / Offline / Timeout failure
     if (!error.response) {
       if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-        return 'Request timed out. The server took too long to respond. Please try again.';
+        return 'Server took too long to respond. The free-tier instance may be waking up from sleep. Please wait a moment and try again.';
       }
       return 'Unable to reach the server. Please check your network connection and try again.';
     }

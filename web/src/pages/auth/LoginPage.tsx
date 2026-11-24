@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { getRoleHomeRoute, isRouteAllowedForRole } from '../../utils/auth';
+import { getApiErrorMessage } from '../../utils/errors';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
@@ -38,18 +39,8 @@ export const LoginPage: React.FC = () => {
         : roleHome;
 
       navigate(targetPath, { replace: true });
-    } catch (err: any) {
-      let message = err.response?.data?.message;
-      if (!message) {
-        if (err.response?.status === 401 || err.response?.status === 403) {
-          message = 'Invalid email or password. Please check your credentials or create an account.';
-        } else if (err.message) {
-          message = err.message;
-        } else {
-          message = 'Unable to sign in. Please try again.';
-        }
-      }
-      setErrorMsg(message);
+    } catch (err: unknown) {
+      setErrorMsg(getApiErrorMessage(err, 'Invalid email or password. Please check your credentials or create an account.'));
     } finally {
       setIsSubmitting(false);
     }

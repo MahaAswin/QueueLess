@@ -54,6 +54,19 @@ class CorsSecurityIntegrationTest {
     }
 
     @Test
+    @DisplayName("OPTIONS preflight from production Vercel origin succeeds with 200 and CORS headers")
+    void optionsPreflight_fromProductionVercelOrigin_succeeds() throws Exception {
+        mockMvc.perform(options("/api/auth/register")
+                        .header(HttpHeaders.ORIGIN, "https://queueless-rho-snowy.vercel.app")
+                        .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.POST.name())
+                        .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "Authorization, Content-Type, Accept, Origin"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "https://queueless-rho-snowy.vercel.app"))
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("POST")))
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true"));
+    }
+
+    @Test
     @DisplayName("OPTIONS preflight to protected endpoint without JWT succeeds with 200 OK")
     void optionsPreflight_toProtectedEndpoint_withoutToken_succeeds() throws Exception {
         mockMvc.perform(options("/api/admin/settings")

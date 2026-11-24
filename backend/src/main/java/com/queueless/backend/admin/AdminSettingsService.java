@@ -42,7 +42,7 @@ public class AdminSettingsService {
     @Value("${queueless.jwt.refresh-token-expiration-ms:604800000}")
     private long jwtRefreshTokenExpirationMs;
 
-    @Value("${queueless.cors.allowed-origins:http://localhost:3000,http://localhost:5173,http://localhost:8080}")
+    @Value("${queueless.cors.allowed-origins:https://queueless-rho-snowy.vercel.app,http://localhost:3000,http://localhost:5173,http://localhost:8080}")
     private String corsAllowedOrigins;
 
     @Transactional(readOnly = true)
