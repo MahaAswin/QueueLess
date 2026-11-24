@@ -76,24 +76,36 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        List<String> origins = Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(s -> s.replaceAll("^[\"']|[\"']$", ""))
-                .map(s -> s.endsWith("/") ? s.substring(0, s.length() - 1) : s)
-                .filter(s -> !s.isEmpty())
-                .toList();
+        List<String> origins = new java.util.ArrayList<>(
+                Arrays.stream(allowedOrigins.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .map(s -> s.replaceAll("^[\"']|[\"']$", ""))
+                        .map(s -> s.endsWith("/") ? s.substring(0, s.length() - 1) : s)
+                        .filter(s -> !s.isEmpty())
+                        .toList()
+        );
 
-        if (origins.isEmpty()) {
-            origins = List.of(
-                    "https://queueless-rho-snowy.vercel.app",
-                    "http://localhost:3000",
-                    "http://localhost:5173",
-                    "http://localhost:8080"
-            );
+        // Always guarantee production Vercel frontend is included regardless of Render env vars
+        String productionVercelOrigin = "https://queueless-rho-snowy.vercel.app";
+        if (!origins.contains(productionVercelOrigin)) {
+            origins.add(productionVercelOrigin);
         }
 
+        // Also permit local development origins
+        List.of("http://localhost:3000", "http://localhost:5173", "http://localhost:8080").forEach(loc -> {
+            if (!origins.contains(loc)) {
+                origins.add(loc);
+            }
+        });
+
         configuration.setAllowedOrigins(origins);
+        // Also support origin patterns to dynamically reflect the origin and support credentials
+        configuration.setAllowedOriginPatterns(List.of(
+                "https://*.vercel.app",
+                "http://localhost:*",
+                "http://127.0.0.1:*"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of(
                 "Authorization",
@@ -102,14 +114,11 @@ public class SecurityConfig {
                 "Origin",
                 "X-Requested-With",
                 "Access-Control-Request-Method",
-                "Access-Control-Request-Headers"
+                "Access-Control-Request-Headers",
+                "*"
         ));
         configuration.setExposedHeaders(List.of("Authorization"));
-
-        // Wildcard origin cannot be used with allowCredentials(true) under CORS specification
-        boolean hasWildcardOrigin = origins.stream().anyMatch("*"::equals);
-        configuration.setAllowCredentials(!hasWildcardOrigin);
-
+        configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
