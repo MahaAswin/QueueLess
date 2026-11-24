@@ -45,8 +45,8 @@ const CATEGORY_META: Record<
   GROCERY: {
     label: 'Grocery',
     icon: <ShoppingBag size={14} />,
-    color: '#0D5C3A',
-    bgColor: '#E8F5EE',
+    color: '#0F5132',
+    bgColor: '#F0FDF4',
   },
   RESTAURANT: {
     label: 'Restaurant',

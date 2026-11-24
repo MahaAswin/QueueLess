@@ -1,43 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Brand Colors */
-  --color-primary-deep: #0D5C3A;
-  --color-primary: #127C4E;
-  --color-primary-light: #2E9B66;
-  --color-primary-accent: #34D399;
-  --color-primary-subtle: #E8F5EE;
-  --color-primary-glow: rgba(18, 124, 78, 0.16);
+  /* ==========================================================================
+     Centralized Color Palette Tokens
+     ========================================================================== */
+  --color-primary: #0F5132;             /* Main buttons, headings, active sidebar icon, brand text */
+  --color-primary-hover: #0B3D26;       /* Primary button & link hover */
+  --color-accent: #22C55E;              /* Highlights, badges, active states, links, success */
+  --color-bg: #FBF6EC;                  /* Page canvas, header & sidebar background */
+  --color-surface: #FFFFFF;             /* Cards, tables, modals and surface panels */
+  --color-border: #EADFC8;              /* Card, header, sidebar and input borders (1px) */
+  --color-text: #1F2937;                /* Primary readable body text */
+  --color-text-muted: #6B7280;          /* Secondary descriptive text & labels */
+  --color-tint: #F0FDF4;                /* Soft green tint chips, tags, light fills */
+  --color-tint-border: #BBF7D0;         /* Soft green tint border */
+  --color-active-sidebar-bg: #DCFCE7;   /* Active sidebar item background */
 
-  /* Warm Sage Accents */
-  --color-sage: #DDEEE4;
-  --color-light-sage: #F3F8F5;
+  /* Aliases & Supporting Tokens for Full App Compatibility */
+  --color-primary-deep: #0B3D26;
+  --color-primary-light: #157347;
+  --color-primary-accent: #22C55E;
+  --color-primary-subtle: #F0FDF4;
+  --color-primary-glow: rgba(15, 81, 50, 0.18);
+  --color-emerald-ink: #0F5132;
 
-  /* Surfaces & Backgrounds */
-  --color-bg: #F8FAF9;
-  --color-surface: #FFFFFF;
-  --color-surface-hover: #F1F6F3;
-  --color-surface-active: #E8F2EC;
+  --color-champagne: #FBF6EC;
+  --color-champagne-light: #FDFBF7;
+  --color-champagne-deep: #EADFC8;
+  --color-sage: #F0FDF4;
+  --color-light-sage: #FBF6EC;
+
+  --color-surface-hover: #FDF9F0;
+  --color-surface-active: #F7EFE1;
   --color-surface-card: #FFFFFF;
-  --color-surface-subtle: #F8FAFC;
+  --color-surface-subtle: #FBF6EC;
 
-  /* Typography Colors */
-  --color-text-main: #0F172A;
-  --color-text-muted: #475569;
-  --color-text-light: #94A3B8;
+  --color-text-main: var(--color-text);
+  --color-text-light: var(--color-text-muted);
   --color-text-white: #FFFFFF;
+  --color-text-champagne: #FFFFFF;
 
   /* Semantic Status Colors */
-  --color-success: #16A34A;
-  --color-success-bg: #DCFCE7;
+  --color-success: #0F5132;
+  --color-success-bg: #F0FDF4;
   --color-success-border: #BBF7D0;
-  
-  --color-warning: #D97706;
+
+  --color-warning: #B45309;
   --color-warning-bg: #FEF3C7;
   --color-warning-border: #FDE68A;
 
   --color-error: #DC2626;
-  --color-error-bg: #FEE2E2;
+  --color-error-bg: #FEF2F2;
   --color-error-border: #FECACA;
 
   --color-info: #0284C7;
@@ -45,9 +58,8 @@
   --color-info-border: #BAE6FD;
 
   /* Borders & Dividers */
-  --color-border: #E2E8F0;
-  --color-border-subtle: #F1F5F9;
-  --color-border-focus: #127C4E;
+  --color-border-subtle: #F2E9DA;
+  --color-border-focus: #0F5132;
 
   /* Elevation Shadows */
   --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
@@ -108,19 +120,19 @@ html, body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  color: var(--color-text-main);
+  color: var(--color-primary);
   font-weight: 700;
   line-height: 1.25;
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--color-accent);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 
 a:hover {
-  color: var(--color-primary-deep);
+  color: var(--color-primary);
 }
 
 button {
@@ -136,14 +148,14 @@ input, select, textarea {
 
 /* Glassmorphic Effects */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--color-border);
 }
 
 .glass-header {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(251, 246, 236, 0.96);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--color-border);
@@ -159,7 +171,7 @@ input, select, textarea {
 
 .app-sidebar {
   width: var(--sidebar-width);
-  background-color: var(--color-surface);
+  background-color: var(--color-bg);
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
@@ -205,7 +217,7 @@ input, select, textarea {
 
 .app-header {
   height: var(--header-height);
-  background-color: var(--color-surface);
+  background-color: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
@@ -315,14 +327,18 @@ input, select, textarea {
 }
 
 .nav-link:hover {
-  background-color: var(--color-surface-hover);
-  color: var(--color-text-main);
+  background-color: var(--color-tint);
+  color: var(--color-primary);
 }
 
 .nav-link.active {
-  background-color: var(--color-primary-subtle);
-  color: var(--color-primary-deep);
+  background-color: var(--color-active-sidebar-bg); /* #DCFCE7 */
+  color: var(--color-primary); /* #0F5132 */
   font-weight: 600;
+}
+
+.nav-link.active .nav-icon {
+  color: var(--color-primary); /* #0F5132 */
 }
 
 .nav-icon {
@@ -439,36 +455,65 @@ input, select, textarea {
 
 .btn-primary {
   background-color: var(--color-primary);
-  color: var(--color-text-white);
+  color: #FFFFFF;
+  border: 1.5px solid var(--color-primary);
   box-shadow: 0 2px 8px var(--color-primary-glow);
 }
 
 .btn-primary:hover {
-  background-color: var(--color-primary-deep);
-  color: var(--color-text-white);
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+  color: #FFFFFF;
   box-shadow: 0 4px 14px var(--color-primary-glow);
   transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background-color: var(--color-sage);
-  color: var(--color-primary-deep);
+  background-color: #FFFFFF;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-accent);
 }
 
 .btn-secondary:hover {
-  background-color: #D2E7DC;
-  color: var(--color-primary-deep);
+  background-color: var(--color-tint);
+  color: var(--color-primary-hover);
+  border-color: var(--color-accent);
 }
 
 .btn-outline {
   background-color: transparent;
-  color: var(--color-text-main);
+  color: var(--color-text);
   border: 1px solid var(--color-border);
 }
 
 .btn-outline:hover {
-  background-color: var(--color-surface-hover);
-  border-color: var(--color-text-light);
+  background-color: var(--color-tint);
+  border-color: var(--color-border);
+  color: var(--color-primary);
+}
+
+.hero-btn-primary {
+  background-color: var(--color-primary) !important;
+  color: #FFFFFF !important;
+  border: 1.5px solid var(--color-primary) !important;
+}
+
+.hero-btn-primary:hover {
+  background-color: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover) !important;
+  transform: translateY(-1px);
+}
+
+.hero-btn-secondary {
+  background-color: #FFFFFF !important;
+  color: var(--color-primary) !important;
+  border: 1.5px solid var(--color-accent) !important;
+}
+
+.hero-btn-secondary:hover {
+  background-color: var(--color-tint) !important;
+  color: var(--color-primary-hover) !important;
+  transform: translateY(-1px);
 }
 
 .btn-danger {
@@ -544,8 +589,9 @@ input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-primary-subtle);
+  background-color: var(--color-tint);
   color: var(--color-primary);
+  border: 1px solid var(--color-tint-border);
 }
 
 /* Data Table */
@@ -564,7 +610,7 @@ input, select, textarea {
 }
 
 .data-table th {
-  background-color: var(--color-surface-subtle);
+  background-color: var(--color-bg);
   color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 600;
@@ -578,7 +624,7 @@ input, select, textarea {
   padding: 16px 20px;
   border-bottom: 1px solid var(--color-border-subtle);
   font-size: 14px;
-  color: var(--color-text-main);
+  color: var(--color-text);
 }
 
 .data-table tr:last-child td {
@@ -602,9 +648,9 @@ input, select, textarea {
 }
 
 .badge-success {
-  background-color: var(--color-success-bg);
-  color: var(--color-success);
-  border: 1px solid var(--color-success-border);
+  background-color: var(--color-tint);
+  color: var(--color-primary);
+  border: 1px solid var(--color-tint-border);
 }
 
 .badge-warning {
@@ -626,8 +672,9 @@ input, select, textarea {
 }
 
 .badge-neutral {
-  background-color: var(--color-sage);
-  color: var(--color-primary-deep);
+  background-color: var(--color-tint);
+  color: var(--color-primary);
+  border: 1px solid var(--color-tint-border);
 }
 
 /* Form Inputs */
@@ -639,7 +686,7 @@ input, select, textarea {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-main);
+  color: var(--color-text);
   margin-bottom: 6px;
 }
 
@@ -649,19 +696,19 @@ input, select, textarea {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: 14px;
-  color: var(--color-text-main);
+  color: var(--color-text);
   background-color: var(--color-surface);
   transition: all var(--transition-fast);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: var(--color-border-focus);
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-glow);
 }
 
 .form-input::placeholder {
-  color: var(--color-text-light);
+  color: var(--color-text-muted);
 }
 
 /* Responsive Grid Utilities */

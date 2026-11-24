@@ -82,7 +82,7 @@ export const QueueLessLogo: React.FC<QueueLessLogoProps> = ({
             style={{
               fontSize: dimensions.sub,
               fontWeight: 700,
-              color: subtitleColor || 'var(--color-primary-deep, #0D5C3A)',
+              color: subtitleColor || 'var(--color-primary, #0F5132)',
               letterSpacing: '1px',
               textTransform: 'uppercase',
             }}
@@ -141,7 +141,7 @@ export const QueueLessLogo: React.FC<QueueLessLogoProps> = ({
             fontFamily: 'var(--font-heading, inherit)',
             fontWeight: 800,
             fontSize: dimensions.title,
-            color: textColor || 'var(--color-primary-deep, #0D5C3A)',
+            color: textColor || 'var(--color-primary, #0F5132)',
             letterSpacing: '-0.3px',
             lineHeight: 1.15,
           }}
@@ -153,7 +153,7 @@ export const QueueLessLogo: React.FC<QueueLessLogoProps> = ({
             style={{
               fontSize: dimensions.sub,
               fontWeight: 700,
-              color: subtitleColor || 'var(--color-text-light, #64748B)',
+              color: subtitleColor || 'var(--color-text-muted, #6B7280)',
               letterSpacing: '0.8px',
               textTransform: 'uppercase',
               lineHeight: 1.2,

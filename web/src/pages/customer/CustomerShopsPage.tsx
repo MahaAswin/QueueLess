@@ -300,7 +300,7 @@ export const CustomerShopsPage: React.FC = () => {
             'linear-gradient(135deg, #FFFFFF 0%, var(--color-light-sage) 60%, var(--color-sage) 100%)',
           borderRadius: 'var(--radius-2xl)',
           padding: '32px 36px',
-          border: '1px solid rgba(221, 238, 228, 0.8)',
+          border: '1px solid var(--color-border)',
           boxShadow: 'var(--shadow-sm)',
           position: 'relative',
           overflow: 'hidden',

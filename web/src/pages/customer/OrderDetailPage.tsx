@@ -186,7 +186,6 @@ export const OrderDetailPage: React.FC = () => {
               size="md"
               icon={<KeyRound size={16} />}
               onClick={() => setShowQRModal(true)}
-              style={{ backgroundColor: '#0D5C3A' }}
             >
               Show Pickup OTP
             </Button>
@@ -334,7 +333,6 @@ export const OrderDetailPage: React.FC = () => {
               isLoading={proposalLoading}
               onClick={handleAcceptProposal}
               icon={<Check size={16} />}
-              style={{ backgroundColor: '#0D5C3A' }}
             >
               Accept Proposed Time
             </Button>
@@ -693,7 +691,7 @@ export const OrderDetailPage: React.FC = () => {
               <Button
                 variant="primary"
                 size="md"
-                style={{ width: '100%', justifyContent: 'center', backgroundColor: '#0D5C3A' }}
+                style={{ width: '100%', justifyContent: 'center' }}
                 icon={<KeyRound size={16} />}
                 onClick={() => setShowQRModal(true)}
               >

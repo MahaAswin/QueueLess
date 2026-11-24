@@ -330,7 +330,7 @@ export const FeaturedOrderJourney: React.FC<FeaturedOrderJourneyProps> = ({
             style={{
               fontSize: 12.5,
               fontWeight: 800,
-              color: '#0D5C3A',
+              color: 'var(--color-primary)',
               lineHeight: 1.25,
             }}
           >

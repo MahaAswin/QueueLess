@@ -196,7 +196,7 @@ export const ShopOwnerSidebar: React.FC<ShopOwnerSidebarProps> = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: isExpanded ? 10 : 8,
-          backgroundColor: 'var(--color-surface-subtle)',
+          backgroundColor: 'var(--color-bg)',
         }}
       >
         {isExpanded ? (
@@ -207,8 +207,9 @@ export const ShopOwnerSidebar: React.FC<ShopOwnerSidebarProps> = ({
                   width: 36,
                   height: 36,
                   borderRadius: 'var(--radius-full)',
-                  backgroundColor: 'var(--color-sage)',
-                  color: 'var(--color-primary-deep)',
+                  backgroundColor: 'var(--color-tint)',
+                  color: 'var(--color-primary)',
+                  border: '1px solid var(--color-tint-border)',
                   fontWeight: 700,
                   fontSize: 14,
                   display: 'flex',
@@ -224,7 +225,7 @@ export const ShopOwnerSidebar: React.FC<ShopOwnerSidebarProps> = ({
                   style={{
                     fontSize: 13,
                     fontWeight: 600,
-                    color: 'var(--color-text-main)',
+                    color: 'var(--color-text)',
                     whiteSpace: 'nowrap',
                     textOverflow: 'ellipsis',
                     overflow: 'hidden',
@@ -235,7 +236,7 @@ export const ShopOwnerSidebar: React.FC<ShopOwnerSidebarProps> = ({
                 <div
                   style={{
                     fontSize: 11,
-                    color: 'var(--color-text-light)',
+                    color: 'var(--color-text-muted)',
                     whiteSpace: 'nowrap',
                     textOverflow: 'ellipsis',
                     overflow: 'hidden',
@@ -286,8 +287,9 @@ export const ShopOwnerSidebar: React.FC<ShopOwnerSidebarProps> = ({
                 width: 38,
                 height: 38,
                 borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-sage)',
-                color: 'var(--color-primary-deep)',
+                backgroundColor: 'var(--color-tint)',
+                color: 'var(--color-primary)',
+                border: '1px solid var(--color-tint-border)',
                 fontWeight: 700,
                 fontSize: 14,
                 display: 'flex',

@@ -227,7 +227,7 @@ export const AdminLayout: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: isExpanded ? 10 : 8,
-            backgroundColor: 'var(--color-surface-subtle)',
+            backgroundColor: 'var(--color-bg)',
           }}
         >
           {isExpanded ? (
@@ -238,8 +238,9 @@ export const AdminLayout: React.FC = () => {
                     width: 36,
                     height: 36,
                     borderRadius: 'var(--radius-full)',
-                    backgroundColor: '#E0F2FE',
-                    color: '#0369A1',
+                    backgroundColor: 'var(--color-tint)',
+                    color: 'var(--color-primary)',
+                    border: '1px solid var(--color-tint-border)',
                     fontWeight: 700,
                     fontSize: 14,
                     display: 'flex',
@@ -255,7 +256,7 @@ export const AdminLayout: React.FC = () => {
                     style={{
                       fontSize: 13,
                       fontWeight: 600,
-                      color: 'var(--color-text-main)',
+                      color: 'var(--color-text)',
                       whiteSpace: 'nowrap',
                       textOverflow: 'ellipsis',
                       overflow: 'hidden',
@@ -266,7 +267,7 @@ export const AdminLayout: React.FC = () => {
                   <div
                     style={{
                       fontSize: 11,
-                      color: 'var(--color-text-light)',
+                      color: 'var(--color-text-muted)',
                       whiteSpace: 'nowrap',
                       textOverflow: 'ellipsis',
                       overflow: 'hidden',
@@ -317,8 +318,9 @@ export const AdminLayout: React.FC = () => {
                   width: 38,
                   height: 38,
                   borderRadius: 'var(--radius-full)',
-                  backgroundColor: '#E0F2FE',
-                  color: '#0369A1',
+                  backgroundColor: 'var(--color-tint)',
+                  color: 'var(--color-primary)',
+                  border: '1px solid var(--color-tint-border)',
                   fontWeight: 700,
                   fontSize: 14,
                   display: 'flex',

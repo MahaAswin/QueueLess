@@ -49,8 +49,9 @@ import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage';
 // Shared Error Pages
 import { ForbiddenPage } from '../pages/shared/ForbiddenPage';
 import { NotFoundPage } from '../pages/shared/NotFoundPage';
+import { LandingHeroPage } from '../pages/LandingHeroPage';
 
-// Root Redirect Handler
+// Root Entry Handler: Displays Hero page for visitors, Dashboard for logged-in users
 const RootRedirect: React.FC = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
@@ -58,11 +59,11 @@ const RootRedirect: React.FC = () => {
     return null;
   }
 
-  if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />;
+  if (isAuthenticated && user) {
+    return <Navigate to={getRoleHomeRoute(user.role)} replace />;
   }
 
-  return <Navigate to={getRoleHomeRoute(user.role)} replace />;
+  return <LandingHeroPage />;
 };
 
 export const AppRoutes: React.FC = () => {

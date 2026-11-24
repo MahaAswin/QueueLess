@@ -258,7 +258,7 @@ export const CustomerLayout: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: isExpanded ? 10 : 8,
-            backgroundColor: 'var(--color-surface-subtle)',
+            backgroundColor: 'var(--color-bg)',
           }}
         >
           {isExpanded ? (
@@ -269,8 +269,9 @@ export const CustomerLayout: React.FC = () => {
                     width: 36,
                     height: 36,
                     borderRadius: 'var(--radius-full)',
-                    backgroundColor: 'var(--color-sage)',
-                    color: 'var(--color-primary-deep)',
+                    backgroundColor: 'var(--color-tint)',
+                    color: 'var(--color-primary)',
+                    border: '1px solid var(--color-tint-border)',
                     fontWeight: 700,
                     fontSize: 14,
                     display: 'flex',
@@ -286,7 +287,7 @@ export const CustomerLayout: React.FC = () => {
                     style={{
                       fontSize: 13,
                       fontWeight: 600,
-                      color: 'var(--color-text-main)',
+                      color: 'var(--color-text)',
                       whiteSpace: 'nowrap',
                       textOverflow: 'ellipsis',
                       overflow: 'hidden',
@@ -297,7 +298,7 @@ export const CustomerLayout: React.FC = () => {
                   <div
                     style={{
                       fontSize: 11,
-                      color: 'var(--color-text-light)',
+                      color: 'var(--color-text-muted)',
                       whiteSpace: 'nowrap',
                       textOverflow: 'ellipsis',
                       overflow: 'hidden',
@@ -348,8 +349,9 @@ export const CustomerLayout: React.FC = () => {
                   width: 38,
                   height: 38,
                   borderRadius: 'var(--radius-full)',
-                  backgroundColor: 'var(--color-sage)',
-                  color: 'var(--color-primary-deep)',
+                  backgroundColor: 'var(--color-tint)',
+                  color: 'var(--color-primary)',
+                  border: '1px solid var(--color-tint-border)',
                   fontWeight: 700,
                   fontSize: 14,
                   display: 'flex',
@@ -381,7 +383,7 @@ export const CustomerLayout: React.FC = () => {
             <form onSubmit={handleSearchSubmit} style={{ width: '100%', position: 'relative' }}>
               <Search
                 size={17}
-                style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)' }}
+                style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }}
               />
               <input
                 type="text"
@@ -391,11 +393,12 @@ export const CustomerLayout: React.FC = () => {
                 style={{
                   width: '100%',
                   padding: '9px 14px 9px 36px',
-                  backgroundColor: 'var(--color-surface-subtle)',
+                  backgroundColor: 'var(--color-surface)',
                   border: '1px solid var(--color-border)',
                   borderRadius: 'var(--radius-full)',
                   fontSize: 13.5,
                   outline: 'none',
+                  color: 'var(--color-text)',
                 }}
               />
             </form>
@@ -408,8 +411,9 @@ export const CustomerLayout: React.FC = () => {
                 position: 'relative',
                 padding: 8,
                 borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-surface-hover)',
-                color: 'var(--color-primary-deep)',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -425,8 +429,9 @@ export const CustomerLayout: React.FC = () => {
                 position: 'relative',
                 padding: 8,
                 borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-surface-hover)',
-                color: 'var(--color-primary-deep)',
+                backgroundColor: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -444,7 +449,7 @@ export const CustomerLayout: React.FC = () => {
                     minWidth: 16,
                     height: 16,
                     borderRadius: 'var(--radius-full)',
-                    backgroundColor: 'var(--color-primary-deep)',
+                    backgroundColor: 'var(--color-primary)',
                     color: '#FFFFFF',
                     fontSize: 10,
                     fontWeight: 800,

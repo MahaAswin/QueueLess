@@ -241,15 +241,15 @@ export const getNotificationMeta = (type: string): NotificationMeta => {
       return {
         category: 'ORDER',
         badgeVariant: 'info',
-        color: '#0D5C3A',
-        bgColor: '#E8F5EE',
+        color: '#0F5132',
+        bgColor: '#F0FDF4',
       };
     case 'ORDER_READY_FOR_PICKUP':
     case 'ORDER_COLLECTED':
       return {
         category: 'ORDER',
         badgeVariant: 'success',
-        color: '#0D5C3A',
+        color: '#0F5132',
         bgColor: '#DCFCE7',
       };
     case 'ORDER_REJECTED':
@@ -273,8 +273,8 @@ export const getNotificationMeta = (type: string): NotificationMeta => {
       return {
         category: 'SLOT',
         badgeVariant: 'success',
-        color: '#0D5C3A',
-        bgColor: '#E8F5EE',
+        color: '#0F5132',
+        bgColor: '#F0FDF4',
       };
     case 'PICKUP_SLOT_REJECTED':
     case 'PICKUP_SLOT_CUSTOMER_REJECTED':
@@ -305,8 +305,8 @@ export const getNotificationMeta = (type: string): NotificationMeta => {
       return {
         category: 'ACCOUNT',
         badgeVariant: 'success',
-        color: '#0D5C3A',
-        bgColor: '#E8F5EE',
+        color: '#0F5132',
+        bgColor: '#F0FDF4',
       };
     default:
       return {

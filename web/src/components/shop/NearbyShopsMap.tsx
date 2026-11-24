@@ -89,7 +89,7 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
           top: 3px;
           left: 3px;
           border-radius: 50%;
-          background: #127C4E;
+          background: #0F5132;
           border: 3px solid #FFFFFF;
           box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         "></div>
@@ -123,10 +123,10 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
 
     const circle = L.circle([userLocation.latitude, userLocation.longitude], {
       radius: radiusMeters,
-      color: '#127C4E',
+      color: '#0F5132',
       weight: 1.5,
       opacity: 0.8,
-      fillColor: '#127C4E',
+      fillColor: '#0F5132',
       fillOpacity: 0.08,
       dashArray: '4, 4',
     }).addTo(map);
@@ -160,12 +160,12 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
           display: flex;
           align-items: center;
           gap: 5px;
-          background: ${isSelected ? '#0D5C3A' : '#FFFFFF'};
-          color: ${isSelected ? '#FFFFFF' : '#1A2E26'};
+          background: ${isSelected ? '#0F5132' : '#FFFFFF'};
+          color: ${isSelected ? '#FFFFFF' : '#0F5132'};
           padding: 4px 10px;
           border-radius: 20px;
-          border: 2px solid ${isSelected ? '#FFFFFF' : '#127C4E'};
-          box-shadow: 0 3px 8px rgba(0,0,0,0.22);
+          border: 2px solid ${isSelected ? '#0F5132' : '#22C55E'};
+          box-shadow: 0 3px 8px rgba(0,0,0,0.18);
           cursor: pointer;
           font-family: inherit;
           font-size: 11.5px;
@@ -204,7 +204,7 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 8px;
-            background: #E8F5EE;
+            background: #F0FDF4;
           ">
             <img
               src="${shopImg}"
@@ -218,8 +218,9 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
               font-size: 10.5px;
               font-weight: 700;
               text-transform: uppercase;
-              color: #127C4E;
-              background: #E8F5EE;
+              color: #0F5132;
+              background: #F0FDF4;
+              border: 1px solid #BBF7D0;
               padding: 2px 7px;
               border-radius: 12px;
             ">
@@ -227,21 +228,21 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
             </span>
             ${
               shop.isOpen !== false
-                ? '<span style="font-size: 11px; font-weight: 700; color: #127C4E;">● Open</span>'
+                ? '<span style="font-size: 11px; font-weight: 700; color: #0F5132;">● Open</span>'
                 : '<span style="font-size: 11px; font-weight: 700; color: #DC2626;">● Closed</span>'
             }
           </div>
 
-          <h4 style="margin: 0 0 3px 0; font-size: 14.5px; font-weight: 800; color: #1A2E26; line-height: 1.25;">
+          <h4 style="margin: 0 0 3px 0; font-size: 14.5px; font-weight: 800; color: #0F5132; line-height: 1.25;">
             ${shopName}
           </h4>
 
-          <div style="font-size: 11.5px; color: #64748B; margin-bottom: 6px;">
+          <div style="font-size: 11.5px; color: #6B7280; margin-bottom: 6px;">
             ${distance ? `<strong>${distance} away</strong> • ` : ''}
             <span>Avg wait: ${shop.averageWaitMinutes || 5} min</span>
           </div>
 
-          <div style="font-size: 11px; color: #64748B; margin-bottom: 10px; line-height: 1.3;">
+          <div style="font-size: 11px; color: #6B7280; margin-bottom: 10px; line-height: 1.3;">
             ${shop.address}, ${shop.city}
           </div>
 
@@ -249,9 +250,9 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
             <a href="${navUrl}" target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
               <button style="
                 width: 100%;
-                background: #F1F5F9;
-                color: #0F172A;
-                border: 1px solid #CBD5E1;
+                background: #FFFFFF;
+                color: #1F2937;
+                border: 1px solid #EADFC8;
                 border-radius: 6px;
                 padding: 6px 8px;
                 font-size: 11.5px;
@@ -268,7 +269,7 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
             <a href="/customer/shops/${shop.id}" style="text-decoration: none;">
               <button style="
                 width: 100%;
-                background: #127C4E;
+                background: #0F5132;
                 color: #FFFFFF;
                 border: none;
                 border-radius: 6px;

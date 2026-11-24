@@ -146,10 +146,10 @@ export const CustomerHomePage: React.FC = () => {
       <section
         className="hero-card"
         style={{
-          background: 'linear-gradient(135deg, #FFFFFF 0%, #F6FAF7 50%, #EEF9F2 100%)',
-          border: '1px solid #E2E8F0',
+          background: 'linear-gradient(135deg, #FFFFFF 0%, #FDFBF7 50%, #FBF6EC 100%)',
+          border: '1px solid var(--color-border)',
           borderRadius: 24,
-          boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02)',
+          boxShadow: 'var(--shadow-sm)',
           position: 'relative',
           overflow: 'hidden',
           display: 'flex',
@@ -176,10 +176,10 @@ export const CustomerHomePage: React.FC = () => {
                 alignItems: 'center',
                 gap: 6,
                 padding: '5px 14px',
-                backgroundColor: '#ECFDF5',
-                border: '1px solid #A7F3D0',
+                backgroundColor: 'var(--color-tint)',
+                border: '1px solid var(--color-tint-border)',
                 borderRadius: 9999,
-                color: '#047857',
+                color: 'var(--color-primary)',
                 fontSize: 11.5,
                 fontWeight: 800,
                 letterSpacing: '0.6px',
@@ -187,7 +187,7 @@ export const CustomerHomePage: React.FC = () => {
                 marginBottom: 16,
               }}
             >
-              <Zap size={13} fill="#059669" />
+              <Zap size={13} fill="var(--color-primary)" color="var(--color-primary)" />
               <span>ZERO-WAIT EXPRESS PICKUP</span>
             </div>
 
@@ -196,7 +196,7 @@ export const CustomerHomePage: React.FC = () => {
               style={{
                 fontSize: 'clamp(32px, 3.4vw, 44px)',
                 fontWeight: 900,
-                color: '#0F172A',
+                color: 'var(--color-primary)',
                 lineHeight: 1.14,
                 marginBottom: 14,
                 letterSpacing: '-1px',
@@ -204,13 +204,13 @@ export const CustomerHomePage: React.FC = () => {
             >
               Order Now.<br />
               Pick Up Later.<br />
-              <span style={{ color: '#059669' }}>No Queues.</span>
+              <span style={{ color: 'var(--color-primary-hover)', textDecoration: 'underline', textDecorationColor: 'rgba(15, 81, 50, 0.3)' }}>No Queues.</span>
             </h1>
 
             {/* Supporting Text */}
             <p
               style={{
-                color: '#64748B',
+                color: 'var(--color-text-muted)',
                 fontSize: 15,
                 lineHeight: 1.6,
                 marginBottom: 26,
@@ -237,16 +237,16 @@ export const CustomerHomePage: React.FC = () => {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 8,
-                    backgroundColor: '#059669',
+                    backgroundColor: '#0F5132',
                     color: '#FFFFFF',
-                    border: 'none',
+                    border: '1.5px solid #0F5132',
                     borderRadius: 12,
                     padding: '12px 22px',
                     fontSize: 14.5,
                     fontWeight: 700,
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    boxShadow: '0 4px 14px rgba(5, 150, 105, 0.28)',
+                    boxShadow: '0 4px 14px var(--color-primary-glow)',
                   }}
                 >
                   <span>Explore Partner Shops</span>
@@ -262,8 +262,8 @@ export const CustomerHomePage: React.FC = () => {
                     alignItems: 'center',
                     gap: 8,
                     backgroundColor: '#FFFFFF',
-                    color: '#059669',
-                    border: '1.5px solid #10B981',
+                    color: '#0F5132',
+                    border: '1.5px solid #22C55E',
                     borderRadius: 12,
                     padding: '12px 20px',
                     fontSize: 14.5,
@@ -287,7 +287,7 @@ export const CustomerHomePage: React.FC = () => {
               alignItems: 'center',
               gap: 20,
               paddingTop: 18,
-              borderTop: '1px solid #E2E8F0',
+              borderTop: '1px solid var(--color-border)',
               flexWrap: 'wrap',
             }}
           >
@@ -297,8 +297,9 @@ export const CustomerHomePage: React.FC = () => {
                   width: 32,
                   height: 32,
                   borderRadius: 9,
-                  backgroundColor: '#ECFDF5',
-                  color: '#059669',
+                  backgroundColor: 'var(--color-tint)',
+                  border: '1px solid var(--color-tint-border)',
+                  color: 'var(--color-primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -307,10 +308,10 @@ export const CustomerHomePage: React.FC = () => {
                 <ShieldCheck size={17} />
               </div>
               <div>
-                <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2 }}>
                   Verified Partners
                 </div>
-                <div style={{ fontSize: 11, color: '#64748B' }}>Trusted & safe</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>Trusted & safe</div>
               </div>
             </div>
 
@@ -320,8 +321,9 @@ export const CustomerHomePage: React.FC = () => {
                   width: 32,
                   height: 32,
                   borderRadius: 9,
-                  backgroundColor: '#ECFDF5',
-                  color: '#059669',
+                  backgroundColor: 'var(--color-tint)',
+                  border: '1px solid var(--color-tint-border)',
+                  color: 'var(--color-primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -330,10 +332,10 @@ export const CustomerHomePage: React.FC = () => {
                 <Clock size={17} />
               </div>
               <div>
-                <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2 }}>
                   Guaranteed Slots
                 </div>
-                <div style={{ fontSize: 11, color: '#64748B' }}>Pick your time</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>Pick your time</div>
               </div>
             </div>
 
@@ -343,8 +345,9 @@ export const CustomerHomePage: React.FC = () => {
                   width: 32,
                   height: 32,
                   borderRadius: 9,
-                  backgroundColor: '#ECFDF5',
-                  color: '#059669',
+                  backgroundColor: 'var(--color-tint)',
+                  border: '1px solid var(--color-tint-border)',
+                  color: 'var(--color-primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -353,10 +356,10 @@ export const CustomerHomePage: React.FC = () => {
                 <QrCode size={17} />
               </div>
               <div>
-                <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.2 }}>
                   Express QR Pass
                 </div>
-                <div style={{ fontSize: 11, color: '#64748B' }}>Scan & collect</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>Scan & collect</div>
               </div>
             </div>
           </div>
@@ -409,7 +412,7 @@ export const CustomerHomePage: React.FC = () => {
               top: 26,
               left: 40,
               backgroundColor: '#FFFFFF',
-              border: '1px solid #DCFCE7',
+              border: '1px solid var(--color-tint-border)',
               borderRadius: 16,
               padding: '8px 14px',
               boxShadow: '0 8px 20px rgba(0, 0, 0, 0.06)',
@@ -423,7 +426,7 @@ export const CustomerHomePage: React.FC = () => {
               style={{
                 fontSize: 12,
                 fontWeight: 800,
-                color: '#059669',
+                color: 'var(--color-primary)',
                 lineHeight: 1.2,
                 whiteSpace: 'nowrap',
               }}
@@ -440,7 +443,7 @@ export const CustomerHomePage: React.FC = () => {
               bottom: 30,
               left: 36,
               backgroundColor: '#FFFFFF',
-              border: '1px solid #E2E8F0',
+              border: '1px solid var(--color-border)',
               borderRadius: 12,
               padding: '6px 12px',
               boxShadow: '0 6px 18px rgba(0, 0, 0, 0.06)',
@@ -450,12 +453,12 @@ export const CustomerHomePage: React.FC = () => {
               gap: 8,
             }}
           >
-            <QrCode size={20} color="#059669" />
+            <QrCode size={20} color="var(--color-primary)" />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: 11, fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-text)', lineHeight: 1.1 }}>
                 Scan Collect
               </span>
-              <span style={{ fontSize: 10, color: '#059669', fontWeight: 700 }}>Go! ⚡</span>
+              <span style={{ fontSize: 10, color: 'var(--color-accent)', fontWeight: 700 }}>Go! ⚡</span>
             </div>
           </div>
 
@@ -476,7 +479,7 @@ export const CustomerHomePage: React.FC = () => {
                 fontFamily: 'Caveat, "Comic Sans MS", "Segoe Print", cursive',
                 fontSize: 20,
                 fontWeight: 700,
-                color: '#059669',
+                color: 'var(--color-primary)',
                 lineHeight: 1.1,
                 textShadow: '0 1px 3px rgba(255, 255, 255, 0.8)',
               }}
@@ -1822,9 +1825,9 @@ export const CustomerHomePage: React.FC = () => {
               gap: 6,
               fontSize: 11.5,
               fontWeight: 800,
-              color: '#059669',
-              backgroundColor: '#ECFDF5',
-              border: '1px solid #A7F3D0',
+              color: 'var(--color-primary)',
+              backgroundColor: 'var(--color-tint)',
+              border: '1px solid var(--color-tint-border)',
               padding: '4px 14px',
               borderRadius: 9999,
               marginBottom: 12,
@@ -1832,23 +1835,23 @@ export const CustomerHomePage: React.FC = () => {
               letterSpacing: '0.8px',
             }}
           >
-            <Zap size={13} fill="#059669" />
+            <Zap size={13} fill="var(--color-primary)" color="var(--color-primary)" />
             <span>HOW IT WORKS</span>
           </div>
           <h2
             style={{
               fontSize: 28,
               fontWeight: 900,
-              color: '#0F172A',
+              color: 'var(--color-primary)',
               letterSpacing: '-0.5px',
               margin: '0 0 8px',
             }}
           >
-            The 5-Step <span style={{ color: '#059669' }}>QueueLess</span> Experience
+            The 5-Step <span style={{ color: 'var(--color-accent)' }}>QueueLess</span> Experience
           </h2>
           <p
             style={{
-              color: '#64748B',
+              color: 'var(--color-text-muted)',
               fontSize: 14.5,
               lineHeight: 1.5,
               margin: 0,
@@ -1874,14 +1877,17 @@ export const CustomerHomePage: React.FC = () => {
               title: 'Browse Shops',
               desc: 'Discover verified local restaurants, cafés, and retail partners near you.',
               image: '/assets/howitworks/step1_shop.jpg',
-              pillIcon: <MapPin size={13} />,
+              pillIcon: <MapPin size={13} color="#0F5132" />,
               pillText: 'Find nearby options',
-              cardBg: '#FAF8FF',
-              cardBorder: '#EDE9FE',
-              badgeBg: '#EDE9FE',
-              badgeColor: '#6D28D9',
-              pillBg: '#F3F0FF',
-              pillColor: '#6D28D9',
+              cardBg: '#F0FDF4',
+              cardBorder: '#BBF7D0',
+              badgeBg: '#BBF7D0',
+              badgeColor: '#0F5132',
+              titleColor: '#0F5132',
+              descColor: '#1F2937',
+              pillBg: '#FFFFFF',
+              pillColor: '#0F5132',
+              pillBorder: '1px solid #BBF7D0',
               isFeatured: false,
             },
             {
@@ -1889,14 +1895,17 @@ export const CustomerHomePage: React.FC = () => {
               title: 'Choose Products',
               desc: 'Select your items and configure quantities or customizations seamlessly.',
               image: '/assets/howitworks/step2_basket.jpg',
-              pillIcon: <ShoppingBag size={13} />,
+              pillIcon: <ShoppingBag size={13} color="#0F5132" />,
               pillText: 'Build your basket',
-              cardBg: '#F0F9FF',
-              cardBorder: '#E0F2FE',
-              badgeBg: '#E0F2FE',
-              badgeColor: '#0284C7',
-              pillBg: '#E0F2FE',
-              pillColor: '#0369A1',
+              cardBg: '#F0FDF4',
+              cardBorder: '#BBF7D0',
+              badgeBg: '#BBF7D0',
+              badgeColor: '#0F5132',
+              titleColor: '#0F5132',
+              descColor: '#1F2937',
+              pillBg: '#FFFFFF',
+              pillColor: '#0F5132',
+              pillBorder: '1px solid #BBF7D0',
               isFeatured: false,
             },
             {
@@ -1904,14 +1913,17 @@ export const CustomerHomePage: React.FC = () => {
               title: 'Select Pickup',
               desc: 'Choose an exact guaranteed express time slot that fits your schedule.',
               image: '/assets/howitworks/step3_calendar.jpg',
-              pillIcon: <Clock size={13} />,
+              pillIcon: <Clock size={13} color="#0F5132" />,
               pillText: 'Guaranteed slot',
-              cardBg: '#FEFCE8',
-              cardBorder: '#FEF9C3',
-              badgeBg: '#FEF9C3',
-              badgeColor: '#CA8A04',
-              pillBg: '#FEF9C3',
-              pillColor: '#854D0E',
+              cardBg: '#F0FDF4',
+              cardBorder: '#BBF7D0',
+              badgeBg: '#BBF7D0',
+              badgeColor: '#0F5132',
+              titleColor: '#0F5132',
+              descColor: '#1F2937',
+              pillBg: '#FFFFFF',
+              pillColor: '#0F5132',
+              pillBorder: '1px solid #BBF7D0',
               isFeatured: false,
             },
             {
@@ -1919,14 +1931,17 @@ export const CustomerHomePage: React.FC = () => {
               title: 'Place Order',
               desc: 'Confirm your order securely and receive your digital pickup express pass.',
               image: '/assets/howitworks/step4_phone.jpg',
-              pillIcon: <CreditCard size={13} />,
+              pillIcon: <CreditCard size={13} color="#0F5132" />,
               pillText: 'Secure & contactless',
-              cardBg: '#FFF5F5',
-              cardBorder: '#FFE4E6',
-              badgeBg: '#FFE4E6',
-              badgeColor: '#E11D48',
-              pillBg: '#FFE4E6',
-              pillColor: '#BE123C',
+              cardBg: '#F0FDF4',
+              cardBorder: '#BBF7D0',
+              badgeBg: '#BBF7D0',
+              badgeColor: '#0F5132',
+              titleColor: '#0F5132',
+              descColor: '#1F2937',
+              pillBg: '#FFFFFF',
+              pillColor: '#0F5132',
+              pillBorder: '1px solid #BBF7D0',
               isFeatured: false,
             },
             {
@@ -1934,14 +1949,17 @@ export const CustomerHomePage: React.FC = () => {
               title: 'Skip the Queue',
               desc: 'Walk into the partner counter at your slot time and grab your ready basket.',
               image: '/assets/howitworks/step5_express.jpg',
-              pillIcon: <Zap size={13} fill="#047857" />,
+              pillIcon: <Zap size={13} fill="#0F5132" color="#0F5132" />,
               pillText: 'Zero waiting!',
-              cardBg: '#F0FDF4',
-              cardBorder: '#10B981',
-              badgeBg: '#10B981',
-              badgeColor: '#FFFFFF',
-              pillBg: '#DCFCE7',
-              pillColor: '#047857',
+              cardBg: '#0F5132',
+              cardBorder: '#0F5132',
+              badgeBg: 'rgba(255, 255, 255, 0.18)',
+              badgeColor: '#86EFAC',
+              titleColor: '#FFFFFF',
+              descColor: 'rgba(255, 255, 255, 0.92)',
+              pillBg: '#86EFAC',
+              pillColor: '#0F5132',
+              pillBorder: '1px solid #86EFAC',
               isFeatured: true,
             },
           ].map((item, idx) => (
@@ -1951,13 +1969,13 @@ export const CustomerHomePage: React.FC = () => {
               style={{
                 backgroundColor: item.cardBg,
                 borderRadius: 20,
-                border: item.isFeatured ? '2px solid #10B981' : `1px solid ${item.cardBorder}`,
+                border: item.isFeatured ? '2px solid #0F5132' : `1px solid ${item.cardBorder}`,
                 padding: '16px 14px',
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
                 boxShadow: item.isFeatured
-                  ? '0 10px 25px -5px rgba(16, 185, 129, 0.18), 0 4px 10px -2px rgba(16, 185, 129, 0.1)'
+                  ? '0 10px 25px -5px rgba(15, 81, 50, 0.25), 0 4px 10px -2px rgba(15, 81, 50, 0.15)'
                   : '0 2px 8px rgba(0, 0, 0, 0.02)',
                 transition: 'all 0.2s ease',
               }}
@@ -2008,7 +2026,7 @@ export const CustomerHomePage: React.FC = () => {
                   height: 120,
                   borderRadius: 14,
                   overflow: 'hidden',
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: item.isFeatured ? 'rgba(255, 255, 255, 0.12)' : '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -2035,7 +2053,7 @@ export const CustomerHomePage: React.FC = () => {
                   fontSize: 15,
                   fontWeight: 800,
                   marginBottom: 6,
-                  color: '#0F172A',
+                  color: item.titleColor,
                   letterSpacing: '-0.2px',
                 }}
               >
@@ -2044,7 +2062,7 @@ export const CustomerHomePage: React.FC = () => {
               <p
                 style={{
                   fontSize: 12,
-                  color: '#64748B',
+                  color: item.descColor,
                   lineHeight: 1.45,
                   margin: '0 0 14px',
                   flexGrow: 1,
@@ -2062,6 +2080,7 @@ export const CustomerHomePage: React.FC = () => {
                   gap: 5,
                   backgroundColor: item.pillBg,
                   color: item.pillColor,
+                  border: item.pillBorder,
                   fontSize: 11,
                   fontWeight: 700,
                   padding: '6px 10px',
@@ -2095,9 +2114,9 @@ export const CustomerHomePage: React.FC = () => {
                       width: 10,
                       height: 10,
                       borderRadius: '50%',
-                      backgroundColor: '#10B981',
+                      backgroundColor: '#22C55E',
                       border: '2px solid #FFFFFF',
-                      boxShadow: '0 0 0 2px #6EE7B7',
+                      boxShadow: '0 0 0 2px #BBF7D0',
                     }}
                   />
                 </div>
@@ -2111,8 +2130,8 @@ export const CustomerHomePage: React.FC = () => {
           className="hiw-impact-bar"
           style={{
             marginTop: 28,
-            backgroundColor: '#F8FBF9',
-            border: '1px solid #DCFCE7',
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
             borderRadius: 16,
             padding: '14px 20px',
             display: 'flex',
@@ -2128,8 +2147,9 @@ export const CustomerHomePage: React.FC = () => {
                 width: 34,
                 height: 34,
                 borderRadius: 10,
-                backgroundColor: '#DCFCE7',
-                color: '#059669',
+                backgroundColor: 'var(--color-tint)',
+                border: '1px solid var(--color-tint-border)',
+                color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -2138,12 +2158,12 @@ export const CustomerHomePage: React.FC = () => {
               <Zap size={18} />
             </div>
             <div>
-              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>Average pickup time</div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#059669' }}>~ 30 seconds</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>Average pickup time</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-primary)' }}>~ 30 seconds</div>
             </div>
           </div>
 
-          <div className="hiw-divider" style={{ width: 1, height: 28, backgroundColor: '#E2E8F0' }} />
+          <div className="hiw-divider" style={{ width: 1, height: 28, backgroundColor: 'var(--color-border)' }} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div
@@ -2151,8 +2171,9 @@ export const CustomerHomePage: React.FC = () => {
                 width: 34,
                 height: 34,
                 borderRadius: 10,
-                backgroundColor: '#DCFCE7',
-                color: '#059669',
+                backgroundColor: 'var(--color-tint)',
+                border: '1px solid var(--color-tint-border)',
+                color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -2161,12 +2182,12 @@ export const CustomerHomePage: React.FC = () => {
               <ShieldCheck size={18} />
             </div>
             <div>
-              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>Verified partner stores</div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>Trusted & safe</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>Verified partner stores</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text)' }}>Trusted & safe</div>
             </div>
           </div>
 
-          <div className="hiw-divider" style={{ width: 1, height: 28, backgroundColor: '#E2E8F0' }} />
+          <div className="hiw-divider" style={{ width: 1, height: 28, backgroundColor: 'var(--color-border)' }} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div
@@ -2174,8 +2195,9 @@ export const CustomerHomePage: React.FC = () => {
                 width: 34,
                 height: 34,
                 borderRadius: 10,
-                backgroundColor: '#DCFCE7',
-                color: '#059669',
+                backgroundColor: 'var(--color-tint)',
+                border: '1px solid var(--color-tint-border)',
+                color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -2184,12 +2206,12 @@ export const CustomerHomePage: React.FC = () => {
               <Leaf size={18} />
             </div>
             <div>
-              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>Supports local businesses</div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>Stronger campus community</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>Supports local businesses</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text)' }}>Stronger campus community</div>
             </div>
           </div>
 
-          <div className="hiw-divider" style={{ width: 1, height: 28, backgroundColor: '#E2E8F0' }} />
+          <div className="hiw-divider" style={{ width: 1, height: 28, backgroundColor: 'var(--color-border)' }} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div
@@ -2197,8 +2219,9 @@ export const CustomerHomePage: React.FC = () => {
                 width: 34,
                 height: 34,
                 borderRadius: 10,
-                backgroundColor: '#DCFCE7',
-                color: '#059669',
+                backgroundColor: 'var(--color-tint)',
+                border: '1px solid var(--color-tint-border)',
+                color: 'var(--color-primary)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -2207,8 +2230,8 @@ export const CustomerHomePage: React.FC = () => {
               <Users size={18} />
             </div>
             <div>
-              <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600 }}>A smoother, smarter campus</div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>Less waiting, more doing!</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-muted)', fontWeight: 600 }}>A smoother, smarter campus</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text)' }}>Less waiting, more doing!</div>
             </div>
           </div>
 
@@ -2226,7 +2249,7 @@ export const CustomerHomePage: React.FC = () => {
                 fontFamily: 'Caveat, "Comic Sans MS", "Segoe Print", cursive',
                 fontSize: 16,
                 fontWeight: 700,
-                color: '#059669',
+                color: 'var(--color-primary)',
                 textAlign: 'right',
                 lineHeight: 1.15,
               }}

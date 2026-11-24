@@ -71,7 +71,7 @@ export const ShopLocationPicker: React.FC<ShopLocationPickerProps> = ({
           justify-content: center;
           width: 38px;
           height: 38px;
-          background: #127C4E;
+          background: #0F5132;
           color: #FFFFFF;
           border-radius: 50% 50% 50% 0;
           transform: rotate(-45deg);
