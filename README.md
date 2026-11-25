@@ -182,6 +182,8 @@ cd web/android
 
 ---
 
-## 🛡️ License
+## Copyright
 
-This project is licensed under the MIT License.
+Copyright (c) 2026 QueueLess. All rights reserved.
+
+This repository is publicly available for viewing and educational reference. No permission is granted to copy, modify, distribute, sublicense, or commercially use this software without prior written permission from the copyright holder.
