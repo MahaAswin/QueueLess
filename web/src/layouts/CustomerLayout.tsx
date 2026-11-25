@@ -512,6 +512,26 @@ export const CustomerLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar (Handheld phones & Android App) */}
+      <nav className="mobile-bottom-nav" aria-label="Mobile Bottom Navigation">
+        {CUSTOMER_NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.end}
+              className={({ isActive }) => `mobile-bottom-nav-item ${isActive ? 'active' : ''}`}
+            >
+              <div className="mobile-bottom-nav-icon-wrap">
+                <Icon size={20} />
+              </div>
+              <span className="mobile-bottom-nav-label">{item.label}</span>
+            </NavLink>
+          );
+        })}
+      </nav>
     </div>
   );
 };

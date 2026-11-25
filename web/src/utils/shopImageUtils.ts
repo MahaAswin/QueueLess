@@ -1,4 +1,5 @@
 import type { Shop, ShopCategory } from '../types/shop.types';
+import { resolveMediaUrl } from '../api/config';
 
 /**
  * Category-based rich SVG illustrations as default images.
@@ -140,10 +141,7 @@ export const getShopImage = (shop?: Partial<Shop> | null): string => {
   if (shop.imageUrl && typeof shop.imageUrl === 'string' && shop.imageUrl.trim().length > 0) {
     const trimmed = shop.imageUrl.trim();
     if (trimmed.startsWith('/api/uploads') || trimmed.startsWith('uploads/')) {
-      const rawBaseUrl = (import.meta.env.VITE_API_URL || '').trim();
-      const baseUrl = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
-      const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
-      return `${baseUrl}${path}`;
+      return resolveMediaUrl(trimmed);
     }
     return trimmed;
   }

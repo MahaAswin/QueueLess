@@ -103,6 +103,8 @@ public class SecurityConfig {
         // Also support origin patterns to dynamically reflect the origin and support credentials (including Capacitor mobile apps)
         configuration.setAllowedOriginPatterns(List.of(
                 "https://*.vercel.app",
+                "https://localhost",
+                "https://localhost:*",
                 "http://localhost:*",
                 "http://localhost",
                 "http://127.0.0.1:*",

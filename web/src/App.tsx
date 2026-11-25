@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AppRoutes } from './routes/AppRoutes';
 import { apiClient } from './api/axiosClient';
+import { CapacitorBridge } from './components/native/CapacitorBridge';
 
 export function App() {
   useEffect(() => {
@@ -14,6 +15,7 @@ export function App() {
 
   return (
     <BrowserRouter>
+      <CapacitorBridge />
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>

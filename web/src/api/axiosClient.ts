@@ -1,9 +1,9 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { tokenStorage } from '../utils/storage';
 import type { AuthResponse } from '../types/auth.types';
+import { getApiBaseUrl } from './config';
 
-const rawBaseUrl = (import.meta.env.VITE_API_URL || '').trim();
-const BASE_URL = rawBaseUrl.endsWith('/') ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+const BASE_URL = getApiBaseUrl();
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

@@ -1,4 +1,6 @@
 import { useState, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
 
 export type GeolocationStatus =
   | 'idle'
@@ -46,15 +48,56 @@ export const useGeolocation = () => {
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const requestLocation = useCallback(() => {
+  const requestLocation = useCallback(async () => {
+    setStatus('prompting');
+    setErrorMessage(null);
+
+    // 1. Native Capacitor implementation (Android / iOS)
+    if (Capacitor.isNativePlatform()) {
+      try {
+        let perm = await Geolocation.checkPermissions();
+        if (perm.location !== 'granted') {
+          perm = await Geolocation.requestPermissions();
+          if (perm.location !== 'granted') {
+            setStatus('denied');
+            setErrorMessage('Location permission was denied. Allow location access in device settings to discover nearby shops.');
+            return;
+          }
+        }
+
+        const position = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000,
+        });
+
+        const coords: Coordinates = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        setCoordinates(coords);
+        setStatus('granted');
+        setErrorMessage(null);
+        try {
+          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(coords));
+        } catch {
+          // Ignore storage errors
+        }
+        return;
+      } catch (err: any) {
+        setStatus('unavailable');
+        setErrorMessage('Failed to obtain device location. Please ensure location services / GPS are turned on.');
+        setCoordinates(null);
+        return;
+      }
+    }
+
+    // 2. Web browser fallback implementation
     if (!navigator.geolocation) {
       setStatus('unsupported');
       setErrorMessage('Geolocation is not supported by your browser.');
       return;
     }
-
-    setStatus('prompting');
-    setErrorMessage(null);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -99,7 +142,7 @@ export const useGeolocation = () => {
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 60000, // 1 min cache
+        maximumAge: 60000,
       }
     );
   }, []);

@@ -150,42 +150,34 @@ The production environment is deployed using modern cloud primitives:
 
 ---
 
-## 📱 Future Capacitor Mobile Integration
+## 📱 Capacitor Android Mobile Application
 
-The standalone legacy React Native / Expo application has been decommissioned. In the next phase, native Android and iOS mobile applications will be built using **Capacitor**, wrapping the existing responsive React + Vite web frontend.
+The QueueLess React + Vite application is integrated with **Capacitor 8** to run as a high-performance native Android application. It packages the bundled production web application locally inside the native Android WebView, communicating seamlessly with the production Render backend with full native hardware and OS integrations (GPS location, camera permissions, status bar styling, splash screen, and hardware back-button navigation).
 
-### Benefits of Capacitor Architecture
-- **Single Source of Truth**: 100% shared code, design system, and business logic between Web and Mobile.
-- **Zero API Duplication**: Consumes the exact same Spring Boot REST endpoints.
-- **Native Hardware Access**: Camera for QR code scanning, biometrics, and push notifications via standard Capacitor plugins.
-- **Backend CORS Readiness**: The Spring Boot backend (`SecurityConfig.java`) is pre-configured to accept requests from Capacitor origins:
-  - `capacitor://localhost` (iOS)
-  - `http://localhost` (Android WebView)
-  - `ionic://localhost`
-
-### Setup Workflow for Capacitor (Future Step)
-When ready to package for iOS and Android:
+### Development & Android Build Workflow
 
 ```bash
-# 1. Inside the web/ directory, install Capacitor dependencies
+# 1. Navigate to the web frontend directory
 cd web
-npm install @capacitor/core @capacitor/cli @capacitor/camera @capacitor/preferences
 
-# 2. Initialize Capacitor project configuration
-npx cap init QueueLess com.queueless.app --web-dir dist
-
-# 3. Add native platforms
-npm install @capacitor/android @capacitor/ios
-npx cap add android
-npx cap add ios
-
-# 4. Build the web application and sync to native shells
+# 2. Build the production React web bundle (outputs to dist/)
 npm run build
-npx cap sync
 
-# 5. Open in Native IDEs to build APK / IPA
-npx cap open android   # Launches Android Studio
-npx cap open ios       # Launches Xcode (macOS only)
+# 3. Synchronize web assets and plugins to the Android project
+npx cap sync android
+
+# 4. Open the Android project in Android Studio
+npx cap open android
+```
+
+### Direct Android Gradle Commands (from `web/android/`)
+```bash
+# Clean & assemble debug APK
+cd web/android
+.\gradlew.bat assembleDebug
+
+# Output APK path:
+# web/android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
 ---
