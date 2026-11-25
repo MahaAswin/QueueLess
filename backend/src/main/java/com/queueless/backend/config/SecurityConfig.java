@@ -100,11 +100,15 @@ public class SecurityConfig {
         });
 
         configuration.setAllowedOrigins(origins);
-        // Also support origin patterns to dynamically reflect the origin and support credentials
+        // Also support origin patterns to dynamically reflect the origin and support credentials (including Capacitor mobile apps)
         configuration.setAllowedOriginPatterns(List.of(
                 "https://*.vercel.app",
                 "http://localhost:*",
-                "http://127.0.0.1:*"
+                "http://localhost",
+                "http://127.0.0.1:*",
+                "http://127.0.0.1",
+                "capacitor://localhost",
+                "ionic://localhost"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of(
