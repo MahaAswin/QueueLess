@@ -40,30 +40,31 @@ export const CustomerLayout: React.FC = () => {
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number>(0);
   const [hoveredTooltip, setHoveredTooltip] = useState<{ label: string; top: number } | null>(null);
 
-  // Extract friendly display name (defaults to 'Aswin' if guest or loading)
+  // Extract friendly display name from logged-in user profile
   const displayName = useMemo(() => {
-    if (!user?.fullName) return 'Aswin';
-    const trimmed = user.fullName.trim();
-    const parts = trimmed.split(/\s+/);
-    if (parts.length === 1) return parts[0];
-
-    const aswinMatch = parts.find((p) => p.toLowerCase().includes('aswin'));
-    if (aswinMatch) return aswinMatch;
-
-    if (['mr', 'mrs', 'ms', 'dr', 'shri', 'sri'].includes(parts[0].toLowerCase())) {
-      return parts[1] || parts[0];
+    if (user?.fullName && user.fullName.trim()) {
+      const trimmed = user.fullName.trim();
+      const parts = trimmed.split(/\s+/);
+      // Skip common honorifics (e.g. "Dr. Sharma" -> "Sharma")
+      if (
+        ['mr', 'mr.', 'mrs', 'mrs.', 'ms', 'ms.', 'dr', 'dr.', 'shri', 'sri', 'prof', 'prof.'].includes(
+          parts[0].toLowerCase()
+        ) &&
+        parts.length > 1
+      ) {
+        return parts[1];
+      }
+      return parts[0];
     }
-
-    if (parts[0].replace(/[^a-zA-Z]/g, '').length <= 2 && parts.length > 1) {
-      return parts[1];
+    // Fallback to email username if fullName is not yet set
+    if (user?.email && user.email.trim()) {
+      const emailPrefix = user.email.split('@')[0].trim();
+      if (emailPrefix) {
+        return emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1);
+      }
     }
-
-    if (parts[0].toLowerCase() === 'maha' && parts.length > 1) {
-      return parts[1];
-    }
-
-    return parts[0];
-  }, [user?.fullName]);
+    return 'Customer';
+  }, [user?.fullName, user?.email]);
 
   // Auto-close expanded drawer on navigation on mobile
   useEffect(() => {
