@@ -42,7 +42,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u WHERE " +
            "(:role IS NULL OR u.role = :role) AND " +
            "(:accountStatus IS NULL OR u.accountStatus = :accountStatus) AND " +
-           "(:search IS NULL OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')))")
+           "(:search IS NULL OR :search = '' OR " +
+           " LOWER(u.fullName) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR " +
+           " LOWER(u.email) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR " +
+           " u.phone LIKE CONCAT('%', CAST(:search AS string), '%'))")
     Page<User> findAdminUsersFilter(
             @Param("role") Role role,
             @Param("accountStatus") AccountStatus accountStatus,

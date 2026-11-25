@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   BarChart3,
   Download,
@@ -9,6 +9,9 @@ import {
   Users,
   AlertCircle,
   Calendar,
+  Info,
+  ShieldCheck,
+  ShoppingBag,
 } from 'lucide-react';
 import { useAdminReports } from './hooks/useAdminReports';
 import { AnalyticsTrendChart } from './components/AnalyticsTrendChart';
@@ -47,16 +50,60 @@ export const AdminReportsPage: React.FC = () => {
   } = useAdminReports();
 
   const presets: { label: string; value: DateRangePreset }[] = [
+    { label: 'All Time', value: 'all' },
     { label: 'Today', value: 'today' },
     { label: 'Last 7 Days', value: '7d' },
     { label: 'Last 30 Days', value: '30d' },
     { label: 'Last 90 Days', value: '90d' },
-    { label: 'All Time', value: 'all' },
     { label: 'Custom', value: 'custom' },
   ];
 
+  // Calculate fulfillment rate
+  const fulfillmentRate = useMemo(() => {
+    if (!data || data.overview.totalOrders === 0) return 0;
+    return Math.round((data.overview.completedOrders / data.overview.totalOrders) * 100);
+  }, [data]);
+
+  // Aggregate Category Breakdown from top shops
+  const categoryBreakdown = useMemo(() => {
+    if (!data || !data.topShops) return [];
+    const catMap: Record<string, { orderCount: number; revenue: number; shopCount: number }> = {};
+
+    data.topShops.forEach((shop) => {
+      const cat = shop.category || 'GENERAL';
+      if (!catMap[cat]) {
+        catMap[cat] = { orderCount: 0, revenue: 0, shopCount: 0 };
+      }
+      catMap[cat].orderCount += shop.totalOrders;
+      catMap[cat].revenue += shop.totalOrderValue;
+      catMap[cat].shopCount += 1;
+    });
+
+    const totalOrders = Object.values(catMap).reduce((a, b) => a + b.orderCount, 0) || 1;
+
+    return Object.entries(catMap).map(([cat, info]) => ({
+      category: cat.replace(/_/g, ' '),
+      orderCount: info.orderCount,
+      revenue: info.revenue,
+      shopCount: info.shopCount,
+      percentage: Math.round((info.orderCount / totalOrders) * 100),
+    }));
+  }, [data]);
+
+  const activeDateLabel = useMemo(() => {
+    if (preset === 'all') return 'All Historical Platform Data';
+    if (preset === 'today') return 'Today’s Performance';
+    if (preset === '7d') return 'Past 7 Calendar Days';
+    if (preset === '30d') return 'Past 30 Calendar Days';
+    if (preset === '90d') return 'Past 90 Calendar Days';
+    if (preset === 'custom') {
+      return customFrom && customTo ? `${customFrom} to ${customTo}` : 'Custom Date Range';
+    }
+    return '';
+  }, [preset, customFrom, customTo]);
+
   return (
-    <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+    <div style={{ maxWidth: 1280, margin: '0 auto', paddingBottom: 40 }}>
       {/* Page Header */}
       <div
         style={{
@@ -68,34 +115,47 @@ export const AdminReportsPage: React.FC = () => {
           gap: 16,
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 'var(--radius-md, 8px)',
+              backgroundColor: 'var(--color-tint, #F0FDF4)',
+              border: '1px solid #BBF7D0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--color-primary, #0F5132)',
+            }}
+          >
+            <BarChart3 size={22} />
+          </div>
+          <div>
+            <h1
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'rgba(2, 132, 199, 0.12)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#0284C7',
+                fontSize: 22,
+                fontWeight: 800,
+                color: 'var(--color-text-main, #1F2937)',
+                margin: 0,
+                letterSpacing: '-0.3px',
               }}
             >
-              <BarChart3 size={20} />
-            </div>
-            <div>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text-main)', margin: 0 }}>
-                Platform Analytics & Reports
-              </h1>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: 13, margin: '3px 0 0 0' }}>
-                Operational throughput, merchant metrics, and system governance reports
-              </p>
-            </div>
+              Platform Analytics & Reports
+            </h1>
+            <p
+              style={{
+                color: 'var(--color-text-muted, #6B7280)',
+                fontSize: 13,
+                margin: '3px 0 0 0',
+              }}
+            >
+              Operational throughput, merchant metrics, and system governance reports
+            </p>
           </div>
         </div>
 
-        {/* Actions Strip */}
+        {/* Header Action Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <Button
             variant="secondary"
@@ -114,7 +174,7 @@ export const AdminReportsPage: React.FC = () => {
             disabled={loading || !data}
             icon={<Download size={14} />}
           >
-            Export CSV Report
+            Export Report
           </Button>
         </div>
       </div>
@@ -123,82 +183,182 @@ export const AdminReportsPage: React.FC = () => {
       <div
         className="card"
         style={{
-          padding: '12px 16px',
-          marginBottom: 24,
+          padding: '12px 18px',
+          marginBottom: 20,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: 12,
+          gap: 14,
+          borderRadius: 'var(--radius-lg, 12px)',
+          border: '1px solid var(--color-border)',
+          backgroundColor: 'var(--color-surface, #FFFFFF)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 600, color: 'var(--color-text-muted)', marginRight: 6 }}>
-            <Calendar size={15} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--color-text-muted, #6B7280)',
+            }}
+          >
+            <Calendar size={15} color="var(--color-primary, #0F5132)" />
             <span>Timeframe:</span>
           </div>
 
+          {/* Segmented Control */}
           <div
             style={{
               display: 'inline-flex',
-              backgroundColor: 'var(--color-surface-subtle)',
+              backgroundColor: 'var(--color-surface-subtle, #F3F4F6)',
               padding: 3,
-              borderRadius: 'var(--radius-md)',
-              gap: 2,
+              borderRadius: 8,
+              gap: 3,
+              border: '1px solid var(--color-border, #E5E7EB)',
             }}
           >
-            {presets.map((p) => (
-              <button
-                key={p.value}
-                onClick={() => setPreset(p.value)}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: 12,
-                  fontWeight: preset === p.value ? 700 : 500,
-                  backgroundColor: preset === p.value ? 'var(--color-surface)' : 'transparent',
-                  color: preset === p.value ? 'var(--color-text-main)' : 'var(--color-text-muted)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: preset === p.value ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
+            {presets.map((p) => {
+              const isActive = preset === p.value;
+              return (
+                <button
+                  key={p.value}
+                  onClick={() => setPreset(p.value)}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: isActive ? 700 : 500,
+                    backgroundColor: isActive
+                      ? 'var(--color-primary, #0F5132)'
+                      : 'transparent',
+                    color: isActive ? '#FFFFFF' : 'var(--color-text-muted, #6B7280)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Custom Range Inputs */}
-        {preset === 'custom' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5 }}>
-            <input
-              type="date"
-              className="input"
-              value={customFrom}
-              onChange={(e) => setCustomFrom(e.target.value)}
-              style={{ padding: '4px 8px', fontSize: 12 }}
-            />
-            <span style={{ color: 'var(--color-text-muted)' }}>to</span>
-            <input
-              type="date"
-              className="input"
-              value={customTo}
-              onChange={(e) => setCustomTo(e.target.value)}
-              style={{ padding: '4px 8px', fontSize: 12 }}
-            />
-          </div>
-        )}
+        {/* Active Range Badge & Custom inputs */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {preset === 'custom' ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5 }}>
+              <input
+                type="date"
+                className="input"
+                value={customFrom}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                style={{
+                  padding: '5px 10px',
+                  fontSize: 12,
+                  borderRadius: 6,
+                  border: '1px solid var(--color-border)',
+                }}
+              />
+              <span style={{ color: 'var(--color-text-muted)' }}>to</span>
+              <input
+                type="date"
+                className="input"
+                value={customTo}
+                onChange={(e) => setCustomTo(e.target.value)}
+                style={{
+                  padding: '5px 10px',
+                  fontSize: 12,
+                  borderRadius: 6,
+                  border: '1px solid var(--color-border)',
+                }}
+              />
+            </div>
+          ) : (
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--color-primary, #0F5132)',
+                backgroundColor: 'var(--color-tint, #F0FDF4)',
+                padding: '4px 10px',
+                borderRadius: 6,
+                border: '1px solid #BBF7D0',
+              }}
+            >
+              {activeDateLabel}
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Zero Activity Notice Banner when a restrictive preset has 0 orders */}
+      {data && data.overview.totalOrders === 0 && preset !== 'all' && (
+        <div
+          style={{
+            padding: '12px 18px',
+            marginBottom: 20,
+            borderRadius: 8,
+            backgroundColor: '#EFF6FF',
+            border: '1px solid #BFDBFE',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Info size={18} color="#2563EB" />
+            <span style={{ fontSize: 13, color: '#1E40AF', fontWeight: 500 }}>
+              No orders were placed in the selected window (
+              <strong>{activeDateLabel}</strong>). Switch to <strong>All Time</strong> to view all
+              historical platform records.
+            </span>
+          </div>
+          <button
+            onClick={() => setPreset('all')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 6,
+              backgroundColor: '#2563EB',
+              color: '#FFFFFF',
+              fontSize: 12,
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Switch to All Time Range
+          </button>
+        </div>
+      )}
 
       {/* Loading & Error States */}
       {loading && !data ? (
-        <div style={{ padding: '60px 0', textAlign: 'center' }}>
-          <RefreshCw size={28} className="animate-spin" style={{ color: 'var(--color-primary)', margin: '0 auto 12px' }} />
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-main)' }}>
+        <div style={{ padding: '80px 0', textAlign: 'center' }}>
+          <RefreshCw
+            size={32}
+            className="animate-spin"
+            style={{ color: 'var(--color-primary, #0F5132)', margin: '0 auto 14px' }}
+          />
+          <div
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: 'var(--color-text-main, #1F2937)',
+            }}
+          >
             Calculating platform analytics from database...
           </div>
+          <p style={{ fontSize: 12.5, color: 'var(--color-text-muted, #6B7280)', marginTop: 4 }}>
+            Aggregating orders, revenue, merchant fulfillment, and governance data
+          </p>
         </div>
       ) : error && !data ? (
         <ErrorState
@@ -217,81 +377,419 @@ export const AdminReportsPage: React.FC = () => {
               marginBottom: 24,
             }}
           >
-            {/* KPI 1: Total Orders & Throughput */}
-            <div className="card" style={{ padding: '18px 20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
-                  Orders & Throughput
-                </span>
-                <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-sm)', backgroundColor: '#E0F2FE', color: '#0284C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Receipt size={16} />
+            {/* KPI 1: Orders & Throughput */}
+            <div
+              className="card"
+              style={{
+                padding: '20px 22px',
+                borderRadius: 'var(--radius-lg, 12px)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 10,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      color: 'var(--color-text-muted, #6B7280)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    Orders & Throughput
+                  </span>
+                  <div
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 6,
+                      backgroundColor: 'var(--color-tint, #F0FDF4)',
+                      border: '1px solid #BBF7D0',
+                      color: 'var(--color-primary, #0F5132)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Receipt size={16} />
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 28,
+                    fontWeight: 800,
+                    color: 'var(--color-text-main, #1F2937)',
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {data.overview.totalOrders}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--color-text-muted, #6B7280)',
+                    marginTop: 6,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <strong style={{ color: '#16A34A' }}>
+                    {data.overview.completedOrders} completed
+                  </strong>
+                  <span>•</span>
+                  <span style={{ color: '#EF4444' }}>
+                    {data.overview.cancelledOrders} cancelled
+                  </span>
                 </div>
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text-main)' }}>
-                {data.overview.totalOrders}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4 }}>
-                <strong style={{ color: '#10B981' }}>{data.overview.completedOrders} completed</strong> •{' '}
-                <span style={{ color: '#EF4444' }}>{data.overview.cancelledOrders} cancelled</span>
+
+              {/* Progress pill */}
+              <div
+                style={{
+                  marginTop: 14,
+                  paddingTop: 10,
+                  borderTop: '1px solid var(--color-border, #E5E7EB)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: 11.5,
+                }}
+              >
+                <span style={{ color: 'var(--color-text-muted)' }}>Fulfillment Rate:</span>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    color: fulfillmentRate >= 80 ? '#16A34A' : '#D97706',
+                    backgroundColor: fulfillmentRate >= 80 ? '#DCFCE7' : '#FEF3C7',
+                    padding: '2px 8px',
+                    borderRadius: 10,
+                  }}
+                >
+                  {fulfillmentRate}%
+                </span>
               </div>
             </div>
 
-            {/* KPI 2: Order Fulfillment Value */}
-            <div className="card" style={{ padding: '18px 20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
-                  Collected Order Value
-                </span>
-                <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-sm)', backgroundColor: '#DCFCE7', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <TrendingUp size={16} />
+            {/* KPI 2: Collected Order Value */}
+            <div
+              className="card"
+              style={{
+                padding: '20px 22px',
+                borderRadius: 'var(--radius-lg, 12px)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 10,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      color: 'var(--color-text-muted, #6B7280)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    Collected Order Value
+                  </span>
+                  <div
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 6,
+                      backgroundColor: 'var(--color-tint, #F0FDF4)',
+                      border: '1px solid #BBF7D0',
+                      color: 'var(--color-primary, #0F5132)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <TrendingUp size={16} />
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 28,
+                    fontWeight: 800,
+                    color: 'var(--color-primary, #0F5132)',
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {formatCurrency(data.overview.collectedOrderValue)}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--color-text-muted, #6B7280)',
+                    marginTop: 6,
+                  }}
+                >
+                  Avg Basket: <strong>{formatCurrency(data.overview.averageOrderValue)}</strong>
                 </div>
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: '#10B981' }}>
-                {formatCurrency(data.overview.collectedOrderValue)}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4 }}>
-                Avg Order: <strong>{formatCurrency(data.overview.averageOrderValue)}</strong> (Gross: {formatCurrency(data.overview.totalOrderValue)})
+
+              <div
+                style={{
+                  marginTop: 14,
+                  paddingTop: 10,
+                  borderTop: '1px solid var(--color-border, #E5E7EB)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: 11.5,
+                  color: 'var(--color-text-muted)',
+                }}
+              >
+                <span>Gross Volume:</span>
+                <strong style={{ color: 'var(--color-text-main)' }}>
+                  {formatCurrency(data.overview.totalOrderValue)}
+                </strong>
               </div>
             </div>
 
             {/* KPI 3: Storefront Operations */}
-            <div className="card" style={{ padding: '18px 20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
-                  Merchant Outlets
-                </span>
-                <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-sm)', backgroundColor: '#FEF3C7', color: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Store size={16} />
+            <div
+              className="card"
+              style={{
+                padding: '20px 22px',
+                borderRadius: 'var(--radius-lg, 12px)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 10,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      color: 'var(--color-text-muted, #6B7280)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    Merchant Outlets
+                  </span>
+                  <div
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 6,
+                      backgroundColor: 'var(--color-tint, #F0FDF4)',
+                      border: '1px solid #BBF7D0',
+                      color: 'var(--color-primary, #0F5132)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Store size={16} />
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 28,
+                    fontWeight: 800,
+                    color: 'var(--color-text-main, #1F2937)',
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {data.overview.activeShops}{' '}
+                  <span
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 500,
+                      color: 'var(--color-text-muted, #6B7280)',
+                    }}
+                  >
+                    / {data.overview.totalShops}
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--color-text-muted, #6B7280)',
+                    marginTop: 6,
+                  }}
+                >
+                  <strong>{data.overview.pendingShops}</strong> pending approval •{' '}
+                  <span style={{ color: '#EF4444' }}>
+                    {data.overview.suspendedShops} suspended
+                  </span>
                 </div>
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text-main)' }}>
-                {data.overview.activeShops}{' '}
-                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-text-muted)' }}>
-                  / {data.overview.totalShops}
+
+              <div
+                style={{
+                  marginTop: 14,
+                  paddingTop: 10,
+                  borderTop: '1px solid var(--color-border, #E5E7EB)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: 11.5,
+                }}
+              >
+                <span style={{ color: 'var(--color-text-muted)' }}>Store Availability:</span>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    color: '#16A34A',
+                    backgroundColor: '#DCFCE7',
+                    padding: '2px 8px',
+                    borderRadius: 10,
+                  }}
+                >
+                  {data.overview.totalShops > 0
+                    ? `${Math.round((data.overview.activeShops / data.overview.totalShops) * 100)}% Online`
+                    : '0%'}
                 </span>
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4 }}>
-                <strong>{data.overview.pendingShops}</strong> pending approvals •{' '}
-                <span style={{ color: '#EF4444' }}>{data.overview.suspendedShops} suspended</span>
               </div>
             </div>
 
             {/* KPI 4: Governance & Disputes */}
-            <div className="card" style={{ padding: '18px 20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
-                  Disputes & Governance
-                </span>
-                <div style={{ width: 28, height: 28, borderRadius: 'var(--radius-sm)', backgroundColor: '#F3E8FF', color: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <AlertCircle size={16} />
+            <div
+              className="card"
+              style={{
+                padding: '20px 22px',
+                borderRadius: 'var(--radius-lg, 12px)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 10,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      color: 'var(--color-text-muted, #6B7280)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    Disputes & Governance
+                  </span>
+                  <div
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 6,
+                      backgroundColor: 'var(--color-tint, #F0FDF4)',
+                      border: '1px solid #BBF7D0',
+                      color: 'var(--color-primary, #0F5132)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <ShieldCheck size={16} />
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 28,
+                    fontWeight: 800,
+                    color: 'var(--color-text-main, #1F2937)',
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {data.overview.totalComplaints}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--color-text-muted, #6B7280)',
+                    marginTop: 6,
+                  }}
+                >
+                  <strong style={{ color: '#D97706' }}>
+                    {data.overview.pendingComplaints} action required
+                  </strong>{' '}
+                  •{' '}
+                  <span style={{ color: '#16A34A' }}>
+                    {data.overview.resolvedComplaints} resolved
+                  </span>
                 </div>
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--color-text-main)' }}>
-                {data.overview.totalComplaints}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4 }}>
-                <strong style={{ color: '#F59E0B' }}>{data.overview.pendingComplaints} action required</strong> •{' '}
-                <span style={{ color: '#10B981' }}>{data.overview.resolvedComplaints} resolved</span>
+
+              <div
+                style={{
+                  marginTop: 14,
+                  paddingTop: 10,
+                  borderTop: '1px solid var(--color-border, #E5E7EB)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: 11.5,
+                }}
+              >
+                <span style={{ color: 'var(--color-text-muted)' }}>Trust Index:</span>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    color: data.overview.pendingComplaints === 0 ? '#16A34A' : '#D97706',
+                    backgroundColor:
+                      data.overview.pendingComplaints === 0 ? '#DCFCE7' : '#FEF3C7',
+                    padding: '2px 8px',
+                    borderRadius: 10,
+                  }}
+                >
+                  {data.overview.pendingComplaints === 0 ? 'Healthy (Low Risk)' : 'Action Needed'}
+                </span>
               </div>
             </div>
           </div>
@@ -300,46 +798,219 @@ export const AdminReportsPage: React.FC = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))',
               gap: 20,
               marginBottom: 24,
             }}
           >
             {/* Trend Chart */}
-            <AnalyticsTrendChart data={data.ordersOverTime} />
+            <AnalyticsTrendChart
+              data={data.ordersOverTime}
+              onSwitchToAllTime={() => setPreset('all')}
+              isAllTime={preset === 'all'}
+            />
 
             {/* Lifecycle Distribution Chart */}
-            <AnalyticsDistributionChart data={data.orderStatusDistribution} />
+            <AnalyticsDistributionChart
+              data={data.orderStatusDistribution}
+              onSwitchToAllTime={() => setPreset('all')}
+              isAllTime={preset === 'all'}
+            />
           </div>
 
-          {/* Top Performing Shops */}
+          {/* Top Performing Shops Ranking Table */}
           <div style={{ marginBottom: 24 }}>
-            <TopShopsReportTable shops={data.topShops} />
+            <TopShopsReportTable
+              shops={data.topShops}
+              onSwitchToAllTime={() => setPreset('all')}
+              isAllTime={preset === 'all'}
+            />
           </div>
 
-          {/* Bottom Row: Disputes Breakdown & User Demographics */}
+          {/* Bottom Insights Grid: Category Breakdown + Disputes + Demographics */}
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
               gap: 20,
-              marginBottom: 30,
             }}
           >
-            {/* Disputes by Category Card */}
-            <div className="card" style={{ padding: '20px 24px' }}>
+            {/* Category Revenue Breakdown Card */}
+            <div
+              className="card"
+              style={{
+                padding: '22px 24px',
+                borderRadius: 'var(--radius-lg, 12px)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              }}
+            >
               <div style={{ marginBottom: 14 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
-                  Disputes by Category
-                </h3>
-                <p style={{ fontSize: 12.5, color: 'var(--color-text-muted)', margin: '4px 0 0 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: 6,
+                      backgroundColor: 'var(--color-tint, #F0FDF4)',
+                      border: '1px solid #BBF7D0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--color-primary, #0F5132)',
+                    }}
+                  >
+                    <ShoppingBag size={14} />
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 700,
+                      margin: 0,
+                      color: 'var(--color-text-main, #1F2937)',
+                    }}
+                  >
+                    Revenue by Merchant Category
+                  </h3>
+                </div>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--color-text-muted, #6B7280)',
+                    margin: '4px 0 0 34px',
+                  }}
+                >
+                  Order volume distribution across store classifications
+                </p>
+              </div>
+
+              {categoryBreakdown.length === 0 ? (
+                <div
+                  style={{
+                    padding: '28px 0',
+                    textAlign: 'center',
+                    color: 'var(--color-text-muted, #6B7280)',
+                    fontSize: 13,
+                  }}
+                >
+                  No category activity in this period.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {categoryBreakdown.map((cat, idx) => (
+                    <div key={idx} style={{ fontSize: 12.5 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: 5,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontWeight: 600,
+                            color: 'var(--color-text-main, #1F2937)',
+                            textTransform: 'capitalize',
+                          }}
+                        >
+                          {cat.category.toLowerCase()}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ color: 'var(--color-text-muted, #6B7280)' }}>
+                            {cat.orderCount} orders
+                          </span>
+                          <strong style={{ color: 'var(--color-primary, #0F5132)' }}>
+                            {formatCurrency(cat.revenue)}
+                          </strong>
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          height: 6,
+                          borderRadius: 'var(--radius-full, 9999px)',
+                          backgroundColor: 'var(--color-surface-subtle, #F3F4F6)',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${cat.percentage}%`,
+                            backgroundColor: 'var(--color-primary, #0F5132)',
+                            borderRadius: 'var(--radius-full, 9999px)',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Disputes Breakdown Card */}
+            <div
+              className="card"
+              style={{
+                padding: '22px 24px',
+                borderRadius: 'var(--radius-lg, 12px)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              }}
+            >
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: 6,
+                      backgroundColor: 'var(--color-tint, #F0FDF4)',
+                      border: '1px solid #BBF7D0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--color-primary, #0F5132)',
+                    }}
+                  >
+                    <AlertCircle size={14} />
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 700,
+                      margin: 0,
+                      color: 'var(--color-text-main, #1F2937)',
+                    }}
+                  >
+                    Disputes by Category
+                  </h3>
+                </div>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--color-text-muted, #6B7280)',
+                    margin: '4px 0 0 34px',
+                  }}
+                >
                   Frequency distribution of reported issue types
                 </p>
               </div>
 
               {Object.keys(data.complaintsByType).length === 0 ? (
-                <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: 13 }}>
-                  No customer or merchant disputes filed yet.
+                <div
+                  style={{
+                    padding: '28px 0',
+                    textAlign: 'center',
+                    color: 'var(--color-text-muted, #6B7280)',
+                    fontSize: 13,
+                  }}
+                >
+                  <ShieldCheck
+                    size={28}
+                    color="#16A34A"
+                    style={{ margin: '0 auto 8px', display: 'block' }}
+                  />
+                  No customer or merchant disputes filed yet. Platform trust is high.
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -349,19 +1020,30 @@ export const AdminReportsPage: React.FC = () => {
 
                     return (
                       <div key={idx} style={{ fontSize: 12.5 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontWeight: 600, color: 'var(--color-text-main)' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            marginBottom: 4,
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontWeight: 600,
+                              color: 'var(--color-text-main, #1F2937)',
+                            }}
+                          >
                             {COMPLAINT_TYPE_TITLES[type] || type}
                           </span>
-                          <span style={{ color: 'var(--color-text-muted)' }}>
+                          <span style={{ color: 'var(--color-text-muted, #6B7280)' }}>
                             {count} ({pct}%)
                           </span>
                         </div>
                         <div
                           style={{
                             height: 6,
-                            borderRadius: 'var(--radius-full)',
-                            backgroundColor: 'var(--color-surface-subtle)',
+                            borderRadius: 'var(--radius-full, 9999px)',
+                            backgroundColor: 'var(--color-surface-subtle, #F3F4F6)',
                             overflow: 'hidden',
                           }}
                         >
@@ -369,8 +1051,8 @@ export const AdminReportsPage: React.FC = () => {
                             style={{
                               height: '100%',
                               width: `${pct}%`,
-                              backgroundColor: '#7C3AED',
-                              borderRadius: 'var(--radius-full)',
+                              backgroundColor: '#DC2626',
+                              borderRadius: 'var(--radius-full, 9999px)',
                             }}
                           />
                         </div>
@@ -382,35 +1064,82 @@ export const AdminReportsPage: React.FC = () => {
             </div>
 
             {/* Platform User Demographics */}
-            <div className="card" style={{ padding: '20px 24px' }}>
+            <div
+              className="card"
+              style={{
+                padding: '22px 24px',
+                borderRadius: 'var(--radius-lg, 12px)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              }}
+            >
               <div style={{ marginBottom: 14 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
-                  Platform Demographics
-                </h3>
-                <p style={{ fontSize: 12.5, color: 'var(--color-text-muted)', margin: '4px 0 0 0' }}>
-                  User distribution across registered roles
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: 6,
+                      backgroundColor: 'var(--color-tint, #F0FDF4)',
+                      border: '1px solid #BBF7D0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--color-primary, #0F5132)',
+                    }}
+                  >
+                    <Users size={14} />
+                  </div>
+                  <h3
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 700,
+                      margin: 0,
+                      color: 'var(--color-text-main, #1F2937)',
+                    }}
+                  >
+                    Platform Demographics
+                  </h3>
+                </div>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--color-text-muted, #6B7280)',
+                    margin: '4px 0 0 34px',
+                  }}
+                >
+                  Registered user distribution across platform roles
                 </p>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {/* Total Users */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {/* Total Users banner */}
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '10px 14px',
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--color-surface-subtle)',
+                    borderRadius: 8,
+                    backgroundColor: 'var(--color-tint, #F0FDF4)',
+                    border: '1px solid #BBF7D0',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <Users size={16} color="var(--color-primary)" />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-main)' }}>
-                      Total Registered Users
-                    </span>
-                  </div>
-                  <strong style={{ fontSize: 15, color: 'var(--color-text-main)' }}>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: 'var(--color-primary, #0F5132)',
+                    }}
+                  >
+                    Total Registered Accounts
+                  </span>
+                  <strong
+                    style={{
+                      fontSize: 16,
+                      color: 'var(--color-primary, #0F5132)',
+                    }}
+                  >
                     {data.overview.totalUsers}
                   </strong>
                 </div>
@@ -421,14 +1150,14 @@ export const AdminReportsPage: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '8px 14px',
-                    borderBottom: '1px solid var(--color-border)',
+                    padding: '8px 12px',
+                    borderBottom: '1px solid var(--color-border, #E5E7EB)',
                   }}
                 >
-                  <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+                  <span style={{ fontSize: 13, color: 'var(--color-text-muted, #6B7280)' }}>
                     Customers
                   </span>
-                  <strong style={{ fontSize: 13.5, color: 'var(--color-text-main)' }}>
+                  <strong style={{ fontSize: 13.5, color: 'var(--color-text-main, #1F2937)' }}>
                     {data.overview.totalCustomers}
                   </strong>
                 </div>
@@ -439,32 +1168,32 @@ export const AdminReportsPage: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '8px 14px',
-                    borderBottom: '1px solid var(--color-border)',
+                    padding: '8px 12px',
+                    borderBottom: '1px solid var(--color-border, #E5E7EB)',
                   }}
                 >
-                  <span style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+                  <span style={{ fontSize: 13, color: 'var(--color-text-muted, #6B7280)' }}>
                     Shop Owners (Merchants)
                   </span>
-                  <strong style={{ fontSize: 13.5, color: 'var(--color-text-main)' }}>
+                  <strong style={{ fontSize: 13.5, color: 'var(--color-text-main, #1F2937)' }}>
                     {data.overview.totalShopOwners}
                   </strong>
                 </div>
 
-                {/* Suspended Users */}
+                {/* Suspended Accounts */}
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '8px 14px',
+                    padding: '8px 12px',
                   }}
                 >
-                  <span style={{ fontSize: 13, color: '#DC2626' }}>
-                    Suspended Accounts
+                  <span style={{ fontSize: 13, color: '#DC2626', fontWeight: 500 }}>
+                    Suspended Outlets
                   </span>
                   <strong style={{ fontSize: 13.5, color: '#DC2626' }}>
-                    {data.overview.suspendedShops > 0 || data.overview.totalUsers > 0 ? (
+                    {data.overview.suspendedShops > 0 ? (
                       <Badge variant="error">{data.overview.suspendedShops} shop(s)</Badge>
                     ) : (
                       '0'

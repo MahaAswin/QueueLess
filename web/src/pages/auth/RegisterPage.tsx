@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Lock, ArrowRight, AlertCircle, Store } from 'lucide-react';
+import { User, Mail, Lock, ArrowRight, AlertCircle, Store } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import type { Role } from '../../types/auth.types';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { PhoneInput, COUNTRIES, type CountryOption } from '../../components/ui/PhoneInput';
 import { getRoleHomeRoute } from '../../utils/auth';
 import { getApiErrorMessage } from '../../utils/errors';
 
@@ -14,7 +15,8 @@ export const RegisterPage: React.FC = () => {
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState<CountryOption>(COUNTRIES[0]); // Default to India (+91)
+  const [nationalNumber, setNationalNumber] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<Role>('CUSTOMER');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -24,17 +26,26 @@ export const RegisterPage: React.FC = () => {
     e.preventDefault();
     setErrorMsg(null);
 
-    if (!fullName || !email || !phone || !password) {
+    const cleanNumber = nationalNumber.trim().replace(/[^\d]/g, '');
+
+    if (!fullName || !email || !cleanNumber || !password) {
       setErrorMsg('Please fill in all required fields.');
       return;
     }
+
+    if (cleanNumber.length < 7 || cleanNumber.length > 14) {
+      setErrorMsg('Please enter a valid phone number (between 7 and 14 digits).');
+      return;
+    }
+
+    const fullPhoneNumber = `${country.code}${cleanNumber}`;
 
     try {
       setIsSubmitting(true);
       const user = await register({
         fullName: fullName.trim(),
         email: email.trim(),
-        phone: phone.trim(),
+        phone: fullPhoneNumber,
         password,
         role,
       });
@@ -157,13 +168,12 @@ export const RegisterPage: React.FC = () => {
           required
         />
 
-        <Input
+        <PhoneInput
           label="Phone Number"
-          type="tel"
-          placeholder="+919876543210"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          leftIcon={<Phone size={17} />}
+          selectedCountryIso={country.iso}
+          onCountryChange={(selected) => setCountry(selected)}
+          nationalNumber={nationalNumber}
+          onNationalNumberChange={(cleanNum) => setNationalNumber(cleanNum)}
           required
         />
 

@@ -37,7 +37,8 @@ public class AdminManagementService {
     public AdminUserPageResponse getAdminUsers(Role role, AccountStatus accountStatus, String search, int page, int size) {
         int limitSize = Math.min(size, 100);
         PageRequest pageRequest = PageRequest.of(page, limitSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<User> userPage = userRepository.findAdminUsersFilter(role, accountStatus, search, pageRequest);
+        String cleanSearch = (search != null && !search.isBlank()) ? search.trim() : null;
+        Page<User> userPage = userRepository.findAdminUsersFilter(role, accountStatus, cleanSearch, pageRequest);
 
         List<AdminUserResponse> content = userPage.getContent().stream()
                 .map(AdminUserResponse::fromEntity)

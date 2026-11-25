@@ -31,6 +31,15 @@ interface ShopsTableProps {
   ) => void;
 }
 
+const formatTimeClean = (timeStr?: string): string => {
+  if (!timeStr) return '';
+  const parts = timeStr.split(':');
+  if (parts.length >= 2) {
+    return `${parts[0]}:${parts[1]}`;
+  }
+  return timeStr;
+};
+
 export const ShopsTable: React.FC<ShopsTableProps> = ({
   shops,
   totalElements,
@@ -68,12 +77,12 @@ export const ShopsTable: React.FC<ShopsTableProps> = ({
         <table className="data-table">
           <thead>
             <tr>
-              <th style={{ width: '26%' }}>Shop Outlet</th>
-              <th style={{ width: '20%' }}>Owner & Contact</th>
-              <th style={{ width: '16%' }}>Location</th>
-              <th style={{ width: '12%' }}>Operating Hours</th>
-              <th style={{ width: '11%' }}>Status</th>
-              <th style={{ width: '15%', textAlign: 'right' }}>Actions</th>
+              <th style={{ width: '25%' }}>Shop Outlet</th>
+              <th style={{ width: '19%' }}>Owner & Contact</th>
+              <th style={{ width: '15%' }}>Location</th>
+              <th style={{ width: '13%' }}>Operating Hours</th>
+              <th style={{ width: '14%' }}>Status</th>
+              <th style={{ width: '14%', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -211,9 +220,9 @@ export const ShopsTable: React.FC<ShopsTableProps> = ({
                   {/* Operating Hours */}
                   <td>
                     {shop.openingTime && shop.closingTime ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--color-text-muted)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
                         <Clock size={12} color="var(--color-text-light)" />
-                        <span>{shop.openingTime} - {shop.closingTime}</span>
+                        <span>{formatTimeClean(shop.openingTime)} – {formatTimeClean(shop.closingTime)}</span>
                       </div>
                     ) : (
                       <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>Standard</span>
@@ -221,8 +230,8 @@ export const ShopsTable: React.FC<ShopsTableProps> = ({
                   </td>
 
                   {/* Status Badge */}
-                  <td>
-                    <Badge variant={statusMeta.variant as any}>
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    <Badge variant={statusMeta.variant as any} dot>
                       {statusMeta.label}
                     </Badge>
                   </td>

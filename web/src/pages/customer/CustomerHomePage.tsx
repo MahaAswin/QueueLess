@@ -27,6 +27,7 @@ import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { ExpenseSummarySection } from './components/ExpenseSummarySection';
 import { formatSlotWindow } from '../../utils/formatters';
+import { useAuth } from '../../context/AuthContext';
 
 const CATEGORY_LABELS: Record<string, string> = {
   ALL: 'All Categories',
@@ -48,6 +49,36 @@ const ORDER_ACTIVE_STATUSES: OrderStatus[] = [
 ];
 
 export const CustomerHomePage: React.FC = () => {
+  const { user } = useAuth();
+
+  // Extract friendly display name for greeting badge (defaults to 'Aswin' if guest or loading)
+  const displayName = useMemo(() => {
+    if (!user?.fullName) return 'Aswin';
+    const trimmed = user.fullName.trim();
+    const parts = trimmed.split(/\s+/);
+    if (parts.length === 1) return parts[0];
+
+    // If 'Aswin' is in any part, prioritize it
+    const aswinMatch = parts.find((p) => p.toLowerCase().includes('aswin'));
+    if (aswinMatch) return aswinMatch;
+
+    // Honorifics
+    if (['mr', 'mrs', 'ms', 'dr', 'shri', 'sri'].includes(parts[0].toLowerCase())) {
+      return parts[1] || parts[0];
+    }
+
+    // Short initials
+    if (parts[0].replace(/[^a-zA-Z]/g, '').length <= 2 && parts.length > 1) {
+      return parts[1];
+    }
+
+    // South Indian family prefix like 'Maha'
+    if (parts[0].toLowerCase() === 'maha' && parts.length > 1) {
+      return parts[1];
+    }
+
+    return parts[0];
+  }, [user?.fullName]);
 
   // Shops State
   const [shops, setShops] = useState<Shop[]>([]);
@@ -169,26 +200,123 @@ export const CustomerHomePage: React.FC = () => {
           }}
         >
           <div>
-            {/* Top Pill Badge */}
+            {/* Top Row: Unique Welcome Greeting & Zero-Wait Badge */}
             <div
               style={{
-                display: 'inline-flex',
+                display: 'flex',
                 alignItems: 'center',
-                gap: 6,
-                padding: '5px 14px',
-                backgroundColor: 'var(--color-tint)',
-                border: '1px solid var(--color-tint-border)',
-                borderRadius: 9999,
-                color: 'var(--color-primary)',
-                fontSize: 11.5,
-                fontWeight: 800,
-                letterSpacing: '0.6px',
-                textTransform: 'uppercase',
-                marginBottom: 16,
+                gap: 12,
+                flexWrap: 'wrap',
+                marginBottom: 18,
               }}
             >
-              <Zap size={13} fill="var(--color-primary)" color="var(--color-primary)" />
-              <span>ZERO-WAIT EXPRESS PICKUP</span>
+              {/* Unique Signature Customer Welcome Greeting */}
+              <div
+                className="customer-welcome-badge"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '7px 18px 7px 14px',
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 253, 244, 0.95) 50%, rgba(220, 252, 231, 0.85) 100%)',
+                  border: '1.5px solid #BBF7D0',
+                  borderRadius: 9999,
+                  boxShadow: '0 4px 18px -2px rgba(15, 81, 50, 0.12), 0 2px 6px rgba(34, 197, 94, 0.08)',
+                  backdropFilter: 'blur(10px)',
+                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                  cursor: 'default',
+                }}
+              >
+                <span
+                  className="welcome-wave-hand"
+                  style={{
+                    fontSize: 20,
+                    display: 'inline-block',
+                    transformOrigin: '70% 70%',
+                  }}
+                  role="img"
+                  aria-label="Waving hand"
+                >
+                  👋
+                </span>
+
+                <span
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: 'clamp(15px, 1.7vw, 19px)',
+                    fontWeight: 700,
+                    color: '#0F5132',
+                    letterSpacing: '-0.3px',
+                    display: 'inline-flex',
+                    alignItems: 'baseline',
+                    gap: 6,
+                  }}
+                >
+                  <span>Welcome</span>
+                  <span
+                    className="welcome-name-gradient"
+                    style={{
+                      background: 'linear-gradient(135deg, #0F5132 0%, #15803D 45%, #22C55E 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      fontWeight: 900,
+                      letterSpacing: '-0.2px',
+                    }}
+                  >
+                    {displayName}
+                  </span>
+                  <span
+                    style={{
+                      color: '#22C55E',
+                      fontWeight: 900,
+                      letterSpacing: '1px',
+                      textShadow: '0 0 12px rgba(34, 197, 94, 0.45)',
+                    }}
+                  >
+                    !!
+                  </span>
+                </span>
+
+                <span
+                  className="welcome-sparkle-icon"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 22,
+                    height: 22,
+                    borderRadius: 9999,
+                    background: 'linear-gradient(135deg, #22C55E 0%, #15803D 100%)',
+                    color: '#FFFFFF',
+                    fontSize: 11,
+                    marginLeft: 2,
+                    boxShadow: '0 2px 8px rgba(34, 197, 94, 0.4)',
+                  }}
+                >
+                  ✨
+                </span>
+              </div>
+
+              {/* Zero-Wait Express Pickup Pill */}
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 14px',
+                  backgroundColor: 'var(--color-tint)',
+                  border: '1px solid var(--color-tint-border)',
+                  borderRadius: 9999,
+                  color: 'var(--color-primary)',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  letterSpacing: '0.6px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                <Zap size={13} fill="var(--color-primary)" color="var(--color-primary)" />
+                <span>ZERO-WAIT EXPRESS PICKUP</span>
+              </div>
             </div>
 
             {/* Main Heading */}

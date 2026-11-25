@@ -317,6 +317,8 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
     <div
       style={{
         position: 'relative',
+        zIndex: 1,
+        isolation: 'isolate',
         width: '100%',
         height,
         borderRadius: 'var(--radius-xl)',
@@ -326,7 +328,7 @@ export const NearbyShopsMap: React.FC<NearbyShopsMapProps> = ({
         backgroundColor: 'var(--color-surface-subtle)',
       }}
     >
-      <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+      <div ref={mapContainerRef} style={{ width: '100%', height: '100%', zIndex: 1 }} />
 
       {/* Embedded CSS for Radar Pulse Animation */}
       <style>{`

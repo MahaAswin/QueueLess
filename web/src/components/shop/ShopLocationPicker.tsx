@@ -291,6 +291,8 @@ export const ShopLocationPicker: React.FC<ShopLocationPickerProps> = ({
       <div
         style={{
           position: 'relative',
+          zIndex: 1,
+          isolation: 'isolate',
           width: '100%',
           height,
           borderRadius: 'var(--radius-lg)',
@@ -299,7 +301,7 @@ export const ShopLocationPicker: React.FC<ShopLocationPickerProps> = ({
           backgroundColor: 'var(--color-surface-subtle)',
         }}
       >
-        <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+        <div ref={mapContainerRef} style={{ width: '100%', height: '100%', zIndex: 1 }} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>

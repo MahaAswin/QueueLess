@@ -78,9 +78,12 @@
   --radius-2xl: 28px;
   --radius-full: 9999px;
 
-  /* Typography */
-  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Typography - Clean Brand Font Stack
+     Headings: Outfit (rounded geometric) | Body: Inter (clean readable grotesque) */
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-system: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   /* Layout Dimensions */
   --header-height: 68px;
@@ -179,7 +182,7 @@ input, select, textarea {
   top: 0;
   bottom: 0;
   left: 0;
-  z-index: 40;
+  z-index: 60;
   transition: width var(--transition-smooth), transform var(--transition-smooth), box-shadow var(--transition-smooth);
   overflow-x: hidden;
   overflow-y: auto;
@@ -221,7 +224,7 @@ input, select, textarea {
   border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
-  z-index: 30;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -244,7 +247,7 @@ input, select, textarea {
   background-color: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  z-index: 45;
+  z-index: 55;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-smooth);
@@ -639,12 +642,14 @@ input, select, textarea {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
+  gap: 6px;
+  padding: 4px 10px;
   border-radius: var(--radius-full);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
+  white-space: nowrap !important;
+  line-height: 1.2;
 }
 
 .badge-success {
@@ -849,5 +854,181 @@ input, select, textarea {
     font-size: 12px !important;
   }
 }
+
+/* ==========================================================================
+   Customer Dashboard - Unique Signature Welcome Greeting Badge
+   ========================================================================== */
+.customer-welcome-badge {
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.customer-welcome-badge::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.12) 0%, transparent 65%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.customer-welcome-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -2px rgba(15, 81, 50, 0.16), 0 0 18px rgba(34, 197, 94, 0.22) !important;
+  border-color: #86EFAC !important;
+}
+
+.customer-welcome-badge:hover::before {
+  opacity: 1;
+}
+
+.welcome-wave-hand {
+  display: inline-block;
+  transform-origin: 70% 70%;
+  animation: queueless-wave 2.4s infinite ease-in-out;
+}
+
+@keyframes queueless-wave {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
+  60% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.welcome-sparkle-icon {
+  animation: sparkle-pulse 2.8s infinite ease-in-out;
+}
+
+@keyframes sparkle-pulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.15) rotate(14deg);
+  }
+}
+
+/* ==========================================================================
+   Header Customer Profile Action Pill
+   ========================================================================== */
+.header-profile-link {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 38px !important;
+  padding: 0 12px 0 5px !important;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  text-decoration: none !important;
+  color: var(--color-primary);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  white-space: nowrap !important;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-xs);
+}
+
+.header-profile-link:hover {
+  background-color: var(--color-tint);
+  border-color: var(--color-tint-border);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(15, 81, 50, 0.1);
+}
+
+.header-profile-avatar {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #0F5132 0%, #15803D 100%);
+  color: #FFFFFF !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0 !important;
+  box-shadow: 0 1px 4px rgba(15, 81, 50, 0.25);
+}
+
+.header-profile-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .header-profile-link {
+    padding: 0 !important;
+    width: 38px !important;
+    height: 38px !important;
+    justify-content: center !important;
+  }
+  .header-profile-name {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   Leaflet Map Stacking & Z-Index Containment
+   Prevents Leaflet controls, tiles, and panes from escaping map containers
+   and overlapping sticky headers, sidebars, or toolbars.
+   ========================================================================== */
+.leaflet-container {
+  z-index: 1 !important;
+  isolation: isolate !important;
+}
+
+.leaflet-pane {
+  z-index: 5 !important;
+}
+
+.leaflet-tile-pane {
+  z-index: 2 !important;
+}
+
+.leaflet-overlay-pane {
+  z-index: 4 !important;
+}
+
+.leaflet-shadow-pane {
+  z-index: 5 !important;
+}
+
+.leaflet-marker-pane {
+  z-index: 6 !important;
+}
+
+.leaflet-tooltip-pane {
+  z-index: 7 !important;
+}
+
+.leaflet-popup-pane {
+  z-index: 8 !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 9 !important;
+}
+
+.leaflet-control {
+  z-index: 10 !important;
+}
+
+
+
 
 

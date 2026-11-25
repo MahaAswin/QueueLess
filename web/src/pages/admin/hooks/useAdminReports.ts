@@ -6,7 +6,7 @@ import type {
 } from '../../../types/reports.types';
 
 export const useAdminReports = () => {
-  const [preset, setPreset] = useState<DateRangePreset>('30d');
+  const [preset, setPreset] = useState<DateRangePreset>('all');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
 

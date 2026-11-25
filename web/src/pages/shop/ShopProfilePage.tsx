@@ -268,12 +268,10 @@ export const ShopProfilePage: React.FC = () => {
               }}
             >
               <div style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-                {isDirty ? (
+                {isDirty && (
                   <span style={{ color: 'var(--color-warning)', fontWeight: 600 }}>
                     ● Unsaved changes
                   </span>
-                ) : (
-                  <span>All changes saved to backend</span>
                 )}
               </div>
 

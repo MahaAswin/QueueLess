@@ -322,7 +322,7 @@ export const ShopInformationForm: React.FC<ShopInformationFormProps> = ({
       </div>
 
       {/* 3. Shop Location Card with Map Picker */}
-      <div className="card" style={{ padding: '20px 24px' }}>
+      <div className="card" style={{ padding: '20px 24px', position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <div
             style={{

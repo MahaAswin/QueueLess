@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Home,
@@ -39,6 +39,31 @@ export const CustomerLayout: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number>(0);
   const [hoveredTooltip, setHoveredTooltip] = useState<{ label: string; top: number } | null>(null);
+
+  // Extract friendly display name (defaults to 'Aswin' if guest or loading)
+  const displayName = useMemo(() => {
+    if (!user?.fullName) return 'Aswin';
+    const trimmed = user.fullName.trim();
+    const parts = trimmed.split(/\s+/);
+    if (parts.length === 1) return parts[0];
+
+    const aswinMatch = parts.find((p) => p.toLowerCase().includes('aswin'));
+    if (aswinMatch) return aswinMatch;
+
+    if (['mr', 'mrs', 'ms', 'dr', 'shri', 'sri'].includes(parts[0].toLowerCase())) {
+      return parts[1] || parts[0];
+    }
+
+    if (parts[0].replace(/[^a-zA-Z]/g, '').length <= 2 && parts.length > 1) {
+      return parts[1];
+    }
+
+    if (parts[0].toLowerCase() === 'maha' && parts.length > 1) {
+      return parts[1];
+    }
+
+    return parts[0];
+  }, [user?.fullName]);
 
   // Auto-close expanded drawer on navigation on mobile
   useEffect(() => {
@@ -463,6 +488,21 @@ export const CustomerLayout: React.FC = () => {
                   {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
                 </span>
               )}
+            </NavLink>
+
+            {/* Top Header User Profile Pill */}
+            <NavLink
+              to="/customer/profile"
+              className="header-profile-link"
+              title={`Account Profile (${displayName})`}
+              aria-label="My Account Profile"
+            >
+              <div className="header-profile-avatar">
+                {displayName.charAt(0).toUpperCase()}
+              </div>
+              <span className="header-profile-name">
+                {displayName}
+              </span>
             </NavLink>
           </div>
         </header>
