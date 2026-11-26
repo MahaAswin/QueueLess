@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Clock,
@@ -7,7 +7,9 @@ import {
   ArrowRight,
   Zap,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Menu,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { QueueLessLogo } from '../components/ui/QueueLessLogo';
@@ -16,11 +18,13 @@ import { getRoleHomeRoute } from '../utils/auth';
 export const LandingHeroPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-bg)', display: 'flex', flexDirection: 'column' }}>
       {/* 1. TOP NAVIGATION BAR */}
       <header
+        className="landing-header"
         style={{
           position: 'sticky',
           top: 0,
@@ -29,67 +33,25 @@ export const LandingHeroPage: React.FC = () => {
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           borderBottom: '1px solid var(--color-border)',
-          height: 72,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 32px',
         }}
       >
         {/* Left Brand Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           <QueueLessLogo size="md" subtitle="EXPRESS PICKUP" />
         </div>
 
-        {/* Center Nav Links (Desktop) */}
-        <nav
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 28,
-          }}
-          className="landing-nav-links"
-        >
-          <a
-            href="#how-it-works"
-            style={{
-              color: 'var(--color-text)',
-              fontSize: 14.5,
-              fontWeight: 600,
-              textDecoration: 'none',
-              transition: 'color 0.2s',
-            }}
-          >
-            How It Works
-          </a>
-          <a
-            href="#benefits"
-            style={{
-              color: 'var(--color-text)',
-              fontSize: 14.5,
-              fontWeight: 600,
-              textDecoration: 'none',
-              transition: 'color 0.2s',
-            }}
-          >
-            Benefits
-          </a>
-          <a
-            href="#for-merchants"
-            style={{
-              color: 'var(--color-text)',
-              fontSize: 14.5,
-              fontWeight: 600,
-              textDecoration: 'none',
-              transition: 'color 0.2s',
-            }}
-          >
-            For Shop Owners
-          </a>
+        {/* Center Nav Links (Desktop Only) */}
+        <nav className="landing-desktop-nav">
+          <a href="#how-it-works">How It Works</a>
+          <a href="#benefits">Benefits</a>
+          <a href="#for-merchants">For Shop Owners</a>
         </nav>
 
-        {/* Right Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {/* Right Action Buttons (Desktop Only) */}
+        <div className="landing-desktop-actions">
           {isAuthenticated && user ? (
             <button
               onClick={() => navigate(getRoleHomeRoute(user.role))}
@@ -156,7 +118,149 @@ export const LandingHeroPage: React.FC = () => {
             </>
           )}
         </div>
+
+        {/* Right Action Controls (Mobile Portrait / Small Screen) */}
+        <div className="landing-mobile-controls">
+          {isAuthenticated && user ? (
+            <button
+              onClick={() => navigate(getRoleHomeRoute(user.role))}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                backgroundColor: 'var(--color-primary)',
+                color: '#FFFFFF',
+                padding: '8px 14px',
+                borderRadius: 'var(--radius-md)',
+                fontSize: 13,
+                fontWeight: 700,
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              <span>Dashboard</span>
+              <ArrowRight size={14} />
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="landing-mobile-login-btn"
+            >
+              Log In
+            </Link>
+          )}
+
+          <button
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            className="landing-hamburger-btn"
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </header>
+
+      {/* Mobile Drawer Dropdown Menu */}
+      {isMobileMenuOpen && (
+        <div className="landing-mobile-drawer">
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <a
+              href="#how-it-works"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="landing-mobile-drawer-link"
+            >
+              How It Works
+            </a>
+            <a
+              href="#benefits"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="landing-mobile-drawer-link"
+            >
+              Benefits
+            </a>
+            <a
+              href="#for-merchants"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="landing-mobile-drawer-link"
+            >
+              For Shop Owners
+            </a>
+          </nav>
+
+          <div style={{ height: 1, backgroundColor: 'var(--color-border)', margin: '14px 0' }} />
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {isAuthenticated && user ? (
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  navigate(getRoleHomeRoute(user.role));
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  backgroundColor: 'var(--color-primary)',
+                  color: '#FFFFFF',
+                  padding: '12px',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: 14.5,
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <span>Go to Dashboard</span>
+                <ArrowRight size={16} />
+              </button>
+            ) : (
+              <>
+                <Link
+                  to="/register"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    backgroundColor: 'var(--color-primary)',
+                    color: '#FFFFFF',
+                    padding: '12px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 14.5,
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    boxShadow: '0 4px 12px var(--color-primary-glow)',
+                  }}
+                >
+                  <span>Get Started — Free</span>
+                  <ArrowRight size={16} />
+                </Link>
+                <Link
+                  to="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'transparent',
+                    color: 'var(--color-primary)',
+                    border: '1.5px solid var(--color-primary)',
+                    padding: '11px',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 14.5,
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                  }}
+                >
+                  Sign In to Account
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 2. HERO PRESENTATION SECTION */}
       <main style={{ flex: 1 }}>
@@ -811,6 +915,123 @@ export const LandingHeroPage: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      <style>{`
+        .landing-header {
+          padding: 0 32px;
+          height: 72px;
+        }
+        .landing-desktop-nav {
+          display: flex;
+          align-items: center;
+          gap: 28px;
+        }
+        .landing-desktop-nav a {
+          color: var(--color-text);
+          font-size: 14.5px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: color 0.2s ease;
+        }
+        .landing-desktop-nav a:hover {
+          color: var(--color-primary);
+        }
+        .landing-desktop-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .landing-mobile-controls {
+          display: none;
+          align-items: center;
+          gap: 10px;
+        }
+        .landing-hamburger-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: var(--radius-md);
+          background-color: transparent;
+          border: 1px solid var(--color-border);
+          color: var(--color-text-main);
+          cursor: pointer;
+          transition: background-color 0.15s ease;
+        }
+        .landing-hamburger-btn:hover {
+          background-color: var(--color-surface-hover);
+        }
+        .landing-mobile-login-btn {
+          display: inline-flex;
+          align-items: center;
+          padding: 7px 14px;
+          border-radius: var(--radius-md);
+          font-size: 13.5px;
+          font-weight: 700;
+          color: var(--color-primary);
+          border: 1.5px solid var(--color-primary);
+          text-decoration: none;
+          transition: all 0.15s ease;
+        }
+        .landing-mobile-drawer {
+          display: none;
+        }
+
+        @media (max-width: 860px) {
+          .landing-header {
+            padding: 0 16px !important;
+            height: calc(64px + var(--safe-top, 0px)) !important;
+            padding-top: var(--safe-top, 0px) !important;
+          }
+          .landing-desktop-nav {
+            display: none !important;
+          }
+          .landing-desktop-actions {
+            display: none !important;
+          }
+          .landing-mobile-controls {
+            display: flex !important;
+          }
+          .landing-mobile-drawer {
+            display: block !important;
+            position: sticky;
+            top: calc(64px + var(--safe-top, 0px));
+            z-index: 49;
+            background-color: rgba(251, 246, 236, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1.5px solid var(--color-border);
+            padding: 18px 20px 22px;
+            box-shadow: 0 12px 28px rgba(15, 81, 50, 0.12);
+            animation: slideDownMenu 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
+          .landing-mobile-drawer-link {
+            color: var(--color-text-main);
+            font-size: 15.5px;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 8px 4px;
+            display: block;
+            border-radius: var(--radius-sm);
+            transition: color 0.15s ease;
+          }
+          .landing-mobile-drawer-link:hover {
+            color: var(--color-primary);
+          }
+        }
+
+        @keyframes slideDownMenu {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 };
