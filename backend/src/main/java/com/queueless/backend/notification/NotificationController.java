@@ -60,4 +60,10 @@ public class NotificationController {
         notificationService.deleteNotification(notificationId, authentication.getName());
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAllNotifications(Authentication authentication) {
+        notificationService.deleteAllNotifications(authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
 }

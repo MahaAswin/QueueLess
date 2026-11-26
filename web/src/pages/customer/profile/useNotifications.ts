@@ -12,6 +12,7 @@ export const useNotifications = () => {
   const [filter, setFilter] = useState<NotificationFilter>('ALL');
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [markingAll, setMarkingAll] = useState<boolean>(false);
+  const [clearingAll, setClearingAll] = useState<boolean>(false);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
@@ -109,6 +110,27 @@ export const useNotifications = () => {
     }
   };
 
+  const clearAllNotifications = async () => {
+    if (clearingAll || notifications.length === 0) return;
+    setClearingAll(true);
+
+    const currentIds = notifications.map((n) => n.id);
+
+    // Optimistic update
+    setNotifications([]);
+    setUnreadCount(0);
+
+    try {
+      await notificationService.clearAllNotifications(currentIds);
+      window.dispatchEvent(new CustomEvent('queueless:notifications-updated'));
+    } catch (err) {
+      console.warn('Failed to clear notifications:', err);
+      fetchNotifications();
+    } finally {
+      setClearingAll(false);
+    }
+  };
+
   const filteredNotifications = notifications.filter((item) => {
     if (filter === 'UNREAD') return !item.read;
     if (filter === 'ORDERS') {
@@ -133,9 +155,11 @@ export const useNotifications = () => {
     setFilter,
     actionLoadingId,
     markingAll,
+    clearingAll,
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    clearAllNotifications,
     refresh: fetchNotifications,
   };
 };

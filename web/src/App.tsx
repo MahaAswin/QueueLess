@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { AppRoutes } from './routes/AppRoutes';
 import { apiClient } from './api/axiosClient';
 import { CapacitorBridge } from './components/native/CapacitorBridge';
+import { GlobalLoadingIndicator } from './components/feedback/GlobalLoadingIndicator';
 
 export function App() {
   useEffect(() => {
@@ -16,6 +17,7 @@ export function App() {
   return (
     <BrowserRouter>
       <CapacitorBridge />
+      <GlobalLoadingIndicator />
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>

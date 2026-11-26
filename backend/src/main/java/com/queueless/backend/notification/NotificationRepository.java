@@ -17,4 +17,6 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     long countByRecipientAndReadFalse(User recipient);
 
     List<Notification> findByRecipientAndReadFalse(User recipient);
+
+    void deleteByRecipient(User recipient);
 }

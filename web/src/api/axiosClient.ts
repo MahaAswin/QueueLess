@@ -2,6 +2,7 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { tokenStorage } from '../utils/storage';
 import type { AuthResponse } from '../types/auth.types';
 import { getApiBaseUrl } from './config';
+import { loadingTracker } from '../services/loadingTracker';
 
 const BASE_URL = getApiBaseUrl();
 
@@ -14,16 +15,25 @@ export const apiClient = axios.create({
   },
 });
 
-// Request Interceptor: Attach JWT Bearer Token
+// Request Interceptor: Attach JWT Bearer Token & Notify Loading Tracker
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    const isSilent = config.headers?.['X-Silent-Loading'] === 'true' || config.url?.includes('/api/health');
+    if (!isSilent) {
+      loadingTracker.start();
+      (config as any)._tracked = true;
+    }
+
     const token = tokenStorage.getAccessToken();
     if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    loadingTracker.stop();
+    return Promise.reject(error);
+  }
 );
 
 // Response Interceptor: Handle Token Expiration and Refresh Queue
@@ -45,9 +55,18 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if ((response.config as any)?._tracked) {
+      loadingTracker.stop();
+    }
+    return response;
+  },
   async (error: AxiosError) => {
-    const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+    const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean; _tracked?: boolean }) | undefined;
+
+    if (originalRequest?._tracked) {
+      loadingTracker.stop();
+    }
 
     if (!error.response || error.response.status !== 401 || !originalRequest) {
       return Promise.reject(error);

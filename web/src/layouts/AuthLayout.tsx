@@ -83,8 +83,8 @@ export const AuthLayout: React.FC = () => {
         }}
       >
         <div style={{ width: '100%', maxWidth: 420 }}>
-          <div className="mobile-auth-logo" style={{ marginBottom: 28, justifyContent: 'center' }}>
-            <QueueLessLogo size="lg" subtitle="EXPRESS PICKUP" />
+          <div className="mobile-auth-logo" style={{ marginBottom: 24, justifyContent: 'center' }}>
+            <QueueLessLogo variant="hero" size={72} subtitle="EXPRESS PICKUP" />
           </div>
           <Outlet />
         </div>

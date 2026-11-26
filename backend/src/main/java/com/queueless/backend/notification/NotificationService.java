@@ -120,6 +120,12 @@ public class NotificationService {
         notificationRepository.delete(notification);
     }
 
+    @Transactional
+    public void deleteAllNotifications(String email) {
+        User recipient = getUserByEmail(email);
+        notificationRepository.deleteByRecipient(recipient);
+    }
+
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));

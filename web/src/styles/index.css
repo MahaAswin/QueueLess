@@ -258,9 +258,9 @@ input, select, textarea {
   position: fixed;
   inset: 0;
   background-color: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  z-index: 55;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 990;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-smooth);
@@ -744,14 +744,20 @@ input, select, textarea {
 
 @media (max-width: 768px) {
   .app-sidebar {
-    width: var(--sidebar-width) !important;
+    width: 280px !important;
+    max-width: 82vw !important;
     transform: translateX(-100%);
-    z-index: 50;
+    z-index: 1000 !important;
+    background-color: var(--color-bg) !important;
+    padding-top: var(--safe-top, 0px);
+    padding-bottom: var(--safe-bottom, 0px);
+    box-shadow: none;
+    transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
   }
   .app-sidebar.expanded,
   .app-sidebar.open {
-    transform: translateX(0);
-    box-shadow: var(--shadow-xl);
+    transform: translateX(0) !important;
+    box-shadow: 4px 0 32px rgba(15, 23, 42, 0.22) !important;
   }
   .app-sidebar .nav-label,
   .app-sidebar .sidebar-section-title,
@@ -778,6 +784,7 @@ input, select, textarea {
   }
   .drawer-backdrop {
     display: block;
+    z-index: 990 !important;
   }
   .drawer-backdrop.active {
     opacity: 1;
@@ -818,14 +825,19 @@ input, select, textarea {
     bottom: 0;
     left: 0;
     right: 0;
-    height: calc(60px + var(--safe-bottom));
-    padding-bottom: var(--safe-bottom);
-    background-color: var(--color-surface);
-    border-top: 1px solid var(--color-border);
+    height: calc(64px + var(--safe-bottom, 0px));
+    padding-bottom: max(6px, var(--safe-bottom, 0px));
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(234, 223, 200, 0.8);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
     z-index: 45;
     align-items: center;
     justify-content: space-around;
-    box-shadow: 0 -3px 12px rgba(15, 23, 42, 0.05);
+    box-shadow: 0 -4px 24px rgba(15, 81, 50, 0.08), 0 -1px 3px rgba(0, 0, 0, 0.02);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   }
 
   .mobile-bottom-nav-item {
@@ -835,18 +847,22 @@ input, select, textarea {
     justify-content: center;
     flex: 1;
     height: 100%;
-    color: var(--color-text-muted);
+    color: #64748B;
     text-decoration: none;
-    font-size: 11px;
-    font-weight: 500;
-    padding: 6px 0;
-    transition: color 0.15s ease;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    padding: 4px 0 2px 0;
+    position: relative;
+    transition: transform var(--transition-fast), color var(--transition-fast);
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .mobile-bottom-nav-item:active {
+    transform: scale(0.92);
   }
 
   .mobile-bottom-nav-item.active {
     color: var(--color-primary);
-    font-weight: 700;
   }
 
   .mobile-bottom-nav-icon-wrap {
@@ -854,15 +870,64 @@ input, select, textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 3px;
+    padding: 4px 14px;
+    border-radius: 16px;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-bottom: 2px;
+  }
+
+  .mobile-bottom-nav-icon-wrap.active {
+    background-color: rgba(15, 81, 50, 0.12);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+  }
+
+  .mobile-bottom-nav-label {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.1px;
+    color: #64748B;
+    transition: color 0.18s ease, font-weight 0.18s ease;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .mobile-bottom-nav-item.active .mobile-bottom-nav-label {
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+
+  .mobile-nav-active-dot {
+    position: absolute;
+    bottom: 2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    box-shadow: 0 0 6px rgba(15, 81, 50, 0.45);
+    animation: fadeInDot 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fadeInDot {
+    from {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   .mobile-cart-badge {
     position: absolute;
-    top: -4px;
-    right: -8px;
+    top: -2px;
+    right: 2px;
     background-color: var(--color-accent);
     color: #0F5132;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     font-size: 10px;
     font-weight: 800;
     border-radius: var(--radius-full);
@@ -871,12 +936,12 @@ input, select, textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 3px;
+    padding: 0 4px;
     box-shadow: 0 0 0 2px var(--color-surface);
   }
 
   .customer-layout .app-content {
-    padding-bottom: calc(76px + var(--safe-bottom)) !important;
+    padding-bottom: calc(84px + var(--safe-bottom, 0px)) !important;
   }
 
   /* Responsive Tables on mobile */

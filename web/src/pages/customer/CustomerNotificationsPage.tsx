@@ -6,6 +6,7 @@ import {
   CheckCheck,
   RefreshCw,
   Sparkles,
+  Trash2,
 } from 'lucide-react';
 import { useNotifications, type NotificationFilter } from './profile/useNotifications';
 import { NotificationItemCard } from './profile/NotificationItemCard';
@@ -26,9 +27,11 @@ export const CustomerNotificationsPage: React.FC = () => {
     setFilter,
     actionLoadingId,
     markingAll,
+    clearingAll,
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    clearAllNotifications,
     refresh,
   } = useNotifications();
 
@@ -101,28 +104,52 @@ export const CustomerNotificationsPage: React.FC = () => {
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          {/* Mark All As Read */}
+          <Button
+            variant={unreadCount > 0 ? "primary" : "outline"}
+            size="sm"
+            onClick={markAllAsRead}
+            disabled={unreadCount === 0 || markingAll}
+            isLoading={markingAll}
+            icon={<CheckCheck size={15} />}
+            title={unreadCount === 0 ? "All notifications are already read" : "Mark all notifications as read"}
+          >
+            {unreadCount > 0 ? `Mark All Read (${unreadCount})` : 'All Read'}
+          </Button>
+
+          {/* Clear All Notifications */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (window.confirm('Are you sure you want to clear all notifications? This cannot be undone.')) {
+                clearAllNotifications();
+              }
+            }}
+            disabled={rawCount === 0 || clearingAll}
+            isLoading={clearingAll}
+            icon={<Trash2 size={14} />}
+            style={{
+              color: rawCount > 0 ? 'var(--color-error)' : 'var(--color-text-muted)',
+              borderColor: rawCount > 0 ? 'var(--color-error-border)' : 'var(--color-border)',
+            }}
+            title="Clear all notifications"
+          >
+            Clear All
+          </Button>
+
+          {/* Refresh */}
           <Button
             variant="outline"
             size="sm"
             onClick={refresh}
             isLoading={loading}
             icon={<RefreshCw size={14} />}
+            title="Refresh notifications"
           >
             Refresh
           </Button>
-
-          {unreadCount > 0 && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={markAllAsRead}
-              isLoading={markingAll}
-              icon={<CheckCheck size={15} />}
-            >
-              Mark All as Read
-            </Button>
-          )}
         </div>
       </div>
 

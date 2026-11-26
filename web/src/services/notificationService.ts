@@ -34,4 +34,15 @@ export const notificationService = {
   async deleteNotification(notificationId: string): Promise<void> {
     await apiClient.delete(`/api/notifications/${notificationId}`);
   },
+
+  async clearAllNotifications(notificationIds: string[] = []): Promise<void> {
+    try {
+      await apiClient.delete('/api/notifications');
+    } catch {
+      // Robust cloud fallback: if backend is still deploying, delete sequentially in parallel
+      if (notificationIds.length > 0) {
+        await Promise.allSettled(notificationIds.map((id) => this.deleteNotification(id)));
+      }
+    }
+  },
 };

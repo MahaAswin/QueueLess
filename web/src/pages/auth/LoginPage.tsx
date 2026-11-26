@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle, CloudLightning } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -16,6 +16,20 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSeconds, setSubmitSeconds] = useState(0);
+
+  useEffect(() => {
+    let timer: any = null;
+    if (isSubmitting) {
+      setSubmitSeconds(0);
+      timer = setInterval(() => {
+        setSubmitSeconds((s) => s + 1);
+      }, 1000);
+    } else {
+      setSubmitSeconds(0);
+    }
+    return () => clearInterval(timer);
+  }, [isSubmitting]);
 
   const from = (location.state as any)?.from?.pathname || null;
 
@@ -103,11 +117,37 @@ export const LoginPage: React.FC = () => {
           variant="primary"
           size="lg"
           isLoading={isSubmitting}
+          loadingText="Signing In..."
           style={{ width: '100%', marginTop: 8 }}
           icon={<ArrowRight size={17} />}
         >
           Sign In
         </Button>
+
+        {isSubmitting && submitSeconds >= 2 && (
+          <div
+            style={{
+              marginTop: 12,
+              padding: '10px 14px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'var(--color-tint, #F0FDF4)',
+              border: '1px solid var(--color-tint-border, #BBF7D0)',
+              color: 'var(--color-primary, #0F5132)',
+              fontSize: 12.5,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              animation: 'fadeIn 0.25s ease',
+            }}
+          >
+            <CloudLightning size={16} className="pulse-lightning" style={{ flexShrink: 0 }} />
+            <span>
+              {submitSeconds >= 5
+                ? 'Waking up secure cloud server (Render free tier). Hang tight!'
+                : 'Connecting to QueueLess server... Please wait a moment.'}
+            </span>
+          </div>
+        )}
       </form>
 
       <div style={{ marginTop: 28, textAlign: 'center', fontSize: 14, color: 'var(--color-text-muted)' }}>

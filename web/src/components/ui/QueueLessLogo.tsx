@@ -1,5 +1,6 @@
 import React from 'react';
 import logoImg from '../../assets/logo.png';
+import logoMarkImg from '../../assets/logo-mark.png';
 
 export interface QueueLessLogoProps {
   /**
@@ -19,9 +20,9 @@ export interface QueueLessLogoProps {
    */
   textColor?: string;
   /**
-   * Whether to render the text side-by-side or logo mark only
+   * Whether to render the text side-by-side or logo mark only or full hero logo
    */
-  variant?: 'standard' | 'mark-only' | 'hero';
+  variant?: 'standard' | 'mark-only' | 'hero' | 'full';
   /**
    * Optional custom class name
    */
@@ -52,7 +53,8 @@ export const QueueLessLogo: React.FC<QueueLessLogoProps> = ({
     ? { icon: size, title: Math.round(size * 0.48), sub: Math.round(size * 0.28), gap: Math.round(size * 0.25) }
     : SIZE_MAP[size];
 
-  if (variant === 'hero') {
+  if (variant === 'hero' || variant === 'full') {
+    const imgHeight = typeof size === 'number' ? size : dimensions.icon * 2.2;
     return (
       <div
         className={`queueless-logo-hero ${className}`}
@@ -61,7 +63,7 @@ export const QueueLessLogo: React.FC<QueueLessLogoProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           textAlign: 'center',
-          gap: 12,
+          gap: 10,
           cursor: onClick ? 'pointer' : 'default',
         }}
         onClick={onClick}
@@ -70,9 +72,9 @@ export const QueueLessLogo: React.FC<QueueLessLogoProps> = ({
           src={logoImg}
           alt="QueueLess Official Logo"
           style={{
-            height: dimensions.icon * 2,
+            height: imgHeight,
             width: 'auto',
-            maxHeight: 120,
+            maxHeight: 140,
             objectFit: 'contain',
             borderRadius: 12,
           }}
@@ -83,7 +85,7 @@ export const QueueLessLogo: React.FC<QueueLessLogoProps> = ({
               fontSize: dimensions.sub,
               fontWeight: 700,
               color: subtitleColor || 'var(--color-primary, #0F5132)',
-              letterSpacing: '1px',
+              letterSpacing: '1.2px',
               textTransform: 'uppercase',
             }}
           >
@@ -97,7 +99,7 @@ export const QueueLessLogo: React.FC<QueueLessLogoProps> = ({
   if (variant === 'mark-only') {
     return (
       <img
-        src={logoImg}
+        src={logoMarkImg}
         alt="QueueLess Logo"
         className={`queueless-logo-mark ${className}`}
         style={{
@@ -125,7 +127,7 @@ export const QueueLessLogo: React.FC<QueueLessLogoProps> = ({
       onClick={onClick}
     >
       <img
-        src={logoImg}
+        src={logoMarkImg}
         alt="QueueLess"
         style={{
           height: dimensions.icon,

@@ -15,20 +15,22 @@ import {
 import { QueueLessLogo } from '../components/ui/QueueLessLogo';
 import { useAuth } from '../context/AuthContext';
 import { notificationService } from '../services/notificationService';
+import { cartService } from '../services/cartService';
 
 interface CustomerNavItem {
   label: string;
+  mobileLabel?: string;
   path: string;
-  icon: React.ComponentType<{ size?: number; className?: string; color?: string }>;
+  icon: React.ComponentType<{ size?: number; className?: string; color?: string; strokeWidth?: number }>;
   end?: boolean;
 }
 
 const CUSTOMER_NAV_ITEMS: CustomerNavItem[] = [
-  { label: 'Home', path: '/customer', icon: Home, end: true },
-  { label: 'Explore Shops', path: '/customer/shops', icon: Store },
-  { label: 'My Cart', path: '/customer/cart', icon: ShoppingCart },
-  { label: 'Orders & Pickups', path: '/customer/orders', icon: Receipt },
-  { label: 'Account Profile', path: '/customer/profile', icon: User },
+  { label: 'Home', mobileLabel: 'Home', path: '/customer', icon: Home, end: true },
+  { label: 'Explore Shops', mobileLabel: 'Shops', path: '/customer/shops', icon: Store },
+  { label: 'My Cart', mobileLabel: 'Cart', path: '/customer/cart', icon: ShoppingCart },
+  { label: 'Orders & Pickups', mobileLabel: 'Orders', path: '/customer/orders', icon: Receipt },
+  { label: 'Account Profile', mobileLabel: 'Profile', path: '/customer/profile', icon: User },
 ];
 
 export const CustomerLayout: React.FC = () => {
@@ -38,6 +40,7 @@ export const CustomerLayout: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number>(0);
+  const [cartCount, setCartCount] = useState<number>(0);
   const [hoveredTooltip, setHoveredTooltip] = useState<{ label: string; top: number } | null>(null);
 
   // Extract friendly display name from logged-in user profile
@@ -106,18 +109,33 @@ export const CustomerLayout: React.FC = () => {
       }
     };
 
+    const fetchCart = async () => {
+      try {
+        const cart = await cartService.getCart();
+        if (isMounted) setCartCount(cart?.totalItemCount ?? 0);
+      } catch {
+        // Soft fail
+      }
+    };
+
     fetchUnread();
+    fetchCart();
 
     const handleUpdate = () => {
       fetchUnread();
     };
+    const handleCartUpdate = () => {
+      fetchCart();
+    };
 
     window.addEventListener('queueless:notifications-updated', handleUpdate);
+    window.addEventListener('queueless:cart-updated', handleCartUpdate);
     return () => {
       isMounted = false;
       window.removeEventListener('queueless:notifications-updated', handleUpdate);
+      window.removeEventListener('queueless:cart-updated', handleCartUpdate);
     };
-  }, []);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -447,6 +465,29 @@ export const CustomerLayout: React.FC = () => {
               aria-label="My Cart"
             >
               <ShoppingCart size={20} />
+              {cartCount > 0 && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 2,
+                    minWidth: 16,
+                    height: 16,
+                    borderRadius: 'var(--radius-full)',
+                    backgroundColor: 'var(--color-accent)',
+                    color: '#0F5132',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 4px',
+                    boxShadow: '0 0 0 2px var(--color-surface)',
+                  }}
+                >
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
             </NavLink>
 
             <NavLink
@@ -518,6 +559,7 @@ export const CustomerLayout: React.FC = () => {
       <nav className="mobile-bottom-nav" aria-label="Mobile Bottom Navigation">
         {CUSTOMER_NAV_ITEMS.map((item) => {
           const Icon = item.icon;
+          const isCart = item.path === '/customer/cart';
           return (
             <NavLink
               key={item.path}
@@ -525,10 +567,22 @@ export const CustomerLayout: React.FC = () => {
               end={item.end}
               className={({ isActive }) => `mobile-bottom-nav-item ${isActive ? 'active' : ''}`}
             >
-              <div className="mobile-bottom-nav-icon-wrap">
-                <Icon size={20} />
-              </div>
-              <span className="mobile-bottom-nav-label">{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  <div className={`mobile-bottom-nav-icon-wrap ${isActive ? 'active' : ''}`}>
+                    <Icon size={20} strokeWidth={isActive ? 2.3 : 1.9} />
+                    {isCart && cartCount > 0 && (
+                      <span className="mobile-cart-badge">
+                        {cartCount > 99 ? '99+' : cartCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className="mobile-bottom-nav-label">
+                    {item.mobileLabel || item.label}
+                  </span>
+                  {isActive && <span className="mobile-nav-active-dot" />}
+                </>
+              )}
             </NavLink>
           );
         })}
